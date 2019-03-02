@@ -30,8 +30,8 @@
     "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
-    "dat.gui": "^0.7.5",
     "@types/three": "^0.93.22",
+    "dat.gui": "^0.7.5",
     "three": "^0.101.1",
     "three-orbitcontrols-ts": "^0.1.2"
   }
