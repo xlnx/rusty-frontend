@@ -5,7 +5,7 @@ interface HousePrototype {
 }
 
 interface House {
-	proto: HousePrototype
+	proto: HousePrototype,
 }
 
 interface PlainCoord {

@@ -32,7 +32,9 @@
   "dependencies": {
     "@types/three": "^0.93.22",
     "dat.gui": "^0.7.5",
+    "quadtree-lib": "^1.0.9",
     "three": "^0.101.1",
+    "three-obj-mtl-loader": "^1.0.3",
     "three-orbitcontrols-ts": "^0.1.2"
   }
 }
