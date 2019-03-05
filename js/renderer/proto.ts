@@ -1,7 +1,7 @@
 import * as THREE from "three"
 
 export default class RendererPrototype {
-	public readonly threeJsRenderer = new THREE.WebGLRenderer()
+	public readonly threeJsRenderer = new THREE.WebGLRenderer({ antialias: true })
 	protected readonly nextFrame = () => this.update()
 
 	private _started: boolean = false
