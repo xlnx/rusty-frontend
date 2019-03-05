@@ -1,10 +1,12 @@
 import VRRendererPrototype from "../renderer/vrproto"
 import * as THREE from "three"
-import ObjAsset from "../asset/obj"
+import * as dat from "dat.gui"
 import * as Quadtree from "quadtree-lib"
-import Building from "../asset/building";
-import Selector from "../wrapper/selector";
-import { DistUnit } from "../asset/def";
+import ObjAsset from "../asset/obj"
+import Building from "../asset/building"
+import Selector from "../wrapper/selector"
+import { DistUnit } from "../asset/def"
+import Ground from "../asset/ground";
 
 class BBox {
 	constructor(
@@ -15,21 +17,35 @@ class BBox {
 	) { }
 }
 
-const w = 50, h = 50
-
 export default class CityDemoRenderer extends VRRendererPrototype {
 
-	private raycaster = new THREE.Raycaster()
 	private selector = new Selector(this.scene)
-
 	private mouse = new THREE.Vector2()
 
-	private ground: THREE.Mesh
-
+	private ground = new Ground(50, 50)
 	private candidate?: Building
+
+	private readonly gui = new dat.GUI()
+
+	private point?: THREE.Vector2
+
+	// gui controlled variables
+	private mode: "building" | "road" | "preview" = "preview"
 
 	constructor() {
 		super()
+
+		this.gui.add(this, "mode", ["building", "road", "preview"])
+			.onChange((val: any) => {
+				if (val == "building") {
+					this.scene.add(this.candidate!.object!)
+				} else {
+					this.scene.remove(this.candidate!.object!)
+				}
+				if (val == "road") {
+					this.point = undefined
+				}
+			})
 
 		const quadTree = new Quadtree({ width: 1e5, height: 1e5 })
 		quadTree.push(new BBox(10, 10, 1, 2))
@@ -42,7 +58,7 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		Building.load("building2-obj/building_04.json")
 			.then(protos => {
 				this.candidate = protos[0]
-				this.scene.add(this.candidate.object!)
+				// this.scene.add(this.candidate.object!)
 				// for (let proto of protos) {
 				// 	const building = Building.from(proto)
 				// 	this.scene.add(building.object!)
@@ -51,12 +67,7 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 
 		this.camera.position.z = 4
 
-		let geometry = new THREE.PlaneGeometry(w * DistUnit, h * DistUnit, w, h)
-		geometry.rotateX(-Math.PI / 2)
-		geometry.translate(0, -1e-4, 0)
-		let meshMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 })
-		this.ground = new THREE.Mesh(geometry, meshMaterial)
-		this.scene.add(this.ground)
+		this.scene.add(this.ground.object)
 
 		let light = new THREE.PointLight(0xffffff, 2, 0)
 		light.position.set(0, 1.5, 1)
@@ -69,32 +80,48 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 			this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1
 			this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1
 		})
+		window.addEventListener("mousedown", (e: MouseEvent) => {
+			if (this.mode == "road") {
+				this.point = this.ground.intersect(this.mouse, this.camera)
+			}
+		})
+		window.addEventListener("mouseup", (e: MouseEvent) => {
+			if (this.mode == "road") {
+				const coord = this.ground.intersect(this.mouse, this.camera)
+				if (coord) {
+					// 
+				}
+				this.point = undefined
+			}
+		})
 	}
 
 	OnUpdate() {
 		super.OnUpdate()
 
-		this.raycaster.setFromCamera(this.mouse, this.camera)
-		const ints = this.raycaster.intersectObject(this.ground)
-		if (ints.length) {
-			const int = ints[0]
-			const grid = int.uv!.multiply(new THREE.Vector2(w, h)).round()
-				.sub(new THREE.Vector2(w, h).divideScalar(2))
-				.multiply(new THREE.Vector2(1, -1))
+		switch (this.mode) {
+			case "road": {
+				if (this.point) {
+					//
+				}
+			} break
+			case "building": {
+				const coord = this.ground.intersect(this.mouse, this.camera)
+				if (coord) {
+					const pos = coord.multiplyScalar(DistUnit)
+					this.candidate!.object!.position.set(pos.x, 0, pos.y)
+				}
 
-			const pos = grid.multiplyScalar(DistUnit)
-
-			this.candidate!.object!.position.set(pos.x, 0, pos.y)
-		}
-
-		const res = this.selector.select(this.mouse, this.camera)
-		if (res) {
-			const { type, object: obj } = res
-			const wnd = <any>window
-			if (wnd["sel"] != obj) {
-				console.log("selected changed")
-				wnd["sel"] = obj
-			}
+				const res = this.selector.select(this.mouse, this.camera)
+				if (res) {
+					const { type, object: obj } = res
+					const wnd = <any>window
+					if (wnd["sel"] != obj) {
+						console.log("selected changed")
+						wnd["sel"] = obj
+					}
+				}
+			} break
 		}
 	}
 

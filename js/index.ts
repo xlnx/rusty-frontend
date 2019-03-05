@@ -8,3 +8,6 @@ let renderer = new CityDemoRenderer();
 (<any>window)["renderer"] = renderer
 renderer.start()
 
+// import GUITest from "./demos/gui"
+// new GUITest()
+
