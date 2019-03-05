@@ -4,6 +4,7 @@ import ObjAsset from "../asset/obj"
 import * as Quadtree from "quadtree-lib"
 import Building from "../asset/building";
 import Selector from "../wrapper/selector";
+import { DistUnit } from "../asset/def";
 
 class BBox {
 	constructor(
@@ -14,11 +15,18 @@ class BBox {
 	) { }
 }
 
+const w = 50, h = 50
+
 export default class CityDemoRenderer extends VRRendererPrototype {
 
+	private raycaster = new THREE.Raycaster()
 	private selector = new Selector(this.scene)
 
 	private mouse = new THREE.Vector2()
+
+	private ground: THREE.Mesh
+
+	private candidate?: Building
 
 	constructor() {
 		super()
@@ -34,23 +42,22 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 
 		Building.load("building2-obj/building_04.json")
 			.then(protos => {
-				for (let proto of protos) {
-					const building = Building.from(proto)
-					this.scene.add(building.object!)
-				}
+				this.candidate = protos[0]
+				this.scene.add(this.candidate.object!)
+				// for (let proto of protos) {
+				// 	const building = Building.from(proto)
+				// 	this.scene.add(building.object!)
+				// }
 			})
 
 		this.camera.position.z = 4
-		let geometry = new THREE.PlaneGeometry(5, 5, 100, 100)
-		let meshMaterial = new THREE.MeshLambertMaterial({
-			color: 0x666666,
-			side: THREE.DoubleSide
-		})
-		let plain = new THREE.Mesh(geometry, meshMaterial)
-		this.scene.add(plain)
-		plain.translateY(-1e-4)
-		// plain.rotateX(Math.PI/2);
-		plain.rotateX(Math.PI / 2)
+
+		let geometry = new THREE.PlaneGeometry(w * DistUnit, h * DistUnit, w, h)
+		geometry.rotateX(-Math.PI / 2)
+		geometry.translate(0, -1e-4, 0)
+		let meshMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 })
+		this.ground = new THREE.Mesh(geometry, meshMaterial)
+		this.scene.add(this.ground)
 
 		let light = new THREE.PointLight(0xffffff, 2, 0)
 		light.position.set(0, 1.5, 1)
@@ -65,8 +72,21 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		})
 	}
 
-	OnNewFrame() {
-		super.OnNewFrame()
+	OnUpdate() {
+		super.OnUpdate()
+
+		this.raycaster.setFromCamera(this.mouse, this.camera)
+		const ints = this.raycaster.intersectObject(this.ground)
+		if (ints.length) {
+			const int = ints[0]
+			const grid = int.uv!.multiply(new THREE.Vector2(w, h)).round()
+				.sub(new THREE.Vector2(w, h).divideScalar(2))
+				.multiply(new THREE.Vector2(1, -1))
+
+			const pos = grid.multiplyScalar(DistUnit)
+
+			this.candidate!.object!.position.set(pos.x, 0, pos.y)
+		}
 
 		const res = this.selector.select(this.mouse, this.camera)
 		if (res) {
@@ -78,4 +98,8 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 			}
 		}
 	}
+
+	// OnNewFrame() {
+	// 	super.OnNewFrame()
+	// }
 }
