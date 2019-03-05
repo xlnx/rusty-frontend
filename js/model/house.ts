@@ -1,9 +1,12 @@
 class HousePrototype {
   readonly model: any
-  readonly w: number
-  readonly h: number
+  // readonly w: number
+  // readonly h: number
 
-  constructor(filename: string) {
+  constructor(filename: string,
+    readonly w: number,
+    readonly h: number) {
+
     //   const data = aquire(filename)
     //   model = loadModel(data.model)
     // w = data.w
@@ -11,5 +14,8 @@ class HousePrototype {
   }
 }
 class House {
-  constructor(readonly proto: HousePrototype) { }
+  constructor(readonly type: HousePrototype, readonly x: number, readonly y: number) { }
+  crossRoad(road: Road): boolean {
+
+  }
 }

@@ -21,7 +21,8 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 	constructor() {
 		super()
 
-		const quadTree = new Quadtree({ width: 1e5, height: 1e5 })
+		const quadTree = new Quadtree({ x: -1e5, y: -1e5, width: 1e5, height: 1e5 })
+		console.log(quadTree)
 		quadTree.push(new BBox(10, 10, 1, 2))
 		// console.log(quadTree)
 

@@ -93,7 +93,7 @@ class Road {
 
 class Basemap {
   edge = new Map<Point, Road[]>()
-  houseTree = []
+  houseTree = new Array<House>()
   roadTree = new Array<Road>()
 
   addRoad(from: Point, to: Point): Road[] {
@@ -146,7 +146,10 @@ class Basemap {
     }
     this.roadTree.push(road)
   }
-  addHouse(pt: Point, house: HousePrototype): boolean { }
+  addHouse(pt: Point, type: HousePrototype): boolean {
+    let newHouse = new House(type, pt.x, pt.y)
+    this.houseTree.push(newHouse)
+  }
   alignRoad(from: Point, to: Point): boolean {
 
   }
@@ -156,7 +159,14 @@ class Basemap {
   // selectHouse(pt: Point): House | null
   // selectRoad(pt: Point): Road | null
   removeHouse(house: House): void {
-
+    //remove house in tree
+    for (let i = 0; i < this.houseTree.length; ++i) {
+      let h = this.houseTree[i]
+      if (h == house) {
+        this.houseTree.splice(i, 1)
+        break
+      }
+    }
   }
   removeRoad(road: Road): void {
     //remove road in tree
