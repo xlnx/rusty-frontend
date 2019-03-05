@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import ObjAsset from "./obj";
 import { AssetPath, DistUnit, ObjectTag } from "./def";
+import { Road } from "../model/basemap";
 
 interface TransformStep {
 	rotate?: number[],
@@ -18,6 +19,7 @@ export default class Building {
 
 	private frm?: THREE.Mesh
 	private obj?: THREE.Object3D
+	private bbox?: THREE.Box2
 
 	get object() { return this.obj }
 	get frame() { return this.frm }
@@ -110,12 +112,29 @@ export default class Building {
 		})
 	}
 
-	static from(proto: Building): Building {
+	static from(proto: Building, road: Road, offset: number): Building {
 		const inst = new Building()
 
 		inst.obj = proto.obj!.clone();
 		(<ObjectTag>inst.obj.userData).object = inst
 
+		// set pos and orientation of boj
+
+		const bbox = new THREE.Box3().setFromObject(inst.obj)
+		const min = new THREE.Vector2(bbox.min.x, bbox.min.z)
+		const max = new THREE.Vector2(bbox.max.x, bbox.max.z)
+		inst.bbox = new THREE.Box2(min, max)
+
 		return inst
+	}
+
+	crossRoad(road: Road): boolean {
+
+		//assume road width is integer
+		let center = road.from.add(road.to).divideScalar(2)
+		let dir = road.to.sub(road.from).normalize
+		let normal = dir.
+		
+
 	}
 }

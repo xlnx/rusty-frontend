@@ -1,10 +1,12 @@
-import { test_json } from "../../pkg/crate_bg";
+import Building from "../asset/building";
+import { Point } from "./def";
+import * as THREE from "three"
 
 class Road {
-  houses: { house: House, offset: number }[]
+  Buildings: { building: Building, offset: number }[]
   // model: any
   constructor(readonly from: Point, readonly to: Point) {
-    this.houses = new Array()
+    this.Buildings = new Array()
   }
   crossRoad(road: Road): boolean {
     //1.rapid judge: rectangle coincide
@@ -19,81 +21,30 @@ class Road {
       Math.max(a.y, b.y) >= Math.min(c.y, d.y)
     ) {
       //possibly line conincide
-      let ab = b.minus(a)
-      let ac = c.minus(a)
-      let ad = d.minus(a)
-      let ca = a.minus(c)
-      let cd = d.minus(c)
-      let cb = b.minus(c)
+      let ab = b.sub(a)
+      let ac = c.sub(a)
+      let ad = d.sub(a)
+      let ca = a.sub(c)
+      let cd = d.sub(c)
+      let cb = b.sub(c)
       //2.cross standing experiment
       if (
-        ac.cross(ab) * ad.cross(ab) <= 0 &&
-        ca.cross(cd) * cb.cross(cd) <= 0
+        (<any>ac).cross(ab) * (<any>ad).cross(ab) <= 0 &&
+        (<any>ca).cross(cd) * (<any>cb).cross(cd) <= 0
       ) return true
     }
     return false
   }
   distOfPoint(pt: Point): number {
-    let ab = this.to.minus(this.from)
-    let ac = pt.minus(this.from)
-    return Math.abs(ab.cross(ac)) / ab.norm()
+    let ab = this.to.sub(this.from)
+    let ac = pt.sub(this.from)
+    return Math.abs((<any>ab).cross(ac)) / ab.length()
   }
 }
 
-// class QuadTree<T> {
-//   static maxDepth = 8
-//   isLeaf: boolean
-//   nw: QuadTree<T> | null
-//   ne: QuadTree<T> | null
-//   sw: QuadTree<T> | null
-//   se: QuadTree<T> | null
-//   objects: T[]
-//   constructor(
-//     readonly depth: number,
-//     readonly center: Point,
-//     readonly radius: number,
-//     readonly objDist: function(Point, T): number,
-//     //an obj should be in the node, but not actually be
-//     readonly objShouldBeInNode: function(T): boolean,
-//     //an obj is indeed in the node
-//     readonly objIsInNode: function(T): boolean
-//   ) {
-//     this.objects = new Array()
-//     if (this.depth < QuadTree.maxDepth) {
-//       let newRadius = this.radius / 2
-//       let newDepth = this.depth + 1
-//       this.nw = new QuadTree<T>(newDepth, this.center.plus(new Point({ x: -newRadius, y: +newRadius })), newRadius, this.objDist, this.objShouldBeInNode, this.objIsInNode)
-//       this.ne = new QuadTree<T>(newDepth, this.center.plus(new Point({ x: +newRadius, y: +newRadius })), newRadius, this.objDist, this.objShouldBeInNode, this.objIsInNode)
-//       this.se = new QuadTree<T>(newDepth, this.center.plus(new Point({ x: +newRadius, y: -newRadius })), newRadius, this.objDist, this.objShouldBeInNode, this.objIsInNode)
-//       this.sw = new QuadTree<T>(newDepth, this.center.plus(new Point({ x: -newRadius, y: -newRadius })), newRadius, this.objDist, this.objShouldBeInNode, this.objIsInNode)
-//       this.isLeaf = false
-//     }
-//     else {
-//       this.isLeaf = true
-//       this.nw = null
-//       this.ne = null
-//       this.se = null
-//       this.sw = null
-//     }
-//   }
-//   getNearestObj(pt: Point): T {
-//     let minDist = +Infinity
-//     let res = this.objects[0]
-//     this.objects.forEach((t) => {
-//       let dist = this.objDist(pt, t);
-//       if (dist < minDist) {
-//         minDist = dist
-//         res = t
-//       }
-//     })
-//     return res
-//   }
-// }
-// type QuadTree<T> = Array<T>
-
 class Basemap {
   edge = new Map<Point, Road[]>()
-  houseTree = new Array<House>()
+  BuildingTree = new Array<Building>()
   roadTree = new Array<Road>()
 
   addRoad(from: Point, to: Point): Road[] {
@@ -104,11 +55,11 @@ class Basemap {
       if (road.crossRoad(newRoad)) {
         let c = road.from
         let d = road.to
-        let cd = d.minus(c)
+        let cd = d.sub(c)
         let dist1 = newRoad.distOfPoint(c)
         let dist2 = newRoad.distOfPoint(d)
         let t = dist1 / (dist1 + dist2)
-        let crossPt = new Point(c.x + cd.x * t, c.y + cd.y * t)
+        let crossPt = new THREE.Vector2(c.x + cd.x * t, c.y + cd.y * t)
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
           this.removeRoad(road)
@@ -146,24 +97,23 @@ class Basemap {
     }
     this.roadTree.push(road)
   }
-  addHouse(pt: Point, type: HousePrototype): boolean {
-    let newHouse = new House(type, pt.x, pt.y)
-    this.houseTree.push(newHouse)
+  addBuilding(building: Building): boolean {
+    this.BuildingTree.push(building)
   }
   alignRoad(from: Point, to: Point): boolean {
 
   }
-  alignHouse(pt: Point, house: HousePrototype): { center: Point, angle: number, valid: boolean } {
+  alignBuilding(pt: Point, Building: BuildingPrototype): { center: Point, angle: number, valid: boolean } {
 
   }
-  // selectHouse(pt: Point): House | null
+  // selectBuilding(pt: Point): Building | null
   // selectRoad(pt: Point): Road | null
-  removeHouse(house: House): void {
-    //remove house in tree
-    for (let i = 0; i < this.houseTree.length; ++i) {
-      let h = this.houseTree[i]
-      if (h == house) {
-        this.houseTree.splice(i, 1)
+  removeBuilding(Building: Building): void {
+    //remove Building in tree
+    for (let i = 0; i < this.BuildingTree.length; ++i) {
+      let h = this.BuildingTree[i]
+      if (h == Building) {
+        this.BuildingTree.splice(i, 1)
         break
       }
     }
@@ -193,4 +143,8 @@ class Basemap {
       }
     }
   }
+}
+
+export {
+  Road, Basemap
 }
