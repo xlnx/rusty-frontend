@@ -1,7 +1,6 @@
 import * as THREE from "three"
 import ObjAsset from "./obj";
 import { AssetPath, DistUnit, ObjectTag } from "./def";
-import { Road } from "../model/basemap";
 import { RoadWidth, inBox, minPt, maxPt, Point } from "../model/def";
 
 interface TransformStep {
@@ -24,7 +23,7 @@ export default class Building {
 	private rotateAngle?: number
 
 	//used for model
-	private road?: Road
+	// private road?: Road
 	private offset?: number//positive value if building set on the left side
 	private placeholder?: THREE.Vector2
 
@@ -122,7 +121,7 @@ export default class Building {
 		})
 	}
 
-	static from(proto: Building, road: Road, offset: number): Building {
+	static from(proto: Building, offset: number): Building {
 		const inst = new Building()
 
 		inst.placeholder = proto.placeholder!
@@ -142,58 +141,58 @@ export default class Building {
 		return inst
 	}
 
-	crossRec(rec: THREE.Vector2[]): boolean {
-		const recBox = new THREE.Box2(minPt(rec), maxPt(rec))
-		if (!recBox.intersectsBox(this.bbox!)) return false
-		//assume road width is integer
-		let recDir = rec[1].clone().sub(rec[0])
-		let roadAngle = Math.acos(recDir.normalize().x)
-		let origin = new THREE.Vector2(0, 0)
-		let housePts = this.rec()
-		for (let pt of housePts)
-			pt.rotateAround(origin, -roadAngle)
-		for (let pt of rec)
-			pt.rotateAround(origin, -roadAngle)
-		let housePtsInRec = inBox(rec[3], housePts, rec[1])
-		let houseRoadDir = housePts[1].clone().sub(housePts[0])
-		let houseRoadAngle = Math.acos(houseRoadDir.x)
-		for (let pt of housePts)
-			pt.rotateAround(origin, roadAngle - houseRoadAngle)
-		for (let pt of rec)
-			pt.rotateAround(origin, roadAngle - houseRoadAngle)
-		let roadPtsInHouse = this.offset! > 0 ? inBox(housePts[0], rec, housePts[2]) : inBox(housePts[3], rec, housePts[1])
-		//case 1
-		if (housePtsInRec || roadPtsInHouse) return true
-		//case 2
-		let roadAC = new Road(rec[0], rec[2])
-		let roadBD = new Road(rec[1], rec[3])
-		let houseAC = new Road(rec[0], rec[2])
-		let houseBD = new Road(rec[1], rec[3])
-		if (
-			roadAC.crossRoad(houseAC) ||
-			roadAC.crossRoad(houseBD) ||
-			roadBD.crossRoad(houseAC) ||
-			roadBD.crossRoad(houseBD)
-		) return true
-		return false
-	}
+	// crossRec(rec: THREE.Vector2[]): boolean {
+	// 	const recBox = new THREE.Box2(minPt(rec), maxPt(rec))
+	// 	if (!recBox.intersectsBox(this.bbox!)) return false
+	// 	//assume road width is integer
+	// 	let recDir = rec[1].clone().sub(rec[0])
+	// 	let roadAngle = Math.acos(recDir.normalize().x)
+	// 	let origin = new THREE.Vector2(0, 0)
+	// 	let housePts = this.rec()
+	// 	for (let pt of housePts)
+	// 		pt.rotateAround(origin, -roadAngle)
+	// 	for (let pt of rec)
+	// 		pt.rotateAround(origin, -roadAngle)
+	// 	let housePtsInRec = inBox(rec[3], housePts, rec[1])
+	// 	let houseRoadDir = housePts[1].clone().sub(housePts[0])
+	// 	let houseRoadAngle = Math.acos(houseRoadDir.x)
+	// 	for (let pt of housePts)
+	// 		pt.rotateAround(origin, roadAngle - houseRoadAngle)
+	// 	for (let pt of rec)
+	// 		pt.rotateAround(origin, roadAngle - houseRoadAngle)
+	// 	let roadPtsInHouse = this.offset! > 0 ? inBox(housePts[0], rec, housePts[2]) : inBox(housePts[3], rec, housePts[1])
+	// 	//case 1
+	// 	if (housePtsInRec || roadPtsInHouse) return true
+	// 	//case 2
+	// 	let roadAC = new Road(rec[0], rec[2])
+	// 	let roadBD = new Road(rec[1], rec[3])
+	// 	let houseAC = new Road(rec[0], rec[2])
+	// 	let houseBD = new Road(rec[1], rec[3])
+	// 	if (
+	// 		roadAC.crossRoad(houseAC) ||
+	// 		roadAC.crossRoad(houseBD) ||
+	// 		roadBD.crossRoad(houseAC) ||
+	// 		roadBD.crossRoad(houseBD)
+	// 	) return true
+	// 	return false
+	// }
 
-	crossRoad(road: Road): boolean {
-		return this.crossRec(road.rec())
-	}
+	// crossRoad(road: Road): boolean {
+	// 	return this.crossRec(road.rec())
+	// }
 
-	crossBuilding(building: Building): boolean {
-		return this.crossRec(building.rec())
-	}
+	// crossBuilding(building: Building): boolean {
+	// 	return this.crossRec(building.rec())
+	// }
 
-	rec(): THREE.Vector2[] {
-		let houseRoadDir = this.road!.to.clone().sub(this.road!.from).normalize()
-		let houseRoadNormDir = houseRoadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
-		let housePts = new Array<THREE.Vector2>()
-		housePts[0] = this.road!.from.clone().add(houseRoadDir.clone().multiplyScalar(this.offset!)).add(houseRoadNormDir.clone().multiplyScalar(RoadWidth))
-		housePts[1] = housePts[0].clone().add(houseRoadDir.clone().multiplyScalar(this.placeholder!.x))
-		housePts[2] = housePts[1].clone().add(houseRoadNormDir.clone().multiplyScalar(this.placeholder!.y))
-		housePts[3] = housePts[2].clone().sub(houseRoadDir.clone().multiplyScalar(this.placeholder!.x))
-		return housePts
-	}
+	// rec(): THREE.Vector2[] {
+	// 	let houseRoadDir = this.road!.to.clone().sub(this.road!.from).normalize()
+	// 	let houseRoadNormDir = houseRoadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
+	// 	let housePts = new Array<THREE.Vector2>()
+	// 	housePts[0] = this.road!.from.clone().add(houseRoadDir.clone().multiplyScalar(this.offset!)).add(houseRoadNormDir.clone().multiplyScalar(RoadWidth))
+	// 	housePts[1] = housePts[0].clone().add(houseRoadDir.clone().multiplyScalar(this.placeholder!.x))
+	// 	housePts[2] = housePts[1].clone().add(houseRoadNormDir.clone().multiplyScalar(this.placeholder!.y))
+	// 	housePts[3] = housePts[2].clone().sub(houseRoadDir.clone().multiplyScalar(this.placeholder!.x))
+	// 	return housePts
+	// }
 }

@@ -2,13 +2,12 @@ import VRRendererPrototype from "../renderer/vrproto"
 import * as THREE from "three"
 import * as dat from "dat.gui"
 import * as Quadtree from "quadtree-lib"
-import ObjAsset from "../asset/obj"
 import Building from "../asset/building"
 import Selector from "../wrapper/selector"
 import { DistUnit } from "../asset/def"
 import Ground from "../asset/ground";
-import TexAsset from "../asset/tex";
 import RoadPrototype from "./road";
+import Indicator from "../2d/indicator";
 
 class BBox {
 	constructor(
@@ -26,7 +25,7 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 
 	private ground = new Ground(50, 50)
 	private candidate?: Building
-	private road?: RoadPrototype
+	private road?: Indicator
 
 	private readonly gui = new dat.GUI()
 
@@ -36,12 +35,9 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 	constructor() {
 		super()
 
-		this.scene.add(new THREE.Mesh(new THREE.RingGeometry(1, 2, 32),
-			new THREE.ShaderMaterial({
-				fragmentShader: "void main() { gl_FragColor = vec4(1, 1, 1, 0.1); }",
-				side: THREE.DoubleSide,
-				transparent: true
-			})))
+		// this.scene.add(ln)
+		// this.scene.add(this.indicator.object)
+		this.scene.add(new THREE.AxesHelper())
 
 		this.gui.add(this, "mode", ["building", "road", "preview"])
 			.onChange((val: any) => {
@@ -97,7 +93,7 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		window.addEventListener("mousedown", (e: MouseEvent) => {
 			if (this.mode == "road") {
 				const point = this.ground.intersect(this.mouse, this.camera)
-				this.road = new RoadPrototype(point!, point!)
+				this.road = new Indicator(1, point!, point!)
 				this.scene.add(this.road.object)
 			}
 		})
