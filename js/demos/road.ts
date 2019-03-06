@@ -2,6 +2,22 @@ import * as THREE from "three"
 import TexAsset from "../asset/tex";
 import { DistUnit } from "../asset/def";
 
+class RoadIndicator {
+
+	private static readonly light = new THREE.MeshBasicMaterial(
+		{ color: 0xff0000, side: THREE.DoubleSide })
+
+	constructor(public readonly s: THREE.Vector2, public readonly r: number) {
+
+	}
+
+	buildMesh() {
+		const ring = new THREE.RingGeometry(1, 2, 32)
+		ring.rotateX(-Math.PI / 2)
+	}
+
+}
+
 export default class RoadPrototype {
 
 	private static up = new THREE.Vector3(0, 1, 0)

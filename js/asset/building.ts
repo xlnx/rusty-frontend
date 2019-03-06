@@ -155,19 +155,20 @@ export default class Building {
 		for (let pt of rec)
 			pt.rotateAround(origin, -roadAngle)
 		let housePtsInRec = inBox(rec[3], housePts, rec[1])
+		let houseRoadDir = housePts[1].clone().sub(housePts[0])
 		let houseRoadAngle = Math.acos(houseRoadDir.x)
 		for (let pt of housePts)
-			pt.rotateAround(origin, roadAngle - houseAngle)
-		for (let pt of roadPts)
-			pt.rotateAround(origin, roadAngle - houseAngle)
-		let roadPtsInHouse = this.offset! > 0 ? inBox(housePts[0], roadPts, housePts[2]) : inBox(housePts[3], roadPts, housePts[1])
+			pt.rotateAround(origin, roadAngle - houseRoadAngle)
+		for (let pt of rec)
+			pt.rotateAround(origin, roadAngle - houseRoadAngle)
+		let roadPtsInHouse = this.offset! > 0 ? inBox(housePts[0], rec, housePts[2]) : inBox(housePts[3], rec, housePts[1])
 		//case 1
-		if (housePtsInRoad || roadPtsInHouse) return true
+		if (housePtsInRec || roadPtsInHouse) return true
 		//case 2
-		let roadAC = new Road(roadPts[0], roadPts[2])
-		let roadBD = new Road(roadPts[1], roadPts[3])
-		let houseAC = new Road(housePts[0], roadPts[2])
-		let houseBD = new Road(housePts[1], housePts[3])
+		let roadAC = new Road(rec[0], rec[2])
+		let roadBD = new Road(rec[1], rec[3])
+		let houseAC = new Road(rec[0], rec[2])
+		let houseBD = new Road(rec[1], rec[3])
 		if (
 			roadAC.crossRoad(houseAC) ||
 			roadAC.crossRoad(houseBD) ||

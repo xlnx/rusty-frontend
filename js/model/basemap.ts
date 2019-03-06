@@ -3,7 +3,7 @@ import { Point, RoadWidth } from "./def";
 import * as THREE from "three"
 
 class Road {
-  buildings: { building: Building, offset: number }[]
+  buildings: { building: Building }[]
   public readonly bbox?: THREE.Box2
 
   constructor(readonly from: Point, readonly to: Point) {
@@ -58,7 +58,7 @@ class Road {
 
 class Basemap {
   edge = new Map<Point, Road[]>()
-  BuildingTree = new Array<Building>()
+  buildingTree = new Array<Building>()
   roadTree = new Array<Road>()
 
   addRoad(from: Point, to: Point): Road[] {
@@ -117,17 +117,22 @@ class Basemap {
   alignRoad(from: Point, to: Point): boolean {
 
   }
-  alignBuilding(pt: Point, Building: BuildingPrototype): { center: Point, angle: number, valid: boolean } {
-
+  alignBuilding(pt: Point, proto: BuildingPrototype): { center: Point, angle: number, valid: boolean } {
+    let crossBuilding = false
+    let road = getNear
+    let newBuilding = Building.from(proto)
+    for (let building of this.buildingTree) {
+      if (building.crossBuilding())
+    }
   }
   // selectBuilding(pt: Point): Building | null
   // selectRoad(pt: Point): Road | null
-  removeBuilding(Building: Building): void {
+  removeBuilding(building: Building): void {
     //remove Building in tree
-    for (let i = 0; i < this.BuildingTree.length; ++i) {
-      let h = this.BuildingTree[i]
-      if (h == Building) {
-        this.BuildingTree.splice(i, 1)
+    for (let i = 0; i < this.buildingTree.length; ++i) {
+      let h = this.buildingTree[i]
+      if (h == building) {
+        this.buildingTree.splice(i, 1)
         break
       }
     }
@@ -156,6 +161,16 @@ class Basemap {
         break
       }
     }
+  }
+  getNearRoad(pt: Point): Road {
+    let res = this.roadTree[0]
+    let minDist = res.distOfPoint(pt)
+    for (let road of this.roadTree)
+      if (road.distOfPoint(pt) < minDist) {
+        minDist = road.distOfPoint(pt)
+        res = road
+      }
+    return res
   }
 }
 
