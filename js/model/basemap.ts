@@ -118,13 +118,21 @@ class Basemap {
 
   }
   alignBuilding(pt: Point, proto: BuildingPrototype): { center: Point, angle: number, valid: boolean } {
-    let crossBuilding = false
-    let road = getNear
-    let newBuilding = Building.from(proto)
+    let road = this.getNearRoad(pt)
+    let AB = pt.clone().sub(road.from)
+    let AC = road.to.clone().sub(road.from).normalize()
+    let offset = AB.dot(AC)
+    let newBuilding = Building.from(proto, road, offset)
+    let angle =
+
+      let crossBuilding = false
     for (let building of this.buildingTree) {
-      if (building.crossBuilding())
+      if (building.crossBuilding(newBuilding)) return {
+        pt, angle, false
+      }
     }
   }
+
   // selectBuilding(pt: Point): Building | null
   // selectRoad(pt: Point): Road | null
   removeBuilding(building: Building): void {

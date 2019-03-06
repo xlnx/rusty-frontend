@@ -39,7 +39,8 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		this.scene.add(new THREE.Mesh(new THREE.RingGeometry(1, 2, 32),
 			new THREE.ShaderMaterial({
 				fragmentShader: "void main() { gl_FragColor = vec4(1, 1, 1, 0.1); }",
-				side: THREE.DoubleSide
+				side: THREE.DoubleSide,
+				transparent: true
 			})))
 
 		this.gui.add(this, "mode", ["building", "road", "preview"])
