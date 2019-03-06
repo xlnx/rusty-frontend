@@ -1,12 +1,14 @@
 import Building from "../asset/building";
-import { Point } from "./def";
+import { Point, RoadWidth } from "./def";
 import * as THREE from "three"
 
 class Road {
-  Buildings: { building: Building, offset: number }[]
-  // model: any
+  buildings: { building: Building, offset: number }[]
+  public readonly bbox?: THREE.Box2
+
   constructor(readonly from: Point, readonly to: Point) {
-    this.Buildings = new Array()
+    this.buildings = new Array()
+
   }
   crossRoad(road: Road): boolean {
     //1.rapid judge: rectangle coincide
@@ -35,10 +37,22 @@ class Road {
     }
     return false
   }
+
   distOfPoint(pt: Point): number {
     let ab = this.to.sub(this.from)
     let ac = pt.sub(this.from)
     return Math.abs((<any>ab).cross(ac)) / ab.length()
+  }
+
+  rec(): Point[] {
+    let roadDir = this.to.clone().sub(this.from)
+    let roadNormDir = roadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2).normalize()
+    let roadPts = new Array<THREE.Vector2>()
+    roadPts[0] = this.from.clone().add(roadNormDir.clone().multiplyScalar(RoadWidth))
+    roadPts[1] = roadPts[0].clone().add(roadDir)
+    roadPts[3] = this.from.clone().sub(roadNormDir.clone().multiplyScalar(-RoadWidth))
+    roadPts[2] = roadPts[3].clone().add(roadDir)
+    return roadPts
   }
 }
 

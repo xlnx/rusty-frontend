@@ -2,13 +2,7 @@
 //   x: number, y: number
 // }
 
-import * as THREE from "three"
 
-declare type Point = THREE.Vector2
-
-export {
-  Point
-}
 
 // class Point {
 //   static precision = 0.00001
