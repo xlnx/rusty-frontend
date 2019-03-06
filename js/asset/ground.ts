@@ -3,6 +3,12 @@ import { DistUnit } from "./def"
 
 export default class Ground {
 
+	public readonly target = new THREE.WebGLRenderTarget(512, 512, {
+		magFilter: THREE.LinearFilter,
+		minFilter: THREE.LinearFilter,
+		depthBuffer: false
+	})
+
 	private raycaster = new THREE.Raycaster()
 
 	public readonly object: THREE.Mesh
@@ -11,7 +17,10 @@ export default class Ground {
 		let geometry = new THREE.PlaneGeometry(w * DistUnit, h * DistUnit, w, h)
 		geometry.rotateX(-Math.PI / 2)
 		geometry.translate(0, -1e-4, 0)
-		let meshMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 })
+		let meshMaterial = new THREE.MeshLambertMaterial({
+			// map: this.target.texture
+			color: 0x666666
+		})
 		this.object = new THREE.Mesh(geometry, meshMaterial)
 	}
 

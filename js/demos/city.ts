@@ -7,6 +7,8 @@ import Building from "../asset/building"
 import Selector from "../wrapper/selector"
 import { DistUnit } from "../asset/def"
 import Ground from "../asset/ground";
+import TexAsset from "../asset/tex";
+import RoadPrototype from "./road";
 
 class BBox {
 	constructor(
@@ -24,10 +26,9 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 
 	private ground = new Ground(50, 50)
 	private candidate?: Building
+	private road?: RoadPrototype
 
 	private readonly gui = new dat.GUI()
-
-	private point?: THREE.Vector2
 
 	// gui controlled variables
 	private mode: "building" | "road" | "preview" = "preview"
@@ -43,8 +44,11 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 					this.scene.remove(this.candidate!.object!)
 				}
 				if (val == "road") {
-					this.point = undefined
+					this.orbit.enabled = false
+				} else {
+					this.orbit.enabled = true
 				}
+				this.road = undefined
 			})
 
 		const quadTree = new Quadtree({ width: 1e5, height: 1e5 })
@@ -54,6 +58,9 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		quadTree.each(e => {
 			console.log(e)
 		})
+
+		// const road = new RoadPrototype(new THREE.Vector2(-10, 0), new THREE.Vector2(5, 5))
+		// this.scene.add(road.object)
 
 		Building.load("building2-obj/building_04.json")
 			.then(protos => {
@@ -82,16 +89,18 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		})
 		window.addEventListener("mousedown", (e: MouseEvent) => {
 			if (this.mode == "road") {
-				this.point = this.ground.intersect(this.mouse, this.camera)
+				const point = this.ground.intersect(this.mouse, this.camera)
+				this.road = new RoadPrototype(point!, point!)
+				this.scene.add(this.road.object)
 			}
 		})
 		window.addEventListener("mouseup", (e: MouseEvent) => {
 			if (this.mode == "road") {
 				const coord = this.ground.intersect(this.mouse, this.camera)
 				if (coord) {
-					// 
+					this.road!.to = coord
 				}
-				this.point = undefined
+				this.road = undefined
 			}
 		})
 	}
@@ -101,8 +110,11 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 
 		switch (this.mode) {
 			case "road": {
-				if (this.point) {
-					//
+				if (this.road) {
+					const coord = this.ground.intersect(this.mouse, this.camera)
+					if (coord) {
+						this.road!.to = coord
+					}
 				}
 			} break
 			case "building": {
@@ -125,7 +137,14 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 		}
 	}
 
-	// OnNewFrame() {
-	// 	super.OnNewFrame()
-	// }
+	OnNewFrame() {
+		const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1)
+		// ortho.rotateX(Math.PI / 2)
+		// this.scene.add(new THREE.CameraHelper(ortho))
+		// ortho.rotation.set()
+
+		this.threeJsRenderer.render(this.scene, ortho, this.ground.target)
+
+		super.OnNewFrame()
+	}
 }

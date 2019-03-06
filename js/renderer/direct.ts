@@ -3,12 +3,12 @@ import { OrbitControls } from "three-orbitcontrols-ts"
 
 export default class DirectRenderer extends RendererPrototype {
 
+	public readonly orbit = new OrbitControls(
+		this.camera, this.threeJsRenderer.domElement)
+
 	constructor() {
 		super()
-
-		let orbit = new OrbitControls(
-			this.camera, this.threeJsRenderer.domElement)
-		orbit.enableZoom = true
+		this.orbit.enableZoom = true
 	}
 
 	protected OnResize() {

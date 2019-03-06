@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { AssetPath } from "./def";
 
 export default class TexAsset {
 
@@ -8,7 +9,7 @@ export default class TexAsset {
 		let img = new Image()
 		let texture = new THREE.Texture(img)
 		texture.needsUpdate = true
-		img.src = this.path
+		img.src = AssetPath + this.path
 		return texture
 	}
 
@@ -19,7 +20,7 @@ export default class TexAsset {
 				let texture = new THREE.Texture(img)
 				resolve(texture)
 			}
-			img.src = this.path
+			img.src = AssetPath + this.path
 		})
 	}
 }
