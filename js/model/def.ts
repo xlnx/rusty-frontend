@@ -1,46 +1,38 @@
-interface HousePrototype {
-	w: number,
-	h: number,
-	model: any
+const RoadWidth = 1
+
+import * as THREE from "three"
+
+function inBox(min: Point, pts: Point[], max: Point): boolean {
+    for (let pt of pts) {
+        if (
+            pt.x > min.x &&
+            pt.x < max.x &&
+            pt.y > min.y &&
+            pt.y < max.y
+        ) return true
+    }
+    return false
 }
 
-interface House {
-	proto: HousePrototype,
+function minPt(pts: Point[]): Point {
+    let res = pts[0]
+    for (let pt of pts) {
+        if (pt.x < res.x) res.x = pt.x
+        if (pt.y < res.y) res.y = pt.y
+    }
+    return res
 }
 
-interface PlainCoord {
-	x: number,
-	y: number
+function maxPt(pts: Point[]): Point {
+    let res = pts[0]
+    for (let pt of pts) {
+        if (pt.x > res.x) res.x = pt.x
+        if (pt.y > res.y) res.y = pt.y
+    }
+    return res
 }
 
-interface Point {
-	coord: PlainCoord
-}
-
-interface Road {
-	readonly from: Point,	// grid
-	readonly to: Point,
-	houses: {
-		house: House,
-		offset: number
-	}[],
-	// model: any
-}
-
-interface Basemap {
-	// V: Point[],
-	E: Map<Point, Road[]>,
-	quadTree: any
-
-	addRoad(from: Point, to: Point): Road
-	addHouse(pt: Point, house: HousePrototype): boolean
-	alignHouse(pt: Point, house: HousePrototype): {
-		center: Point,
-		angle: number,
-		valid: boolean
-	}
-	// selectHouse(pt: Point): House | null
-	// selectRoad(pt: Point): Road | null
-	removeHouse(house: House): void
-	removeRoad(road: Road): void
+declare type Point = THREE.Vector2
+export {
+    RoadWidth, Point, inBox, minPt, maxPt
 }
