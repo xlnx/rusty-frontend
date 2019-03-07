@@ -1,10 +1,14 @@
 import * as THREE from "three"
 import TexAsset from "../asset/tex";
 import { DistUnit } from "../asset/def";
+import { RoadLikeObject } from "../model/def";
+import RoadMathImpl from "../model/road";
 
-export default class Road {
+export default class Road implements RoadLikeObject {
 
 	private static up = new THREE.Vector3(0, 1, 0)
+
+	public readonly mathImpl: RoadMathImpl
 
 	private static material = (() => {
 		const texture = new TexAsset("textures/b.png").loadSync()
@@ -25,10 +29,10 @@ export default class Road {
 
 	public readonly object = new THREE.Mesh(this.geometry, Road.material)
 
-	constructor(public readonly from: THREE.Vector2,
-		public readonly to: THREE.Vector2) {
+	constructor(from: THREE.Vector2, to: THREE.Vector2) {
+		this.mathImpl = new RoadMathImpl(this, from, to)
 		this.object.position.set(from.x * DistUnit, 0, from.y * DistUnit)
-		const d = this.to.clone().sub(this.from)
+		const d = to.clone().sub(from)
 		this.object.setRotationFromAxisAngle(Road.up, -d.angle())
 		const len = d.length() || 0.1
 		this.object.scale.set(len, 1, 1)
