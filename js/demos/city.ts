@@ -5,10 +5,10 @@ import * as Quadtree from "quadtree-lib"
 import Building from "../asset/building"
 import Selector from "../wrapper/selector"
 import { DistUnit } from "../asset/def"
-import Ground from "../asset/ground";
 import RoadPrototype from "./road";
 import Indicator from "../2d/indicator";
 import Road from "./road";
+import Ground from "../object/ground";
 
 class BBox {
 	constructor(
@@ -47,11 +47,7 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 				} else {
 					this.scene.remove(this.candidate!.object!)
 				}
-				if (val == "road") {
-					this.orbit.enabled = false
-				} else {
-					this.orbit.enabled = true
-				}
+				this.orbit.enabled = val == "preview"
 				this.road = undefined
 			})
 

@@ -9,7 +9,7 @@ export default class XHRJson {
 		return new Promise((resolve, reject) => {
 			const xhr = new XMLHttpRequest()
 			xhr.responseType = "json"
-			xhr.onload = e => resolve(xhr.response.json())
+			xhr.onload = e => resolve(xhr.response)
 			xhr.onerror = e => reject(e)
 			xhr.open("get", AssetPath + this.path)
 			xhr.send()
