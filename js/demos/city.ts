@@ -2,21 +2,12 @@ import VRRendererPrototype from "../renderer/vrproto"
 import * as THREE from "three"
 import * as dat from "dat.gui"
 import * as Quadtree from "quadtree-lib"
-import Building from "../asset/building"
 import Selector from "../wrapper/selector"
 import { DistUnit } from "../asset/def"
 import Indicator from "../2d/indicator";
 import Ground from "../object/ground";
 import Road from "../object/road";
-
-class BBox {
-	constructor(
-		public readonly x: number,
-		public readonly y: number,
-		public readonly width: number,
-		public readonly height: number
-	) { }
-}
+import { Building } from "../object/building";
 
 export default class CityDemoRenderer extends VRRendererPrototype {
 
@@ -50,20 +41,11 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 				this.road = undefined
 			})
 
-		const quadTree = new Quadtree({ width: 1e5, height: 1e5 })
-		quadTree.push(new BBox(10, 10, 1, 2))
-		// console.log(quadTree)
-
-		quadTree.each(e => {
-			console.log(e)
-		})
-
 		// const road = new RoadPrototype(new THREE.Vector2(-10, 0), new THREE.Vector2(5, 5))
 		// this.scene.add(road.object)
 
 		Building.load("building2-obj/building_04.json")
 			.then(protos => {
-				this.candidate = protos[0]
 				// this.scene.add(this.candidate.object!)
 				// for (let proto of protos) {
 				// 	const building = Building.from(proto)

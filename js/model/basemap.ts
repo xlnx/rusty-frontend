@@ -1,6 +1,5 @@
 import * as THREE from "three"
-import Building from "../object/building";
-import BuildingPrototype from "../asset/building";
+import { BuildingPrototype } from "../asset/building";
 import BuildingMathImpl from "./building";
 import { RoadWidth, RoadLikeObject, BuildingLikeObject } from "./def";
 import { Point, AnyRect2D } from "./geometry";

@@ -1,8 +1,9 @@
 import * as THREE from "three"
 import ObjAsset from "./obj";
 import { AssetPath, DistUnit, ObjectTag } from "./def";
-import { RoadWidth, inBox, minPt, maxPt, Point } from "../model/def";
+import { inBox, minPt, maxPt, Point } from "../model/geometry";
 import XHRJson from "./json";
+import { RoadWidth } from "../model/def";
 
 interface TransformStep {
 	rotate?: number[],
@@ -10,13 +11,16 @@ interface TransformStep {
 }
 
 interface BuildingDefination {
+	name: string,
 	model: string,
 	scale?: number[] | number,
 	transform?: TransformStep[],
 	placeholder: number[]
 }
 
-export default class BuildingPrototype {
+class BuildingPrototype {
+
+	readonly name: string = <any>null
 
 	readonly frame: THREE.Mesh = <any>null
 	readonly object: THREE.Object3D = <any>null
@@ -45,6 +49,8 @@ export default class BuildingPrototype {
 					const self = <any>proto
 
 					{
+
+						self.name = def.name
 
 						self.object = new THREE.Object3D();
 						self.object.add(obj);
@@ -136,4 +142,39 @@ export default class BuildingPrototype {
 					.then(e => res(e, idx), e => rej(e, idx)))
 		})
 	}
+}
+
+class BuildingManager {
+
+	private readonly resources = new Map<string, BuildingPrototype>()
+	private _ready: boolean = true
+
+	get ready() { return this._ready }
+
+	clear() {
+		this.resources.clear()
+	}
+
+	load(path: string[] | string): Promise<{}> {
+		return new Promise((resolve, reject) => {
+			this._ready = false
+			BuildingPrototype.load(path).then((protos: (BuildingPrototype | undefined)[]) => {
+				for (let proto of protos) {
+					if (proto) this.resources.set(proto.name, proto)
+				}
+				this._ready = true
+				resolve()
+			})
+		})
+	}
+
+	get(name: string): BuildingPrototype | undefined {
+		return this.resources.get(name)
+	}
+
+}
+
+export {
+	BuildingPrototype,
+	BuildingManager
 }
