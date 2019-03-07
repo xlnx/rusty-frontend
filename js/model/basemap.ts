@@ -119,7 +119,7 @@ class Basemap {
         * (new THREE.Vector2(0, -1).dot(AC.clone()) > 0 ? 1 : -1) * -x
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset))
-        .add(normDir.clone().multiplyScalar(placeholder.height / 2 + RoadWidth))
+        .add(normDir.clone().multiplyScalar(placeholder.height / 2 + RoadWidth / 2))
       let rect = new AnyRect2D([
         center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
           .add(AC.clone().multiplyScalar(placeholder.width / 2)),
@@ -201,7 +201,7 @@ class Basemap {
     let res = this.getNearRoad(pt)
     if (res) {
       const road = res.mathImpl
-      if (road.seg.distance(pt) <= RoadWidth) {
+      if (road.seg.distance(pt) <= RoadWidth / 2) {
         return res
       }
     }

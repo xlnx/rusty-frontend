@@ -48,9 +48,9 @@ export default class RoadMathImpl {
             let dir = roadDir.clone().normalize()
             let roadNormDir = dir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2)
             let roadPts = new Array<THREE.Vector2>()
-            roadPts[0] = this.seg.from.clone().add(roadNormDir.clone().multiplyScalar(RoadWidth))
+            roadPts[0] = this.seg.from.clone().add(roadNormDir.clone().multiplyScalar(RoadWidth / 2))
             roadPts[1] = roadPts[0].clone().add(roadDir)
-            roadPts[3] = this.seg.from.clone().add(roadNormDir.clone().multiplyScalar(-RoadWidth))
+            roadPts[3] = this.seg.from.clone().add(roadNormDir.clone().multiplyScalar(-RoadWidth / 2))
             roadPts[2] = roadPts[3].clone().add(roadDir)
             this._rect = new AnyRect2D(roadPts)
         }
