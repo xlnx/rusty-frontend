@@ -111,17 +111,23 @@ class Basemap {
       let AC = road.to.clone().sub(road.from).normalize()
       let origin = new THREE.Vector2(0, 0)
       let offset = Math.round(AC.dot(AB))
-      let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * ((<any>AB).cross(AC) < 0 ? -1 : 1))
+      let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * ((<any>AB).cross(AC) < 0 ? 1 : -1))
+      console.log(normDir)
       // console.log(AC, AB, normDir)
-      let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir))) * new THREE.Vector2(0, -1).dot(AC.clone())
+      let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir)))
+        * (new THREE.Vector2(0, -1).dot(AC.clone()) > 0 ? 1 : -1)
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset))
         .add(normDir.clone().multiplyScalar(placeholder.height / 2 + RoadWidth))
       let rect = new AnyRect2D([
-        center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2)).add(AC.clone().multiplyScalar(placeholder.width / 2)),
-        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2)).add(AC.clone().multiplyScalar(placeholder.width / 2)),
-        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2)).sub(AC.clone().multiplyScalar(placeholder.width / 2)),
-        center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2)).sub(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
+          .add(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2))
+          .add(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2))
+          .sub(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
+          .sub(AC.clone().multiplyScalar(placeholder.width / 2)),
       ])
 
       let res = <Restype>{
