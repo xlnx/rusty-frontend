@@ -8,6 +8,7 @@ import { DistUnit } from "../asset/def"
 import Ground from "../asset/ground";
 import RoadPrototype from "./road";
 import Indicator from "../2d/indicator";
+import Road from "./road";
 
 class BBox {
 	constructor(
@@ -103,6 +104,9 @@ export default class CityDemoRenderer extends VRRendererPrototype {
 				if (coord) {
 					this.road!.to = coord
 				}
+				const r = new Road(this.road!.from, this.road!.to)
+				this.scene.add(r.object)
+				this.scene.remove(this.road!.object)
 				this.road = undefined
 			}
 		})
