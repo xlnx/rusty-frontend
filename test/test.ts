@@ -40,17 +40,4 @@ it("test", () => {
         0, as[0], 0, new THREE.Vector2(4, 4)
     )
     bm.addBuilding(building)
-    console.log(bm.buildingTree[0])
-
-    // let basemap = new Basemap(Road)
-
-    // basemap.addRoad(A.from, A.to)
-    // console.log("origin road")
-    // console.log("a")
-    // console.log(A)
-    // console.log("b")
-    // console.log(B)
-    // basemap.addRoad(B.from, B.to)
-    // console.log("new roads")
-    // console.log(basemap.roadTree)
 })

@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { DistUnit } from "../asset/def";
+import { world2plain } from "../2d/trans";
 
 export default class Ground {
 
@@ -28,9 +29,7 @@ export default class Ground {
 		this.raycaster.setFromCamera(coord, camera)
 		const ints = this.raycaster.intersectObject(this.object)
 		if (!ints.length) return undefined
-		return ints[0].uv!.multiply(new THREE.Vector2(this.w, this.h))
-			.sub(new THREE.Vector2(this.w, this.h).divideScalar(2))
-			.multiply(new THREE.Vector2(1, -1))
+		return world2plain(ints[0].point)
 	}
 
 }

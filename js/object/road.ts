@@ -3,6 +3,7 @@ import TexAsset from "../asset/tex";
 import { DistUnit } from "../asset/def";
 import { RoadLikeObject } from "../model/def";
 import RoadMathImpl from "../model/road";
+import { plain2world } from "../2d/trans";
 
 export default class Road implements RoadLikeObject {
 
@@ -31,9 +32,10 @@ export default class Road implements RoadLikeObject {
 
 	constructor(from: THREE.Vector2, to: THREE.Vector2) {
 		this.mathImpl = new RoadMathImpl(this, from, to)
-		this.object.position.set(from.x * DistUnit, 0, from.y * DistUnit)
+		const { x, y, z } = plain2world(from)
+		this.object.position.set(x, y, z)
 		const d = to.clone().sub(from)
-		this.object.setRotationFromAxisAngle(Road.up, -d.angle())
+		this.object.setRotationFromAxisAngle(Road.up, d.angle())
 		const len = d.length() || 0.1
 		this.object.scale.set(len, 1, 1)
 		this.uvs[0][2].set(len, 1)
