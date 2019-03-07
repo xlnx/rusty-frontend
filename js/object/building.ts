@@ -2,9 +2,8 @@ import * as THREE from "three"
 import BuildingPrototype from "../asset/building";
 import { DistUnit } from "../asset/def";
 import { RoadWidth, BuildingLikeObject } from "../model/def";
-
 import BuildingMathImpl from "../model/building";
-import Road from "../demos/road";
+import Road from "./road";
 
 export default class Building extends BuildingPrototype implements BuildingLikeObject {
 
