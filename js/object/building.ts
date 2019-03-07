@@ -28,21 +28,20 @@ class Building extends BuildingPrototype implements BuildingLikeObject {
 class BuildingIndicator extends BuildingPrototype {
 
 	constructor(proto: BuildingPrototype, private readonly basemap: Basemap) {
-
 		super(proto)
 	}
 
 	adjust(pt: THREE.Vector2) {
-		// const res = this.basemap.alignBuilding(pt, this)
-		// if (res) {
-		// 	console.log(res)
-		// 	const { road, offset, center, angle, valid } = res
-		// 	const c = new THREE.Vector3(center.x, 0, center.y).multiplyScalar(DistUnit)
-		// 	this.object.position.set(c.x, c.y, c.z)
-		// 	this.object.rotation.y = angle
-		// } else {
-		// 	this.object.rotation.set(0, 0, 0)
-		// }
+		const res = this.basemap.alignBuilding(pt, this.placeholder)
+		if (res) {
+			console.log(res)
+			const { road, offset, center, angle, valid } = res
+			const c = new THREE.Vector3(center.x, 0, center.y).multiplyScalar(DistUnit)
+			this.object.position.set(c.x, c.y, c.z)
+			this.object.rotation.y = angle
+		} else {
+			this.object.rotation.set(0, 0, 0)
+		}
 	}
 
 }
