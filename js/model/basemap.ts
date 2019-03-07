@@ -23,12 +23,12 @@ class Road {
       Math.max(a.y, b.y) >= Math.min(c.y, d.y)
     ) {
       //possibly line conincide
-      let ab = b.sub(a)
-      let ac = c.sub(a)
-      let ad = d.sub(a)
-      let ca = a.sub(c)
-      let cd = d.sub(c)
-      let cb = b.sub(c)
+      let ab = b.clone().sub(a)
+      let ac = c.clone().sub(a)
+      let ad = d.clone().sub(a)
+      let ca = a.clone().sub(c)
+      let cd = d.clone().sub(c)
+      let cb = b.clone().sub(c)
       //2.cross standing experiment
       if (
         (<any>ac).cross(ab) * (<any>ad).cross(ab) <= 0 &&
@@ -39,18 +39,19 @@ class Road {
   }
 
   distOfPoint(pt: Point): number {
-    let ab = this.to.sub(this.from)
-    let ac = pt.sub(this.from)
+    let ab = this.to.clone().sub(this.from)
+    let ac = pt.clone().sub(this.from)
     return Math.abs((<any>ab).cross(ac)) / ab.length()
   }
 
   rec(): Point[] {
     let roadDir = this.to.clone().sub(this.from)
-    let roadNormDir = roadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2).normalize()
+    let dir = roadDir.clone().normalize()
+    let roadNormDir = dir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2)
     let roadPts = new Array<THREE.Vector2>()
     roadPts[0] = this.from.clone().add(roadNormDir.clone().multiplyScalar(RoadWidth))
     roadPts[1] = roadPts[0].clone().add(roadDir)
-    roadPts[3] = this.from.clone().sub(roadNormDir.clone().multiplyScalar(-RoadWidth))
+    roadPts[3] = this.from.clone().add(roadNormDir.clone().multiplyScalar(-RoadWidth))
     roadPts[2] = roadPts[3].clone().add(roadDir)
     return roadPts
   }
@@ -69,11 +70,15 @@ class Basemap {
       if (road.crossRoad(newRoad)) {
         let c = road.from
         let d = road.to
-        let cd = d.sub(c)
+        let cd = d.clone().sub(c)
         let dist1 = newRoad.distOfPoint(c)
         let dist2 = newRoad.distOfPoint(d)
         let t = dist1 / (dist1 + dist2)
-        let crossPt = new THREE.Vector2(c.x + cd.x * t, c.y + cd.y * t)
+        if (isNaN(t)) continue
+        let crossPt = c.clone().add(cd.clone().multiplyScalar(t))
+        // let tes = { from: c, to: d, crossPoint: crossPt }
+        // console.log(tes)
+
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
           this.removeRoad(road)
@@ -81,6 +86,9 @@ class Basemap {
           this.pushRoad(new Road(crossPt, d))
         }
         //otherwise, if cross point is C or D, nothing to do with line CD
+
+        //if new road is not segmented
+        if (crossPt.equals(from) || crossPt.equals(to)) continue
         res.concat(this.addRoad(from, crossPt))
         res.concat(this.addRoad(crossPt, to))
         isSegmented = true
@@ -93,6 +101,7 @@ class Basemap {
     }
     return res
   }
+
   private pushRoad(road: Road) {
     if (this.edge.has(road.from)) {
       this.edge.get(road.from)!.push(road)
@@ -111,22 +120,51 @@ class Basemap {
     }
     this.roadTree.push(road)
   }
-  addBuilding(building: Building): boolean {
-    this.BuildingTree.push(building)
-  }
-  alignRoad(from: Point, to: Point): boolean {
 
+  addBuilding(building: Building) {
+    this.buildingTree.push(building)
   }
-  alignBuilding(pt: Point, proto: BuildingPrototype): { center: Point, angle: number, valid: boolean } {
-    let crossBuilding = false
-    let road = getNear
-    let newBuilding = Building.from(proto)
+
+  alignRoad(from: Point, to: Point): boolean {
+    let newRoad = new Road(from, to)
+
+    //detect building cross
     for (let building of this.buildingTree) {
-      if (building.crossBuilding())
+      if (building.crossRoad(newRoad))
+        return false
     }
+
+    return true
   }
+  alignBuilding(pt: Point, proto: Building): { center: Point, angle: number, valid: boolean } {
+    let res = { center: pt, angle: 0, valid: false }
+    let road = this.getNearRoad(pt)
+    if (!road) return { center: pt, angle: 0, valid: false }
+
+    let AB = pt.clone().sub(road.from)
+    let AC = road.to.clone().sub(road.from).normalize()
+    let offset = AC.dot(AB)
+    let newBuilding = Building.from(proto, road, offset)
+    //lacking rotate angle computing
+    res.angle = newBuilding.angle!
+
+    //detect building cross
+    for (let building of this.buildingTree) {
+      if (building.crossBuilding(newBuilding))
+        return res
+    }
+
+    //detect road cross
+    for (let road of this.roadTree) {
+      if (newBuilding.crossRoad(road))
+        return res
+    }
+
+    res.valid = true
+    return res
+  }
+
   // selectBuilding(pt: Point): Building | null
-  // selectRoad(pt: Point): Road | null
   removeBuilding(building: Building): void {
     //remove Building in tree
     for (let i = 0; i < this.buildingTree.length; ++i) {
@@ -162,7 +200,14 @@ class Basemap {
       }
     }
   }
-  getNearRoad(pt: Point): Road {
+
+  selectRoad(pt: Point): Road | null {
+    let res = this.getNearRoad(pt)
+    if (res && res.distOfPoint(pt) > RoadWidth) return null
+    else return res
+  }
+  getNearRoad(pt: Point): Road | null {
+    if (this.roadTree.length == 0) return null
     let res = this.roadTree[0]
     let minDist = res.distOfPoint(pt)
     for (let road of this.roadTree)

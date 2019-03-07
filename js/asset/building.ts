@@ -33,6 +33,8 @@ export default class Building {
 
 	get ok() { return !!this.obj && !!(<ObjectTag>this.obj.userData).object }
 
+	get angle() { return this.rotateAngle }
+
 	constructor(path?: string, resolve?: (e: Building) => void, reject?: (e: any) => void) {
 		if (path) {
 

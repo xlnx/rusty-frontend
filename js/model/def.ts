@@ -32,7 +32,8 @@ function maxPt(pts: Point[]): Point {
     return res
 }
 
-declare type Point = THREE.Vector2
+declare type Point = THREE.Vector2;
+
 export {
     RoadWidth, Point, inBox, minPt, maxPt
 }
