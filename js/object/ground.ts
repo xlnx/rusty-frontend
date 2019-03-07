@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { DistUnit } from "./def"
+import { DistUnit } from "../asset/def";
 
 export default class Ground {
 

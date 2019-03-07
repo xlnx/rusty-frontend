@@ -1,6 +1,7 @@
-target
+/target
 **/*.rs.bk
-node_modules
-out
-pkg
-assets
+/node_modules
+/out
+/pkg
+/assets
+/js/test

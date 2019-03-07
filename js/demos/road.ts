@@ -1,26 +1,14 @@
 import * as THREE from "three"
 import TexAsset from "../asset/tex";
 import { DistUnit } from "../asset/def";
+import { RoadLikeObject } from "../model/def";
+import { RoadMathImpl } from "../model/basemap";
 
-class RoadIndicator {
-
-	private static readonly light = new THREE.MeshBasicMaterial(
-		{ color: 0xff0000, side: THREE.DoubleSide })
-
-	constructor(public readonly s: THREE.Vector2, public readonly r: number) {
-
-	}
-
-	buildMesh() {
-		const ring = new THREE.RingGeometry(1, 2, 32)
-		ring.rotateX(-Math.PI / 2)
-	}
-
-}
-
-export default class RoadPrototype {
+export default class Road implements RoadLikeObject {
 
 	private static up = new THREE.Vector3(0, 1, 0)
+
+	public readonly mathImpl: RoadMathImpl
 
 	private static material = (() => {
 		const texture = new TexAsset("textures/b.png").loadSync()
@@ -36,29 +24,22 @@ export default class RoadPrototype {
 		return geometry
 	})()
 
-	private readonly geometry = RoadPrototype.geometry.clone()
+	private readonly geometry = Road.geometry.clone()
 	private readonly uvs = this.geometry.faceVertexUvs[0]
 
-	public readonly object = new THREE.Mesh(this.geometry, RoadPrototype.material)
+	public readonly object = new THREE.Mesh(this.geometry, Road.material)
 
-	get length() { return this.to.clone().sub(this.from).length() }
-
-	get to() { return this.v }
-	set to(v: THREE.Vector2) {
-		this.v = v
-		this.object.setRotationFromAxisAngle(RoadPrototype.up,
-			-this.to.clone().sub(this.from).angle())
-		const len = this.length || 0.1
+	constructor(from: THREE.Vector2, to: THREE.Vector2) {
+		this.mathImpl = new RoadMathImpl(this, from, to)
+		this.object.position.set(from.x * DistUnit, 0, from.y * DistUnit)
+		const d = to.clone().sub(from)
+		this.object.setRotationFromAxisAngle(Road.up, -d.angle())
+		const len = d.length() || 0.1
 		this.object.scale.set(len, 1, 1)
 		this.uvs[0][2].set(len, 1)
 		this.uvs[1][1].set(len, 0)
 		this.uvs[1][2].set(len, 1)
 		this.geometry.uvsNeedUpdate = true
-	}
-
-	constructor(public readonly from: THREE.Vector2, private v: THREE.Vector2) {
-		this.object.position.set(from.x * DistUnit, 0, from.y * DistUnit)
-		this.to = v
 	}
 
 }

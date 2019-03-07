@@ -1,78 +1,38 @@
-import Building from "../asset/building";
-import { Point, RoadWidth } from "./def";
 import * as THREE from "three"
+import Building from "../object/building";
+import BuildingPrototype from "../asset/building";
+import BuildingMathImpl from "./building";
+import { RoadWidth, RoadLikeObject, BuildingLikeObject } from "./def";
+import { Point, AnyRect2D } from "./geometry";
+import RoadMathImpl from "./road";
 
-class Road {
-  buildings: { building: Building }[]
-  public readonly bbox?: THREE.Box2
-
-  constructor(readonly from: Point, readonly to: Point) {
-    this.buildings = new Array()
-
-  }
-  crossRoad(road: Road): boolean {
-    //1.rapid judge: rectangle coincide
-    let a = this.from
-    let b = this.to
-    let c = road.from
-    let d = road.to
-    if (
-      Math.min(a.x, b.x) <= Math.max(c.x, d.x) &&
-      Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
-      Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
-      Math.max(a.y, b.y) >= Math.min(c.y, d.y)
-    ) {
-      //possibly line conincide
-      let ab = b.clone().sub(a)
-      let ac = c.clone().sub(a)
-      let ad = d.clone().sub(a)
-      let ca = a.clone().sub(c)
-      let cd = d.clone().sub(c)
-      let cb = b.clone().sub(c)
-      //2.cross standing experiment
-      if (
-        (<any>ac).cross(ab) * (<any>ad).cross(ab) <= 0 &&
-        (<any>ca).cross(cd) * (<any>cb).cross(cd) <= 0
-      ) return true
-    }
-    return false
-  }
-
-  distOfPoint(pt: Point): number {
-    let ab = this.to.clone().sub(this.from)
-    let ac = pt.clone().sub(this.from)
-    return Math.abs((<any>ab).cross(ac)) / ab.length()
-  }
-
-  rec(): Point[] {
-    let roadDir = this.to.clone().sub(this.from)
-    let dir = roadDir.clone().normalize()
-    let roadNormDir = dir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2)
-    let roadPts = new Array<THREE.Vector2>()
-    roadPts[0] = this.from.clone().add(roadNormDir.clone().multiplyScalar(RoadWidth))
-    roadPts[1] = roadPts[0].clone().add(roadDir)
-    roadPts[3] = this.from.clone().add(roadNormDir.clone().multiplyScalar(-RoadWidth))
-    roadPts[2] = roadPts[3].clone().add(roadDir)
-    return roadPts
-  }
-}
+type Restype = {
+  road: RoadLikeObject,
+  offset: number,
+  center: THREE.Vector2,
+  angle: number,
+  valid: boolean
+} | undefined
 
 class Basemap {
-  edge = new Map<Point, Road[]>()
-  buildingTree = new Array<Building>()
-  roadTree = new Array<Road>()
+  edge = new Map<Point, RoadMathImpl[]>()
+  buildingTree: BuildingMathImpl[] = []
+  roadTree: RoadMathImpl[] = []
 
-  addRoad(from: Point, to: Point): Road[] {
-    let res = new Array<Road>()
-    let newRoad = new Road(from, to)
+  constructor(private readonly RoadType: new (u: THREE.Vector2, v: THREE.Vector2) => RoadLikeObject) { }
+
+  addRoad(from: Point, to: Point): RoadLikeObject[] {
+    let res: RoadLikeObject[] = []
+    let obj = new this.RoadType(from, to)
+    let { mathImpl: newRoad } = obj
     let isSegmented = false
     for (let road of this.roadTree) {
-      if (road.crossRoad(newRoad)) {
+      if (road.seg.intersect(newRoad.seg)) {
         let c = road.from
         let d = road.to
         let cd = d.clone().sub(c)
-        let dist1 = newRoad.distOfPoint(c)
-        let dist2 = newRoad.distOfPoint(d)
+        let dist1 = newRoad.seg.distance(c)
+        let dist2 = newRoad.seg.distance(d)
         let t = dist1 / (dist1 + dist2)
         if (isNaN(t)) continue
         let crossPt = c.clone().add(cd.clone().multiplyScalar(t))
@@ -81,13 +41,13 @@ class Basemap {
 
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
-          this.removeRoad(road)
-          this.pushRoad(new Road(c, crossPt))
-          this.pushRoad(new Road(crossPt, d))
+          this.removeRoad(road.road)
+          this.pushRoad(new this.RoadType(c, crossPt).mathImpl)
+          this.pushRoad(new this.RoadType(crossPt, d).mathImpl)
         }
         //otherwise, if cross point is C or D, nothing to do with line CD
 
-        //if new road is not segmented
+        //if new this.RoadType is not segmented
         if (crossPt.equals(from) || crossPt.equals(to)) continue
         res.concat(this.addRoad(from, crossPt))
         res.concat(this.addRoad(crossPt, to))
@@ -96,13 +56,13 @@ class Basemap {
       }
     }
     if (!isSegmented) {
-      res.push(newRoad)
+      res.push(obj)
       this.pushRoad(newRoad)
     }
     return res
   }
 
-  private pushRoad(road: Road) {
+  private pushRoad(road: RoadMathImpl) {
     if (this.edge.has(road.from)) {
       this.edge.get(road.from)!.push(road)
     } else {
@@ -121,51 +81,69 @@ class Basemap {
     this.roadTree.push(road)
   }
 
-  addBuilding(building: Building) {
-    this.buildingTree.push(building)
+  addBuilding(building: BuildingLikeObject) {
+    this.buildingTree.push(building.mathImpl)
   }
 
-  alignRoad(from: Point, to: Point): boolean {
-    let newRoad = new Road(from, to)
+  alignRoad(road: RoadLikeObject): boolean {
+    const { from, to } = road.mathImpl
+    let newRoad = new this.RoadType(from, to)
 
     //detect building cross
     for (let building of this.buildingTree) {
-      if (building.crossRoad(newRoad))
+      if (building.intersectRoad(newRoad.mathImpl))
         return false
     }
 
     return true
   }
-  alignBuilding(pt: Point, proto: Building): { center: Point, angle: number, valid: boolean } {
-    let res = { center: pt, angle: 0, valid: false }
-    let road = this.getNearRoad(pt)
-    if (!road) return { center: pt, angle: 0, valid: false }
+  alignBuilding(pt: Point, ind: BuildingLikeObject): Restype {
 
-    let AB = pt.clone().sub(road.from)
-    let AC = road.to.clone().sub(road.from).normalize()
-    let offset = AC.dot(AB)
-    let newBuilding = Building.from(proto, road, offset)
-    //lacking rotate angle computing
-    res.angle = newBuilding.angle!
+    const nearRoad = this.getNearRoad(pt)
+    //TODO: Distance
+    if (obj) {
 
-    //detect building cross
-    for (let building of this.buildingTree) {
-      if (building.crossBuilding(newBuilding))
-        return res
+      const { mathImpl: road } = obj
+
+      let AB = pt.clone().sub(road.from)
+      let AC = road.to.clone().sub(road.from).normalize()
+      let offset = AC.dot(AB)
+
+      // let newBuilding = new BuildingMathImpl(proto, road, offset)
+      //lacking rotate angle computing
+      // res.angle = newBuilding.angle!
+      let rect = new AnyRect2D()
+
+      let res = <Restype>{
+        road: obj,
+        offset: offset,
+        center:,
+        angle:,
+        valid: true
+      }
+
+      //detect building cross
+      for (let building of this.buildingTree) {
+        if (building.rect.intersect(rect)) {
+          res.valid = false
+          return res
+        }
+      }
+
+      //detect road cross
+      for (let road of this.roadTree) {
+        if (rect.intersect(road.rect)) {
+          res.valid = false
+          return res
+        }
+      }
+      return res
     }
-
-    //detect road cross
-    for (let road of this.roadTree) {
-      if (newBuilding.crossRoad(road))
-        return res
-    }
-
-    res.valid = true
-    return res
   }
 
   // selectBuilding(pt: Point): Building | null
-  removeBuilding(building: Building): void {
+  removeBuilding(obj: BuildingLikeObject): void {
+    const building = obj.mathImpl
     //remove Building in tree
     for (let i = 0; i < this.buildingTree.length; ++i) {
       let h = this.buildingTree[i]
@@ -175,7 +153,8 @@ class Basemap {
       }
     }
   }
-  removeRoad(road: Road): void {
+  removeRoad(obj: RoadLikeObject): void {
+    const road = obj.mathImpl
     //remove road in tree
     for (let i = 0; i < this.roadTree.length; ++i) {
       let r = this.roadTree[i]
@@ -201,24 +180,29 @@ class Basemap {
     }
   }
 
-  selectRoad(pt: Point): Road | null {
+  selectRoad(pt: Point): RoadLikeObject | undefined {
     let res = this.getNearRoad(pt)
-    if (res && res.distOfPoint(pt) > RoadWidth) return null
-    else return res
-  }
-  getNearRoad(pt: Point): Road | null {
-    if (this.roadTree.length == 0) return null
-    let res = this.roadTree[0]
-    let minDist = res.distOfPoint(pt)
-    for (let road of this.roadTree)
-      if (road.distOfPoint(pt) < minDist) {
-        minDist = road.distOfPoint(pt)
-        res = road
+    if (res) {
+      const road = res.mathImpl
+      if (road.seg.distance(pt) <= RoadWidth) {
+        return res
       }
-    return res
+    }
+  }
+  getNearRoad(pt: Point): RoadLikeObject | undefined {
+    if (this.roadTree.length) {
+      let res = this.roadTree[0]
+      let minDist = res.seg.distance(pt)
+      for (let road of this.roadTree)
+        if (road.seg.distance(pt) < minDist) {
+          minDist = road.seg.distance(pt)
+          res = road
+        }
+      return res.road
+    }
   }
 }
 
 export {
-  Road, Basemap
+  Basemap
 }
