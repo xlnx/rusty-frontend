@@ -24,7 +24,7 @@ class Basemap {
     let res: RoadLikeObject[] = []
     let obj = new this.RoadType(from, to)
     let { mathImpl: newRoad } = obj
-    let isSegmented = false
+    let segPts: Point[] = []
     for (let road of this.roadTree) {
       if (road.seg.intersect(newRoad.seg)) {
         let c = road.from
@@ -48,15 +48,15 @@ class Basemap {
 
         //if new this.RoadType is not segmented
         if (crossPt.equals(from) || crossPt.equals(to)) continue
-        res = res.concat(this.addRoad(from, crossPt))
-        res = res.concat(this.addRoad(crossPt, to))
-        isSegmented = true
-        break
+        segPts.push(crossPt)
       }
     }
-    if (!isSegmented) {
-      res.push(obj)
+    segPts.push(to)
+    let From = from
+    for (let pt of segPts) {
+      let newRoad = new this.RoadType(From, pt).mathImpl
       this.pushRoad(newRoad)
+      From = pt
     }
     return res
   }
@@ -109,8 +109,8 @@ class Basemap {
       let origin = new THREE.Vector2(0, 0)
       let offset = Math.round(AC.dot(AB))
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * (<any>AB).cross(AC) < 0 ? -1 : 1)
-      let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir))) * new THREE.Vector2(0, -1).dot(AC.clone())
       console.log(AC, AB, normDir)
+      let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir))) * new THREE.Vector2(0, -1).dot(AC.clone())
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset))
         .add(normDir.clone().multiplyScalar(placeholder.height + RoadWidth))
