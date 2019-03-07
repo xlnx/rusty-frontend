@@ -103,12 +103,10 @@ class AnyRect2D {
         let otherPts = other.pts
         let otherDir = otherPts[1].clone().sub(otherPts[0])
         let otherAngle = Math.acos(otherDir.clone().normalize().x)
-        // console.log(otherPts, otherDir, otherAngle)
 
         let thisPts = this.pts
         let thisDir = thisPts[1].clone().sub(thisPts[0])
         let thisAngle = Math.acos(thisDir.clone().normalize().x)
-        // console.log(thisPts, thisDir, thisAngle)
 
         let thisCopy = copyPts(thisPts)
         let otherCopy = copyPts(otherPts)
@@ -130,7 +128,6 @@ class AnyRect2D {
         for (let pt of otherCopy)
             pt.rotateAround(thisPts[0], thisAngle)
         let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, minPt(thisCopy))
-        // console.log(otherCopy)
 
         //case 1
         if (thisPtsInOther || otherPtsInThis) return true

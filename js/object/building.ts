@@ -34,9 +34,8 @@ class BuildingIndicator extends BuildingPrototype {
 	adjust(pt: THREE.Vector2) {
 		const res = this.basemap.alignBuilding(pt, this.placeholder)
 		if (res) {
-			console.log(pt)
-			console.log(res)
 			const { road, offset, center, angle, valid } = res
+			console.log(valid)
 			const { x, y, z } = plain2world(center)
 			this.object.position.set(x, y, z)
 			this.object.rotation.y = angle

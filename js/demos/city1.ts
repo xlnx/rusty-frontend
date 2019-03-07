@@ -25,9 +25,9 @@ export default class CityDemoRenderer1 extends VRRenderer {
 
 	private open(mode, state: { [key: string]: any }) {
 		({
-			"preview": () => { this.orbit.enabled = true },
-			"road": () => { },
-			"building": () => {
+			preview: () => { this.orbit.enabled = true },
+			road: () => { },
+			building: () => {
 				state.indicator = new BuildingIndicator(
 					this.manager.get(this.type)!, this.basemap)
 				this.scene.add(state.indicator.object!)
@@ -37,9 +37,9 @@ export default class CityDemoRenderer1 extends VRRenderer {
 
 	private close(mode, state: { [key: string]: any }) {
 		({
-			"preview": () => { this.orbit.enabled = false },
-			"road": () => { !state.indicator || this.scene.remove(state.indicator.object) },
-			"building": () => this.scene.remove(state.indicator.object!),
+			preview: () => { this.orbit.enabled = false },
+			road: () => { !state.indicator || this.scene.remove(state.indicator.object) },
+			building: () => this.scene.remove(state.indicator.object!),
 		}[mode])()
 	}
 
@@ -85,16 +85,32 @@ export default class CityDemoRenderer1 extends VRRenderer {
 	}
 
 	protected OnMouseUp(e: MouseEvent) {
-		if (this.mode == "road") {
-			if (this.state.indicator) {
-				const rs = this.basemap.addRoad(this.state.indicator.from, this.state.indicator.to)
-				for (const r of rs) {
-					this.scene.add((<any>r).object)
+		({
+			road: () => {
+				if (this.state.indicator) {
+					const rs = this.basemap.addRoad(this.state.indicator.from, this.state.indicator.to)
+					for (const r of rs) {
+						this.scene.add((<any>r).object)
+					}
+					this.scene.remove(this.state.indicator.object)
+					this.state.indicator = undefined
 				}
-				this.scene.remove(this.state.indicator.object)
-				this.state.indicator = undefined
+			},
+			building: () => {
+				if (this.state.indicator) {
+					// const res = this.basemap.alignBuilding(this.mouse, this.state.indicator.placeholder)
+					// if (res) {
+					// 	console.log("building added")
+					// 	const { road: r, offset: o } = res
+					// 	const b = new Building(this.manager.get(this.type)!, <Road>r, o)
+					// 	this.basemap.addBuilding(b)
+					// 	this.scene.add(b.object)
+					// 	// this.scene.remove(this.state.indicator.object)
+					// 	// this.state.indicator = undefined
+					// }
+				}
 			}
-		}
+		})[this.mode]()
 	}
 
 	OnUpdate() {

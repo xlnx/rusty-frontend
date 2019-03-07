@@ -37,7 +37,6 @@ class Basemap {
         if (isNaN(t)) continue
         let crossPt = c.clone().add(cd.clone().multiplyScalar(t))
         // let tes = { from: c, to: d, crossPoint: crossPt }
-        // console.log(tes)
 
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
@@ -113,8 +112,7 @@ class Basemap {
       let offset = Math.round(AC.dot(AB))
       let x = (<any>AB).cross(AC) < 0 ? 1 : -1//1: left, -1:right
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * x)
-      console.log(normDir)
-      // console.log(AC, AB, normDir)
+
       let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir)))
         * (new THREE.Vector2(0, -1).dot(AC.clone()) > 0 ? 1 : -1) * -x
       let center = road.from.clone()
