@@ -30,6 +30,21 @@ function maxPt(pts: Point[]): Point {
     return res
 }
 
+function copyPts(pts: Point[]): Point[] {
+    let res: Point[] = []
+    for (let pt of pts)
+        res.push(pt.clone())
+    return res
+}
+
+const eps = 1e-2
+// <:1, =:0, >:-1
+function cmp(a: number, b: number): number {
+    const val = b - a
+    return Math.abs(val) < eps ? 0 : val > 0 ? 1 : -1
+}
+
+
 declare type Point = THREE.Vector2;
 
 class Seg2D {
@@ -37,7 +52,7 @@ class Seg2D {
         readonly from: THREE.Vector2,
         readonly to: THREE.Vector2
     ) { }
-    intersect(other: Seg2D): boolean {
+    intersect(other: Seg2D, flag: boolean = true): boolean {
         //1.rapid judge: rectangle coincide
         let a = this.from
         let b = this.to
@@ -61,8 +76,12 @@ class Seg2D {
             let cd = d.clone().sub(c)
             let cb = b.clone().sub(c)
             //2.cross standing experiment
-            return (<any>ac).cross(ab) * (<any>ad).cross(ab) <= 0 &&
-                (<any>ca).cross(cd) * (<any>cb).cross(cd) <= 0
+            if (flag) {
+                return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) >= 0 &&
+                    cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) >= 0
+            }
+            else return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) > 0 &&
+                cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) > 0
         }
         return false
     }
@@ -75,44 +94,72 @@ class Seg2D {
 }
 
 class AnyRect2D {
-    readonly bbox2d: THREE.Box2
+    private bbox2d: THREE.Box2 = <any>null
     constructor(private readonly pts: THREE.Vector2[]) {
-        this.bbox2d = new THREE.Box2(minPt(pts), maxPt(pts))
+        this.bbox2d = new THREE.Box2(minPt(this.pts), maxPt(this.pts))
     }
 
 
     intersect(other: AnyRect2D): boolean {
-        const recBox = new THREE.Box2(minPt(other.pts), maxPt(other.pts))
-        if (!recBox.intersectsBox(this.bbox2d)) return false
+        if (!other.bbox2d.intersectsBox(this.bbox2d)) return false
         //assume road width is integer
-        let recDir = other.pts[1].clone().sub(other.pts[0])
-        let roadAngle = Math.acos(recDir.normalize().x)
-        let origin = new THREE.Vector2(0, 0)
-        let housePts = this.pts
-        for (let pt of housePts)
-            pt.rotateAround(origin, -roadAngle)
-        for (let pt of other.pts)
-            pt.rotateAround(origin, -roadAngle)
-        let housePtsInRec = inBox(other.pts[3], housePts, other.pts[1])
-        let houseRoadDir = housePts[1].clone().sub(housePts[0])
-        let houseRoadAngle = Math.acos(houseRoadDir.x)
-        for (let pt of housePts)
-            pt.rotateAround(origin, roadAngle - houseRoadAngle)
-        for (let pt of other.pts)
-            pt.rotateAround(origin, roadAngle - houseRoadAngle)
-        let roadPtsInHouse = inBox(this.bbox2d.min, other.pts, this.bbox2d.max)
-        //case 1
-        if (housePtsInRec || roadPtsInHouse) return true
-        //case 2
-        let roadAC = new Seg2D(other.pts[0], other.pts[2])
-        let roadBD = new Seg2D(other.pts[1], other.pts[3])
-        let houseAC = new Seg2D(other.pts[0], other.pts[2])
-        let houseBD = new Seg2D(other.pts[1], other.pts[3])
 
-        return roadAC.intersect(houseAC) ||
-            roadAC.intersect(houseBD) ||
-            roadBD.intersect(houseAC) ||
-            roadBD.intersect(houseBD)
+        let otherPts = other.pts
+        let otherDir = otherPts[1].clone().sub(otherPts[0])
+        let otherAngle = Math.acos(otherDir.clone().normalize().x)
+        // console.log(otherPts, otherDir, otherAngle)
+
+        let thisPts = this.pts
+        let thisDir = thisPts[1].clone().sub(thisPts[0])
+        let thisAngle = Math.acos(thisDir.clone().normalize().x)
+        // console.log(thisPts, thisDir, thisAngle)
+
+        let thisCopy = copyPts(thisPts)
+        let otherCopy = copyPts(otherPts)
+        let origin = new THREE.Vector2(0, 0)
+        for (let pt of thisCopy) {
+
+            pt.sub(otherPts[0]);
+            pt.rotateAround(origin, otherAngle);
+            pt.add(otherPts[0]);
+        }
+        for (let pt of otherCopy)
+            pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(otherPts[0])
+        let thisPtsInOther = inBox(minPt(otherCopy), thisCopy, maxPt(otherCopy))
+        console.log(thisCopy)
+        console.log(otherCopy)
+
+
+        thisCopy = copyPts(thisPts)
+        otherCopy = copyPts(otherPts)
+        for (let pt of thisCopy)
+            pt.rotateAround(thisPts[0], thisAngle)
+        for (let pt of otherCopy)
+            pt.rotateAround(thisPts[0], thisAngle)
+        let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, minPt(thisCopy))
+        // console.log(otherCopy)
+
+        //case 1
+        if (thisPtsInOther || otherPtsInThis) return true
+        //case 2
+
+        const a1 = [
+            new Seg2D(otherPts[0], otherPts[2]),
+            new Seg2D(otherPts[1], otherPts[3])
+        ]
+        const b1 = [
+            new Seg2D(thisPts[0], thisPts[2]),
+            new Seg2D(thisPts[1], thisPts[3])
+        ]
+        for (const se of a1) {
+            for (const sq of b1) {
+                console.log(se, sq, se.intersect(sq, false))
+                if (se.intersect(sq, false)) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }
 

@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 
 module.exports = {
 	entry: './js/bootstrap.js',
+	// entry: "./test/oj.ts",
 	output: {
 		path: path.resolve(__dirname, 'out'),
 		filename: 'bundle.js'

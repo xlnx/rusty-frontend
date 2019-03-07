@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import ObjAsset from "./obj";
 import { AssetPath, DistUnit, ObjectTag } from "./def";
-import { RoadWidth, inBox, minPt, maxPt, Point } from "../model/def";
+import { inBox, minPt, maxPt, Point } from "../model/geometry";;
 import XHRJson from "./json";
 
 interface TransformStep {
