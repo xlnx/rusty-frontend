@@ -1,10 +1,10 @@
 import * as THREE from "three"
-import { DistUnit } from "../asset/def";
 import { RoadWidth, BuildingLikeObject } from "../model/def";
 import BuildingMathImpl from "../model/building";
 import Road from "./road";
 import { Basemap } from "../model/basemap";
 import { BuildingPrototype } from "../asset/building";
+import { plain2world } from "../2d/trans";
 
 class Building extends BuildingPrototype implements BuildingLikeObject {
 
@@ -28,21 +28,23 @@ class Building extends BuildingPrototype implements BuildingLikeObject {
 class BuildingIndicator extends BuildingPrototype {
 
 	constructor(proto: BuildingPrototype, private readonly basemap: Basemap) {
-
 		super(proto)
 	}
 
 	adjust(pt: THREE.Vector2) {
-		// const res = this.basemap.alignBuilding(pt, this)
-		// if (res) {
-		// 	console.log(res)
-		// 	const { road, offset, center, angle, valid } = res
-		// 	const c = new THREE.Vector3(center.x, 0, center.y).multiplyScalar(DistUnit)
-		// 	this.object.position.set(c.x, c.y, c.z)
-		// 	this.object.rotation.y = angle
-		// } else {
-		// 	this.object.rotation.set(0, 0, 0)
-		// }
+		const res = this.basemap.alignBuilding(pt, this.placeholder)
+		if (res) {
+			console.log(pt)
+			console.log(res)
+			const { road, offset, center, angle, valid } = res
+			const { x, y, z } = plain2world(center)
+			this.object.position.set(x, y, z)
+			this.object.rotation.y = angle
+		} else {
+			const { x, y, z } = plain2world(pt)
+			this.object.position.set(x, y, z)
+			this.object.rotation.set(0, 0, 0)
+		}
 	}
 
 }

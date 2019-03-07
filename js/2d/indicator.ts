@@ -3,6 +3,7 @@ import { Geometry2D, NumberVariable } from "./geometry";
 import { DistUnit } from "../asset/def";
 import { RoadLikeObject } from "../model/def";
 import RoadMathImpl from "../model/road";
+import { plain2world } from "./trans";
 
 export default class Indicator implements RoadLikeObject {
 
@@ -21,7 +22,7 @@ export default class Indicator implements RoadLikeObject {
 		this.v = v
 		this.mathImpl.to = v
 		const d = this.to.clone().sub(this.from)
-		this.object.setRotationFromAxisAngle(Indicator.up, -d.angle())
+		this.object.setRotationFromAxisAngle(Indicator.up, d.angle())
 		this.l.set(d.length() || 0.1)
 	}
 
@@ -65,7 +66,8 @@ export default class Indicator implements RoadLikeObject {
 		this.object = new THREE.Object3D()
 		this.object.add(w)
 
-		this.object.position.set(from.x * DistUnit, 0, from.y * DistUnit)
+		const { x, y: y_, z } = plain2world(from)
+		this.object.position.set(x, y_, z)
 		this.to = v
 	}
 }

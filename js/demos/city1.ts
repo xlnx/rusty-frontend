@@ -1,6 +1,5 @@
 import * as THREE from "three"
 import Selector from "../wrapper/selector"
-import { DistUnit } from "../asset/def"
 import Indicator from "../2d/indicator";
 import Ground from "../object/ground";
 import Road from "../object/road";
@@ -40,7 +39,7 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		({
 			"preview": () => { this.orbit.enabled = false },
 			"road": () => { !state.indicator || this.scene.remove(state.indicator.object) },
-			"building": () => { this.scene.remove(state.indicator.object!) },
+			"building": () => this.scene.remove(state.indicator.object!),
 		}[mode])()
 	}
 
@@ -56,6 +55,7 @@ export default class CityDemoRenderer1 extends VRRenderer {
 				this.close(this.oldmode, this.state)
 				this.open(this.mode, newState)
 				this.state = newState
+				this.oldmode = this.mode
 			})
 
 		this.manager.load([
@@ -77,27 +77,22 @@ export default class CityDemoRenderer1 extends VRRenderer {
 	protected OnMouseDown(e: MouseEvent) {
 		if (this.mode == "road") {
 			const point = this.ground.intersect(this.mouse, this.camera)
-			this.state.indicator = new Indicator(1, point!, point!)
-			this.scene.add(this.state.indicator.object)
+			if (point) {
+				this.state.indicator = new Indicator(1, point!, point!)
+				this.scene.add(this.state.indicator.object)
+			}
 		}
 	}
 
 	protected OnMouseUp(e: MouseEvent) {
 		if (this.mode == "road") {
-			const rs = this.basemap.addRoad(this.state.indicator.from, this.state.indicator.to)
-			for (const r of rs) {
-				this.scene.add((<any>r).object)
-			}
-			this.scene.remove(this.state.indicator.object)
-			this.state.indicator = undefined
-		}
-	}
-
-	protected OnMouseMove(e: MouseEvent) {
-		if (this.mode == "road") {
 			if (this.state.indicator) {
-				const ind: Indicator = this.state.indicator
-				console.log(this.basemap.alignRoad(ind))
+				const rs = this.basemap.addRoad(this.state.indicator.from, this.state.indicator.to)
+				for (const r of rs) {
+					this.scene.add((<any>r).object)
+				}
+				this.scene.remove(this.state.indicator.object)
+				this.state.indicator = undefined
 			}
 		}
 	}
@@ -108,26 +103,20 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		switch (this.mode) {
 			case "road": {
 				if (this.state.indicator) {
+					const ind: Indicator = this.state.indicator
 					const coord = this.ground.intersect(this.mouse, this.camera)
-					if (coord) this.state.indicator.to = coord
+					if (coord) ind.to = coord
+					this.basemap.alignRoad(ind)
 				}
 			} break
 			case "building": {
-				// const coord = this.ground.intersect(this.mouse, this.camera)
-				// if (coord) {
-				// 	const pos = coord.multiplyScalar(DistUnit)
-				// 	this.indicator!.object!.position.set(pos.x, 0, pos.y)
-				// }
-
-				// const res = this.selector.select(this.mouse, this.camera)
-				// if (res) {
-				// 	const { type, object: obj } = res
-				// 	const wnd = <any>window
-				// 	if (wnd["sel"] != obj) {
-				// 		console.log("selected changed")
-				// 		wnd["sel"] = obj
-				// 	}
-				// }
+				const coord = this.ground.intersect(this.mouse, this.camera)
+				if (coord) {
+					if (this.state.indicator) {
+						const ind: BuildingIndicator = this.state.indicator
+						ind.adjust(coord)
+					}
+				}
 			} break
 		}
 	}

@@ -25,6 +25,7 @@ class Basemap {
     let obj = new this.RoadType(from, to)
     let { mathImpl: newRoad } = obj
     let segPts: Point[] = []
+    let tempRoad: RoadMathImpl[] = []
     for (let road of this.roadTree) {
       if (road.seg.intersect(newRoad.seg)) {
         let c = road.from
@@ -41,8 +42,8 @@ class Basemap {
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
           this.removeRoad(road.road)
-          this.pushRoad(new this.RoadType(c, crossPt).mathImpl)
-          this.pushRoad(new this.RoadType(crossPt, d).mathImpl)
+          tempRoad.push(new this.RoadType(c, crossPt).mathImpl)
+          tempRoad.push(new this.RoadType(crossPt, d).mathImpl)
         }
         //otherwise, if cross point is C or D, nothing to do with line CD
 
@@ -56,7 +57,11 @@ class Basemap {
     for (let pt of segPts) {
       let newRoad = new this.RoadType(From, pt).mathImpl
       this.pushRoad(newRoad)
+      res.push(newRoad.road)
       From = pt
+    }
+    for (let road of tempRoad) {
+      this.pushRoad(road)
     }
     return res
   }
@@ -85,12 +90,10 @@ class Basemap {
   }
 
   alignRoad(road: RoadLikeObject): boolean {
-    const { from, to } = road.mathImpl
-    let newRoad = new this.RoadType(from, to)
 
     //detect building cross
     for (let building of this.buildingTree) {
-      if (building.intersectRoad(newRoad.mathImpl))
+      if (building.intersectRoad(road.mathImpl))
         return false
     }
 
