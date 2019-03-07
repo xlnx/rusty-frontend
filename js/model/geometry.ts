@@ -58,16 +58,12 @@ class Seg2D {
         let b = this.to
         let c = other.from
         let d = other.to
-        const [e, f] = [minPt([a, b]), maxPt([a, b])]
-        const [g, h] = [minPt([c, d]), maxPt([c, d])]
-        if (new THREE.Box2(e, f).intersectsBox(new THREE.Box2(g, h)))
-        // if (
-        //     Math.min(a.x, b.x) <= Math.max(c.x, d.x) &&
-        //     Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
-        //     Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
-        //     Math.max(a.y, b.y) >= Math.min(c.y, d.y)
-        // )
-        {
+        if (
+            Math.min(a.x, b.x) <= Math.max(c.x, d.x) &&
+            Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
+            Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
+            Math.max(a.y, b.y) >= Math.min(c.y, d.y)
+        ) {
             //possibly line conincide
             let ab = b.clone().sub(a)
             let ac = c.clone().sub(a)
@@ -126,9 +122,6 @@ class AnyRect2D {
         for (let pt of otherCopy)
             pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(otherPts[0])
         let thisPtsInOther = inBox(minPt(otherCopy), thisCopy, maxPt(otherCopy))
-        console.log(thisCopy)
-        console.log(otherCopy)
-
 
         thisCopy = copyPts(thisPts)
         otherCopy = copyPts(otherPts)
@@ -153,7 +146,6 @@ class AnyRect2D {
         ]
         for (const se of a1) {
             for (const sq of b1) {
-                console.log(se, sq, se.intersect(sq, false))
                 if (se.intersect(sq, false)) {
                     return true
                 }

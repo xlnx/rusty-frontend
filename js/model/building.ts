@@ -7,15 +7,12 @@ import RoadMathImpl from "./road";
 export default class BuildingMathImpl {
 
     private rectangle: AnyRect2D = <any>null
-    private updateRect: boolean = false
+    private shouldUpdate: boolean = true
 
-    set rectNeedsUpdate(flag: boolean) { this.updateRect = flag }
+    set rectNeedsUpdate(flag: boolean) { this.shouldUpdate = flag }
 
     get rect(): AnyRect2D {
-        if (this.updateRect) {
-            this.updateRect = false
-            this.updateRectangle()
-        }
+        this.checkUpdate()
         return this.rectangle
     }
 
@@ -25,7 +22,7 @@ export default class BuildingMathImpl {
         readonly road: RoadLikeObject,
         readonly offset: number
     ) {
-        this.updateRectangle()
+        this.checkUpdate()
     }
 
     intersectRoad(road: RoadMathImpl): boolean {
@@ -36,14 +33,17 @@ export default class BuildingMathImpl {
         return this.rect.intersect(building.rect)
     }
 
-    private updateRectangle() {
-        let houseRoadDir = this.road.mathImpl.to.clone().sub(this.road.mathImpl.from).normalize()
-        let houseRoadNormDir = houseRoadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
-        let housePts = new Array<THREE.Vector2>()
-        housePts[0] = this.road.mathImpl.from.clone().add(houseRoadDir.clone().multiplyScalar(this.offset!)).add(houseRoadNormDir.clone().multiplyScalar(RoadWidth))
-        housePts[1] = housePts[0].clone().add(houseRoadDir.clone().multiplyScalar(this.building.placeholder.x))
-        housePts[2] = housePts[1].clone().add(houseRoadNormDir.clone().multiplyScalar(this.building.placeholder.y))
-        housePts[3] = housePts[2].clone().sub(houseRoadDir.clone().multiplyScalar(this.building.placeholder!.x))
-        this.rectangle = new AnyRect2D(housePts)
+    private checkUpdate() {
+        if (this.shouldUpdate) {
+            this.shouldUpdate = false
+            let houseRoadDir = this.road.mathImpl.to.clone().sub(this.road.mathImpl.from).normalize()
+            let houseRoadNormDir = houseRoadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
+            let housePts = new Array<THREE.Vector2>()
+            housePts[0] = this.road.mathImpl.from.clone().add(houseRoadDir.clone().multiplyScalar(this.offset!)).add(houseRoadNormDir.clone().multiplyScalar(RoadWidth))
+            housePts[1] = housePts[0].clone().add(houseRoadDir.clone().multiplyScalar(this.building.placeholder.x))
+            housePts[2] = housePts[1].clone().add(houseRoadNormDir.clone().multiplyScalar(this.building.placeholder.y))
+            housePts[3] = housePts[2].clone().sub(houseRoadDir.clone().multiplyScalar(this.building.placeholder!.x))
+            this.rectangle = new AnyRect2D(housePts)
+        }
     }
 } 

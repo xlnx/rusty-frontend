@@ -1,6 +1,5 @@
 import * as THREE from "three"
-import Building from "../object/building";
-import BuildingPrototype from "../asset/building";
+import { BuildingPrototype } from "../asset/building";
 import BuildingMathImpl from "./building";
 import { RoadWidth, RoadLikeObject, BuildingLikeObject } from "./def";
 import { Point, AnyRect2D } from "./geometry";
@@ -97,48 +96,57 @@ class Basemap {
 
     return true
   }
-  // alignBuilding(pt: Point, ind: BuildingLikeObject): Restype {
 
-  //   const nearRoad = this.getNearRoad(pt)
-  //   if (nearRoad) {
-  //     const { mathImpl: road } = nearRoad
-  //     if (road.seg.distance(pt) > ind.placeholder.height) return
+  alignBuilding(pt: Point, placeholder: THREE.Vector2): Restype {
 
-  //     let AB = pt.clone().sub(road.from)
-  //     let AC = road.to.clone().sub(road.from).normalize()
-  //     let offset = AC.dot(AB)
+    const nearRoad = this.getNearRoad(pt)
+    if (nearRoad) {
+      const { mathImpl: road } = nearRoad
+      if (road.seg.distance(pt) > placeholder.height) return
 
-  //     // let newBuilding = new BuildingMathImpl(proto, road, offset)
-  //     //lacking rotate angle computing
-  //     // res.angle = newBuilding.angle!
-  //     let rect = new AnyRect2D()
+      let AB = pt.clone().sub(road.from)
+      let AC = road.to.clone().sub(road.from).normalize()
+      let origin = new THREE.Vector2(0, 0)
+      let offset = Math.round(AC.dot(AB))
+      let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * (<any>AB).cross(AC) < 0 ? -1 : 1)
+      let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir))) * new THREE.Vector2(0, -1).dot(AC.clone())
+      console.log(AC, AB, normDir)
+      let center = road.from.clone()
+        .add(AC.clone().multiplyScalar(offset))
+        .add(normDir.clone().multiplyScalar(placeholder.height + RoadWidth))
+      let rect = new AnyRect2D([
+        center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2)).add(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2)).add(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2)).sub(AC.clone().multiplyScalar(placeholder.width / 2)),
+        center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2)).sub(AC.clone().multiplyScalar(placeholder.width / 2)),
+      ])
 
-  //     let res = <Restype>{
-  //       road: obj,
-  //       offset: offset,
-  //       center:,
-  //       angle:,
-  //       valid: true
-  //     }
+      let res = <Restype>{
+        road: nearRoad,
+        offset: offset,
+        center: center,
+        angle: angle,
+        valid: true
+      }
 
-  //     //detect building cross
-  //     for (let building of this.buildingTree) {
-  //       if (building.rect.intersect(rect)) {
-  //         res.valid = false
-  //         return res
-  //       }
-  //     }
+      //detect building cross
+      for (let building of this.buildingTree) {
+        if (building.rect.intersect(rect)) {
+          res!.valid = false
+          return res
+        }
+      }
 
-  //     //detect road cross
-  //     for (let road of this.roadTree) {
-  //       if (rect.intersect(road.rect)) {
-  //         res.valid = false
-  //         return res
-  //       }
-  //     }
-  //     return res
-  //   }
-  // }
+      //detect road cross
+      for (let road of this.roadTree) {
+        if (rect.intersect(road.rect)) {
+          res!.valid = false
+          return res
+        }
+      }
+      return res
+    }
+  }
 
   // selectBuilding(pt: Point): Building | null
   removeBuilding(obj: BuildingLikeObject): void {

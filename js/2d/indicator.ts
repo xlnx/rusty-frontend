@@ -1,12 +1,16 @@
 import * as THREE from "three"
 import { Geometry2D, NumberVariable } from "./geometry";
 import { DistUnit } from "../asset/def";
+import { RoadLikeObject } from "../model/def";
+import RoadMathImpl from "../model/road";
 
-export default class Indicator {
+export default class Indicator implements RoadLikeObject {
 
 	private static up = new THREE.Vector3(0, 1, 0)
 
 	public readonly object: THREE.Object3D
+
+	public readonly mathImpl
 
 	private readonly l = new NumberVariable(0)
 	get length() { return this.l.value }
@@ -15,6 +19,7 @@ export default class Indicator {
 	get to() { return this.v }
 	set to(v: THREE.Vector2) {
 		this.v = v
+		this.mathImpl.to = v
 		const d = this.to.clone().sub(this.from)
 		this.object.setRotationFromAxisAngle(Indicator.up, -d.angle())
 		this.l.set(d.length() || 0.1)
@@ -22,6 +27,8 @@ export default class Indicator {
 
 	constructor(public readonly r: number, public readonly from: THREE.Vector2,
 		private v: THREE.Vector2) {
+
+		this.mathImpl = new RoadMathImpl(this, from, v)
 
 		const yy = new THREE.RingGeometry(r, r + .1, 32, 0, undefined, Math.PI)
 		const y = new THREE.CircleGeometry(r, 32, 0, Math.PI)

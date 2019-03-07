@@ -8,7 +8,7 @@ export default class RoadMathImpl {
     private _seg: Seg2D = <any>null
     private _rect: AnyRect2D = <any>null
 
-    private shouldUpdate: boolean = false
+    private shouldUpdate: boolean = true
 
     get from() { return this.seg.from }
     get to() { return this.seg.to }
