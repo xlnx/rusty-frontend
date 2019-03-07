@@ -2,7 +2,7 @@ import * as THREE from "three"
 import TexAsset from "../asset/tex";
 import { DistUnit } from "../asset/def";
 import { RoadLikeObject } from "../model/def";
-import { RoadMathImpl } from "../model/basemap";
+import RoadMathImpl from "../model/road";
 
 export default class Road implements RoadLikeObject {
 

@@ -49,8 +49,8 @@ class Basemap {
 
         //if new this.RoadType is not segmented
         if (crossPt.equals(from) || crossPt.equals(to)) continue
-        res.concat(this.addRoad(from, crossPt))
-        res.concat(this.addRoad(crossPt, to))
+        res = res.concat(this.addRoad(from, crossPt))
+        res = res.concat(this.addRoad(crossPt, to))
         isSegmented = true
         break
       }
@@ -97,49 +97,48 @@ class Basemap {
 
     return true
   }
-  alignBuilding(pt: Point, ind: BuildingLikeObject): Restype {
+  // alignBuilding(pt: Point, ind: BuildingLikeObject): Restype {
 
-    const nearRoad = this.getNearRoad(pt)
-    //TODO: Distance
-    if (obj) {
+  //   const nearRoad = this.getNearRoad(pt)
+  //   if (nearRoad) {
+  //     const { mathImpl: road } = nearRoad
+  //     if (road.seg.distance(pt) > ind.placeholder.height) return
 
-      const { mathImpl: road } = obj
+  //     let AB = pt.clone().sub(road.from)
+  //     let AC = road.to.clone().sub(road.from).normalize()
+  //     let offset = AC.dot(AB)
 
-      let AB = pt.clone().sub(road.from)
-      let AC = road.to.clone().sub(road.from).normalize()
-      let offset = AC.dot(AB)
+  //     // let newBuilding = new BuildingMathImpl(proto, road, offset)
+  //     //lacking rotate angle computing
+  //     // res.angle = newBuilding.angle!
+  //     let rect = new AnyRect2D()
 
-      // let newBuilding = new BuildingMathImpl(proto, road, offset)
-      //lacking rotate angle computing
-      // res.angle = newBuilding.angle!
-      let rect = new AnyRect2D()
+  //     let res = <Restype>{
+  //       road: obj,
+  //       offset: offset,
+  //       center:,
+  //       angle:,
+  //       valid: true
+  //     }
 
-      let res = <Restype>{
-        road: obj,
-        offset: offset,
-        center:,
-        angle:,
-        valid: true
-      }
+  //     //detect building cross
+  //     for (let building of this.buildingTree) {
+  //       if (building.rect.intersect(rect)) {
+  //         res.valid = false
+  //         return res
+  //       }
+  //     }
 
-      //detect building cross
-      for (let building of this.buildingTree) {
-        if (building.rect.intersect(rect)) {
-          res.valid = false
-          return res
-        }
-      }
-
-      //detect road cross
-      for (let road of this.roadTree) {
-        if (rect.intersect(road.rect)) {
-          res.valid = false
-          return res
-        }
-      }
-      return res
-    }
-  }
+  //     //detect road cross
+  //     for (let road of this.roadTree) {
+  //       if (rect.intersect(road.rect)) {
+  //         res.valid = false
+  //         return res
+  //       }
+  //     }
+  //     return res
+  //   }
+  // }
 
   // selectBuilding(pt: Point): Building | null
   removeBuilding(obj: BuildingLikeObject): void {

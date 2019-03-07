@@ -20,7 +20,7 @@ export default class BuildingMathImpl {
     }
 
     constructor(private readonly building: BuildingLikeObject,
-        readonly bbox2d: THREE.Box2,
+        // readonly bbox2d: THREE.Box2,
         readonly angle: number,
         readonly road: RoadLikeObject,
         readonly offset: number

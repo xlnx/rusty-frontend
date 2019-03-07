@@ -10,6 +10,8 @@ export default class RoadMathImpl {
 
     private shouldUpdate: boolean = false
 
+    get from() { return this.seg.from }
+    get to() { return this.seg.to }
     set from(pt: THREE.Vector2) {
         (<any>this.seg).from = pt
         this.shouldUpdate = true

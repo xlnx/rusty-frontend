@@ -13,7 +13,7 @@ function inBox(min: Point, pts: Point[], max: Point): boolean {
 }
 
 function minPt(pts: Point[]): Point {
-    let res = pts[0]
+    let res = pts[0].clone()
     for (let pt of pts) {
         if (pt.x < res.x) res.x = pt.x
         if (pt.y < res.y) res.y = pt.y
@@ -22,7 +22,7 @@ function minPt(pts: Point[]): Point {
 }
 
 function maxPt(pts: Point[]): Point {
-    let res = pts[0]
+    let res = pts[0].clone()
     for (let pt of pts) {
         if (pt.x > res.x) res.x = pt.x
         if (pt.y > res.y) res.y = pt.y
@@ -51,7 +51,7 @@ class Seg2D {
         //     Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
         //     Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
         //     Math.max(a.y, b.y) >= Math.min(c.y, d.y)
-        // ) 
+        // )
         {
             //possibly line conincide
             let ab = b.clone().sub(a)
