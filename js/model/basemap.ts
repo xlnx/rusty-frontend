@@ -109,10 +109,12 @@ class Basemap {
       let AB = pt.clone().sub(road.from)
       let AC = road.to.clone().sub(road.from)
       let roadLength = AC.length()
+      if (roadLength < placeholder.width) return
+      roadLength -= placeholder.width
       AC.normalize()
       let origin = new THREE.Vector2(0, 0)
-      let offset = Math.round(AC.dot(AB))
-      offset = offset < 0 ? 0 : offset > length ? length : offset
+      let offset = Math.round(AC.dot(AB) - placeholder.width / 2)
+      offset = offset < 0 ? 0 : offset > roadLength ? roadLength : offset
       let x = (<any>AB).cross(AC) < 0 ? 1 : -1//1: left, -1:right
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * x)
 
@@ -210,14 +212,20 @@ class Basemap {
   }
   getNearRoad(pt: Point): RoadLikeObject | undefined {
     if (this.roadTree.length) {
-      let res = this.roadTree[0]
-      let minDist = res.seg.distance(pt)
+      let res: RoadMathImpl | undefined
+      let minDist = Infinity
       for (let road of this.roadTree)
         if (road.seg.distance(pt) < minDist) {
-          minDist = road.seg.distance(pt)
-          res = road
+          const ap = pt.clone().sub(road.seg.from)
+          const bp = pt.clone().sub(road.seg.to)
+          const ab = road.seg.to.clone().sub(road.seg.from)
+          const ba = ab.clone().negate()
+          if (ap.dot(ab) > 0 && bp.dot(ba) > 0) {
+            minDist = road.seg.distance(pt)
+            res = road
+          }
         }
-      return res.road
+      return !!res ? res.road : undefined
     }
   }
 }

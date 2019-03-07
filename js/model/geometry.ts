@@ -3,10 +3,10 @@ import * as THREE from "three"
 function inBox(min: Point, pts: Point[], max: Point): boolean {
     for (let pt of pts) {
         if (
-            pt.x > min.x &&
-            pt.x < max.x &&
-            pt.y > min.y &&
-            pt.y < max.y
+            cmp(pt.x, min.x) < 0 &&
+            cmp(pt.x, max.x) > 0 &&
+            cmp(pt.y, min.y) < 0 &&
+            cmp(pt.y, max.y) > 0
         ) return true
     }
     return false

@@ -109,7 +109,8 @@ export default class CityDemoRenderer1 extends VRRenderer {
 					// 	// this.state.indicator = undefined
 					// }
 				}
-			}
+			},
+			preview: () => { }
 		})[this.mode]()
 	}
 
