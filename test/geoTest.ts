@@ -32,11 +32,14 @@ class Building implements BuildingLikeObject {
 
 it("asdasd", () => {
 
-    let road = new Road(new vec2(5, 5), new vec2(-5, -5))
+    let road = new Road(new vec2(10, 0), new vec2(0, -10))
     let bm = new Basemap(Road)
-    bm.addRoad(new THREE.Vector2(-5, -5), new THREE.Vector2(5, 5))
+    bm.addRoad(road.from, road.to)
     const placeholder = new THREE.Vector2(4, 4)
     // console.log(bm.roadTree)
-    console.log(bm.alignBuilding(new THREE.Vector2(0, 0), placeholder))
+    const { center, angle, valid } = bm.alignBuilding(new THREE.Vector2(4, -4), placeholder)!
+    console.log(center)
+    console.log(angle / Math.PI * 180.)
+    console.log(valid)
 
 })
