@@ -37,7 +37,7 @@ it("asdasd", () => {
     bm.addRoad(road.from, road.to)
     const placeholder = new THREE.Vector2(4, 4)
     // console.log(bm.roadTree)
-    const { center, angle, valid } = bm.alignBuilding(new THREE.Vector2(4, -4), placeholder)!
+    const { center, angle, valid } = bm.alignBuilding(new THREE.Vector2(6, -6), placeholder)!
     console.log(center)
     console.log(angle / Math.PI * 180.)
     console.log(valid)
