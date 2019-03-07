@@ -111,7 +111,7 @@ class Basemap {
       let AC = road.to.clone().sub(road.from).normalize()
       let origin = new THREE.Vector2(0, 0)
       let offset = Math.round(AC.dot(AB))
-      let x = (<any>AB).cross(AC) < 0 ? 1 : -1
+      let x = (<any>AB).cross(AC) < 0 ? 1 : -1//1: left, -1:right
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * x)
       console.log(normDir)
       // console.log(AC, AB, normDir)
@@ -120,6 +120,7 @@ class Basemap {
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset))
         .add(normDir.clone().multiplyScalar(placeholder.height / 2 + RoadWidth / 2))
+      normDir.multiplyScalar(x)
       let rect = new AnyRect2D([
         center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
           .add(AC.clone().multiplyScalar(placeholder.width / 2)),
