@@ -5,10 +5,9 @@ import * as Quadtree from "quadtree-lib"
 import Building from "../asset/building"
 import Selector from "../wrapper/selector"
 import { DistUnit } from "../asset/def"
-import RoadPrototype from "./road";
 import Indicator from "../2d/indicator";
-import Road from "./road";
 import Ground from "../object/ground";
+import Road from "../object/road";
 
 class BBox {
 	constructor(

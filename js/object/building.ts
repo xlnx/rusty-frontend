@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import BuildingPrototype from "../asset/building";
-import Road from "../demos/road";
 import { DistUnit } from "../asset/def";
+import Road from "./road";
 
 export default class Building extends BuildingPrototype {
 
