@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { BuildingLikeObject, RoadLikeObject, RoadWidth, quadTreeItem } from "./def";
+import { BuildingLikeObject, RoadLikeObject, quadTreeItem } from "./def";
 import { AnyRect2D, minPt, maxPt } from "./geometry";
 import RoadMathImpl from "./road";
 
@@ -42,12 +42,18 @@ export default class BuildingMathImpl {
         if (this.shouldUpdate) {
             this.shouldUpdate = false
             let houseRoadDir = this.road.mathImpl.to.clone().sub(this.road.mathImpl.from).normalize()
-            let houseRoadNormDir = houseRoadDir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
+            let houseRoadNormDir = houseRoadDir.clone()
+                .rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
             let housePts = new Array<THREE.Vector2>()
-            housePts[0] = this.road.mathImpl.from.clone().add(houseRoadDir.clone().multiplyScalar(this.offset!)).add(houseRoadNormDir.clone().multiplyScalar(RoadWidth / 2))
-            housePts[1] = housePts[0].clone().add(houseRoadDir.clone().multiplyScalar(this.building.placeholder.x))
-            housePts[2] = housePts[1].clone().add(houseRoadNormDir.clone().multiplyScalar(this.building.placeholder.y))
-            housePts[3] = housePts[2].clone().sub(houseRoadDir.clone().multiplyScalar(this.building.placeholder!.x))
+            housePts[0] = this.road.mathImpl.from.clone()
+                .add(houseRoadDir.clone().multiplyScalar(this.offset!))
+                .add(houseRoadNormDir.clone().multiplyScalar(this.road.width / 2))
+            housePts[1] = housePts[0].clone()
+                .add(houseRoadDir.clone().multiplyScalar(this.building.placeholder.x))
+            housePts[2] = housePts[1].clone()
+                .add(houseRoadNormDir.clone().multiplyScalar(this.building.placeholder.y))
+            housePts[3] = housePts[2].clone()
+                .sub(houseRoadDir.clone().multiplyScalar(this.building.placeholder!.x))
             this._rect = new AnyRect2D(housePts)
 
             let min = minPt(housePts)

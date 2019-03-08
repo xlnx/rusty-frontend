@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { RoadWidth, BuildingLikeObject } from "../model/def";
+import { BuildingLikeObject } from "../model/def";
 import BuildingMathImpl from "../model/building";
 import Road from "./road";
 import { Basemap } from "../model/basemap";
@@ -35,7 +35,6 @@ class BuildingIndicator extends BuildingPrototype {
 		const res = this.basemap.alignBuilding(pt, this.placeholder)
 		if (res) {
 			const { road, offset, center, angle, valid } = res
-			console.log(valid)
 			const { x, y, z } = plain2world(center)
 			this.object.position.set(x, y, z)
 			this.object.rotation.y = angle

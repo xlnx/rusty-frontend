@@ -26,8 +26,10 @@ export default class Indicator implements RoadLikeObject {
 		this.l.set(d.length() || 0.1)
 	}
 
-	constructor(public readonly r: number, public readonly from: THREE.Vector2,
+	constructor(public readonly width: number, public readonly from: THREE.Vector2,
 		private v: THREE.Vector2) {
+
+		const r = width / 2
 
 		this.mathImpl = new RoadMathImpl(this, from, v)
 

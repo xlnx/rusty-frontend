@@ -30,14 +30,14 @@ export default class Road implements RoadLikeObject {
 
 	public readonly object = new THREE.Mesh(this.geometry, Road.material)
 
-	constructor(from: THREE.Vector2, to: THREE.Vector2) {
+	constructor(public readonly width: number, from: THREE.Vector2, to: THREE.Vector2) {
 		this.mathImpl = new RoadMathImpl(this, from, to)
 		const { x, y, z } = plain2world(from)
 		this.object.position.set(x, y, z)
 		const d = to.clone().sub(from)
 		this.object.setRotationFromAxisAngle(Road.up, d.angle())
 		const len = d.length() || 0.1
-		this.object.scale.set(len, 1, 1)
+		this.object.scale.set(len, 1, 1 * width) //
 		this.uvs[0][2].set(len, 1)
 		this.uvs[1][1].set(len, 0)
 		this.uvs[1][2].set(len, 1)

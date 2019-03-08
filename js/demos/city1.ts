@@ -24,7 +24,8 @@ export default class CityDemoRenderer1 extends VRRenderer {
 	private manager = new BuildingManager()
 
 	private guiOptions: { [key: string]: any } = {
-		layer: 0
+		layer: 0,
+		width: 1
 	}
 
 	private open(mode, state: { [key: string]: any }) {
@@ -53,6 +54,7 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		this.scene.add(new THREE.AxesHelper())
 
 		this.gui.add(this, "type", ["normalHouse"])
+		this.gui.add(this.guiOptions, "width", [1, 2, 3, 4, 5, 6, 7, 8])
 		this.gui.add(this.guiOptions, "layer", [0, 1, 2])
 			.onChange((val: number) => this.camera.layers.set(val))
 		this.gui.add(this, "mode", ["building", "road", "preview"])
@@ -86,7 +88,7 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		if (this.mode == "road") {
 			const point = this.ground.intersect(this.mouse, this.camera)
 			if (point) {
-				this.state.indicator = new Indicator(1, point!, point!)
+				this.state.indicator = new Indicator(this.guiOptions.width, point!, point!)
 				this.scene.add(this.state.indicator.object)
 			}
 		}
@@ -96,7 +98,8 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		({
 			road: () => {
 				if (this.state.indicator) {
-					const rs = this.basemap.addRoad(this.state.indicator.from, this.state.indicator.to)
+					const rs = this.basemap.addRoad(
+						this.guiOptions.width, this.state.indicator.from, this.state.indicator.to)
 					for (const r of rs) {
 						this.scene.add((<any>r).object)
 					}

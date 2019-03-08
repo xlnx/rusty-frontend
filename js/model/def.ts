@@ -1,4 +1,4 @@
-const RoadWidth = 1
+// const RoadWidth = 1
 const mapWidth = 500
 const mapHeight = 500
 const maxBuildings = 100
@@ -18,6 +18,7 @@ type quadTreeItem = {
 }
 
 interface RoadLikeObject {
+    readonly width: number
     readonly mathImpl: RoadMathImpl
 }
 
@@ -28,6 +29,6 @@ interface BuildingLikeObject {
 
 export {
     quadTreeItem,
-    RoadWidth, mapWidth, mapHeight, maxBuildings, maxRoads,
+    mapWidth, mapHeight, maxBuildings, maxRoads,
     RoadLikeObject, BuildingLikeObject,
 }

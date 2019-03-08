@@ -3,7 +3,6 @@ import ObjAsset from "./obj";
 import { AssetPath, DistUnit, ObjectTag, CityLayer } from "./def";
 import { inBox, minPt, maxPt, Point } from "../model/geometry";;
 import XHRJson from "./json";
-import { RoadWidth } from "../model/def";
 import { LayeredObject } from "../wrapper/util";
 
 interface TransformStep {
@@ -100,7 +99,7 @@ class BuildingPrototype {
 						.rotateX(Math.PI / 2)
 
 					// build layer 0
-					proto.object.addObjectsToLayer([CityLayer.Origin, CityLayer.Frame],
+					proto.object.addObjectsToLayer(CityLayer.Origin,
 						obj,
 						new THREE.Mesh(plain, BuildingPrototype.planeMaterial))
 

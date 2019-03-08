@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { BuildingPrototype } from "../asset/building";
 import BuildingMathImpl from "./building";
-import { RoadWidth, RoadLikeObject, BuildingLikeObject, mapWidth, mapHeight, maxBuildings, maxRoads } from "./def";
+import { RoadLikeObject, BuildingLikeObject, mapWidth, mapHeight, maxBuildings, maxRoads } from "./def";
 import { Point, AnyRect2D } from "./geometry";
 import RoadMathImpl from "./road";
 import * as QuadTree from "quadtree-lib"
@@ -19,7 +19,8 @@ class Basemap {
   buildingTree: QuadTree<Quadtree.QuadtreeItem> = <any>null
   roadTree: QuadTree<Quadtree.QuadtreeItem> = <any>null
 
-  constructor(private readonly RoadType: new (u: THREE.Vector2, v: THREE.Vector2) => RoadLikeObject) {
+  constructor(private readonly RoadType:
+    new (w: number, u: THREE.Vector2, v: THREE.Vector2) => RoadLikeObject) {
     this.buildingTree = new QuadTree({
       width: mapWidth,
       height: mapHeight,
@@ -32,9 +33,9 @@ class Basemap {
     })
   }
 
-  addRoad(from: Point, to: Point): RoadLikeObject[] {
+  addRoad(width: number, from: Point, to: Point): RoadLikeObject[] {
     let res: RoadLikeObject[] = []
-    let obj = new this.RoadType(from, to)
+    let obj = new this.RoadType(width, from, to)
     let { mathImpl: newRoad } = obj
     let segPts: Point[] = []
     let tempRoad: RoadMathImpl[] = []
@@ -55,8 +56,8 @@ class Basemap {
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
           this.removeRoad(road.road)
-          tempRoad.push(new this.RoadType(c, crossPt).mathImpl)
-          tempRoad.push(new this.RoadType(crossPt, d).mathImpl)
+          tempRoad.push(new this.RoadType(road.road.width, c, crossPt).mathImpl)
+          tempRoad.push(new this.RoadType(road.road.width, crossPt, d).mathImpl)
         }
         //otherwise, if cross point is C or D, nothing to do with line CD
 
@@ -69,7 +70,7 @@ class Basemap {
     segPts.push(to)
     let From = from
     for (let pt of segPts) {
-      let newRoad = new this.RoadType(From, pt).mathImpl
+      let newRoad = new this.RoadType(width, From, pt).mathImpl
       this.pushRoad(newRoad)
       res.push(newRoad.road)
       From = pt
@@ -134,7 +135,7 @@ class Basemap {
         * (new THREE.Vector2(0, -1).dot(AC.clone()) > 0 ? 1 : -1) * -x
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset + placeholder.width / 2))
-        .add(normDir.clone().multiplyScalar(placeholder.height / 2 + RoadWidth / 2))
+        .add(normDir.clone().multiplyScalar(placeholder.height / 2 + road.road.width / 2))
       normDir.multiplyScalar(x)
       let rect = new AnyRect2D([
         center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
@@ -211,7 +212,7 @@ class Basemap {
     let res = this.getNearRoad(pt)
     if (res) {
       const road = res.mathImpl
-      if (road.seg.distance(pt) <= RoadWidth / 2) {
+      if (road.seg.distance(pt) <= road.road.width / 2) {
         return res
       }
     }

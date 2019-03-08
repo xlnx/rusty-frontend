@@ -10,6 +10,7 @@ class Road implements RoadLikeObject {
     readonly mathImpl
 
     constructor(
+        readonly width: number,
         readonly from: THREE.Vector2,
         readonly to: THREE.Vector2
     ) {
@@ -32,9 +33,9 @@ class Building implements BuildingLikeObject {
 
 it("asdasd", () => {
 
-    let road = new Road(new vec2(10, 0), new vec2(0, -10))
+    let road = new Road(1, new vec2(10, 0), new vec2(0, -10))
     let bm = new Basemap(Road)
-    bm.addRoad(road.from, road.to)
+    bm.addRoad(1, road.from, road.to)
     const placeholder = new THREE.Vector2(4, 4)
     const { center, angle, valid } = bm.alignBuilding(new THREE.Vector2(6, -6), placeholder)!
     console.log(center)
