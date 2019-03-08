@@ -1,9 +1,10 @@
 import * as THREE from "three"
 import { BuildingPrototype } from "../asset/building";
 import BuildingMathImpl from "./building";
-import { RoadWidth, RoadLikeObject, BuildingLikeObject } from "./def";
+import { RoadWidth, RoadLikeObject, BuildingLikeObject, mapWidth, mapHeight, maxBuildings, maxRoads } from "./def";
 import { Point, AnyRect2D } from "./geometry";
 import RoadMathImpl from "./road";
+import * as QuadTree from "quadtree-lib"
 
 type Restype = {
   road: RoadLikeObject,
@@ -15,10 +16,21 @@ type Restype = {
 
 class Basemap {
   edge = new Map<Point, RoadMathImpl[]>()
-  buildingTree: BuildingMathImpl[] = []
-  roadTree: RoadMathImpl[] = []
+  buildingTree: QuadTree<Quadtree.QuadtreeItem> = <any>null
+  roadTree: QuadTree<Quadtree.QuadtreeItem> = <any>null
 
-  constructor(private readonly RoadType: new (u: THREE.Vector2, v: THREE.Vector2) => RoadLikeObject) { }
+  constructor(private readonly RoadType: new (u: THREE.Vector2, v: THREE.Vector2) => RoadLikeObject) {
+    this.buildingTree = new QuadTree({
+      width: mapWidth,
+      height: mapHeight,
+      maxElements: maxBuildings
+    })
+    this.roadTree = new QuadTree({
+      width: mapWidth,
+      height: mapHeight,
+      maxElements: maxRoads
+    })
+  }
 
   addRoad(from: Point, to: Point): RoadLikeObject[] {
     let res: RoadLikeObject[] = []
@@ -26,7 +38,9 @@ class Basemap {
     let { mathImpl: newRoad } = obj
     let segPts: Point[] = []
     let tempRoad: RoadMathImpl[] = []
-    for (let road of this.roadTree) {
+    let treeItems = this.roadTree.colliding(newRoad.quadtreeItem)
+    for (let item of treeItems) {
+      let road = item.obj
       if (road.seg.intersect(newRoad.seg)) {
         let c = road.from
         let d = road.to
@@ -51,6 +65,7 @@ class Basemap {
         segPts.push(crossPt)
       }
     }
+
     segPts.push(to)
     let From = from
     for (let pt of segPts) {
@@ -69,33 +84,30 @@ class Basemap {
     if (this.edge.has(road.from)) {
       this.edge.get(road.from)!.push(road)
     } else {
-      let list = new Array()
-      list[0] = road
-      this.edge.set(road.from, list)
+      this.edge.set(road.from, [road])
     }
     if (this.edge.has(road.to)) {
       this.edge.get(road.to)!.push(road)
     }
     else {
-      let list = new Array()
-      list[0] = road
-      this.edge.set(road.to, list)
+      this.edge.set(road.to, [road])
     }
-    this.roadTree.push(road)
+    this.roadTree.push(road.quadtreeItem)
   }
 
   addBuilding(building: BuildingLikeObject) {
-    this.buildingTree.push(building.mathImpl)
+    this.buildingTree.push(building.mathImpl.quadTreeItem)
   }
 
   alignRoad(road: RoadLikeObject): boolean {
 
     //detect building cross
-    for (let building of this.buildingTree) {
+    let intersectBuilding = this.buildingTree.colliding(road.mathImpl.quadtreeItem)
+    for (let item of intersectBuilding) {
+      let building = item.obj
       if (building.intersectRoad(road.mathImpl))
         return false
     }
-
     return true
   }
 
@@ -143,8 +155,11 @@ class Basemap {
         valid: true
       }
 
+      let rectItem = rect.treeItem()
       //detect building cross
-      for (let building of this.buildingTree) {
+      let intersectBuilding = this.buildingTree.colliding(rectItem)
+      for (let item of intersectBuilding) {
+        let building = item.obj
         if (building.rect.intersect(rect)) {
           res!.valid = false
           return res
@@ -152,7 +167,9 @@ class Basemap {
       }
 
       //detect road cross
-      for (let road of this.roadTree) {
+      let intersectRoad = this.roadTree.colliding(rectItem)
+      for (let item of intersectRoad) {
+        let road = item.obj
         if (rect.intersect(road.rect)) {
           res!.valid = false
           return res
@@ -166,24 +183,13 @@ class Basemap {
   removeBuilding(obj: BuildingLikeObject): void {
     const building = obj.mathImpl
     //remove Building in tree
-    for (let i = 0; i < this.buildingTree.length; ++i) {
-      let h = this.buildingTree[i]
-      if (h == building) {
-        this.buildingTree.splice(i, 1)
-        break
-      }
-    }
+    this.buildingTree.remove(obj.mathImpl.quadTreeItem)
   }
   removeRoad(obj: RoadLikeObject): void {
     const road = obj.mathImpl
     //remove road in tree
-    for (let i = 0; i < this.roadTree.length; ++i) {
-      let r = this.roadTree[i]
-      if (r.from == road.from && r.to == road.to) {
-        this.roadTree.splice(i, 1)
-        break
-      }
-    }
+    this.roadTree.remove(obj.mathImpl.quadtreeItem)
+
     //remove road in map
     for (let i = 0; i < this.edge.get(road.from)!.length; ++i) {
       let r = this.edge.get(road.from)![i]
@@ -211,22 +217,22 @@ class Basemap {
     }
   }
   getNearRoad(pt: Point): RoadLikeObject | undefined {
-    if (this.roadTree.length) {
-      let res: RoadMathImpl | undefined
-      let minDist = Infinity
-      for (let road of this.roadTree)
-        if (road.seg.distance(pt) < minDist) {
-          const ap = pt.clone().sub(road.seg.from)
-          const bp = pt.clone().sub(road.seg.to)
-          const ab = road.seg.to.clone().sub(road.seg.from)
-          const ba = ab.clone().negate()
-          if (ap.dot(ab) > 0 && bp.dot(ba) > 0) {
-            minDist = road.seg.distance(pt)
-            res = road
-          }
+    let res: RoadMathImpl | undefined
+    let minDist = Infinity
+    this.roadTree.each((item) => {
+      let road = item.obj
+      if (road.seg.distance(pt) < minDist) {
+        const ap = pt.clone().sub(road.seg.from)
+        const bp = pt.clone().sub(road.seg.to)
+        const ab = road.seg.to.clone().sub(road.seg.from)
+        const ba = ab.clone().negate()
+        if (ap.dot(ab) > 0 && bp.dot(ba) > 0) {
+          minDist = road.seg.distance(pt)
+          res = road
         }
-      return !!res ? res.road : undefined
-    }
+      }
+    })
+    return !!res ? res.road : undefined
   }
 }
 

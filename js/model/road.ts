@@ -1,12 +1,13 @@
-import { RoadLikeObject, RoadWidth } from "./def";
+import { RoadLikeObject, RoadWidth, quadTreeItem } from "./def";
 import * as THREE from "three";
-import { Point, Seg2D, AnyRect2D } from "./geometry";
+import { Point, Seg2D, AnyRect2D, minPt, maxPt } from "./geometry";
 
 
 export default class RoadMathImpl {
 
     private _seg: Seg2D = <any>null
     private _rect: AnyRect2D = <any>null
+    private _quadTreeItem: quadTreeItem = <any>null
 
     private shouldUpdate: boolean = true
 
@@ -40,6 +41,11 @@ export default class RoadMathImpl {
         return this._seg
     }
 
+    get quadtreeItem(): quadTreeItem {
+        this.checkUpdate()
+        return this._quadTreeItem
+    }
+
     private checkUpdate() {
         if (this.shouldUpdate) {
             this.shouldUpdate = false
@@ -53,6 +59,25 @@ export default class RoadMathImpl {
             roadPts[3] = this.seg.from.clone().add(roadNormDir.clone().multiplyScalar(-RoadWidth / 2))
             roadPts[2] = roadPts[3].clone().add(roadDir)
             this._rect = new AnyRect2D(roadPts)
+            //update quadTreeItem
+            let min = minPt(roadPts)
+            let max = maxPt(roadPts)
+            if (this._quadTreeItem) {
+                this._quadTreeItem.x = (min.x + max.x) / 2
+                this._quadTreeItem.y = (min.y + max.y) / 2
+                this._quadTreeItem.width = max.x - min.x
+                this._quadTreeItem.height = max.y - min.y
+            }
+            else {
+                this._quadTreeItem = {
+                    x: (min.x + max.x) / 2,
+                    y: (min.y + max.y) / 2,
+                    width: max.x - min.x,
+                    height: max.y - min.y,
+                    obj: this
+                }
+            }
         }
     }
+
 }
