@@ -2,8 +2,8 @@ const AssetPath = "assets/"
 const DistUnit = 0.1
 
 enum CityLayer {
-	origin = 0,
-	frame = 1
+	Origin = 0,
+	Frame = 1
 }
 
 interface ObjectTag {

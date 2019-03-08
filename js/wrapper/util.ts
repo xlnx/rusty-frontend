@@ -1,20 +1,8 @@
 import * as THREE from "three"
-import { ObjectTag } from "../asset/def";
+import { ObjectTag } from "../asset/def"
 
-function toggleLayer(object: THREE.Object3D, layer: number) {
-	object.traverse(e => e.layers.toggle(layer))
-}
-
-function setLayer(object: THREE.Object3D, layer: number) {
-	object.traverse(e => e.layers.set(layer))
-}
-
-function enableLayer(object: THREE.Object3D, layer: number) {
-	object.traverse(e => e.layers.enable(layer))
-}
-
-function disableLayer(object: THREE.Object3D, layer: number) {
-	object.traverse(e => e.layers.disable(layer))
+enum SpecialLayers {
+	All = -1
 }
 
 class LayeredObject extends THREE.Object3D {
@@ -31,22 +19,34 @@ class LayeredObject extends THREE.Object3D {
 		}
 	}
 
-	addObjectsToLayer(layer: number, ...object: THREE.Object3D[]) {
-		if (!this._layers[layer]) {
-			this._layers[layer] = new THREE.Object3D()
-			this.add(this._layers[layer])
+	addObjectsToLayer(layer: number | number[], ...object: THREE.Object3D[]) {
+		if (typeof layer == "number") {
+			layer = [layer]
 		}
-		for (const obj of object) {
-			setLayer(obj, layer)
-			this._layers[layer].add(obj)
+		for (const l of layer) {
+			const f = l == SpecialLayers.All ?
+				o => o.traverse(e => e.layers.mask = 0xffffffff) :
+				o => o.traverse(e => e.layers.set(l))
+
+			if (!this._layers[l]) {
+				this.add(this._layers[l] = new THREE.Object3D())
+			}
+			for (const obj of object) {
+				const o = obj.clone(); f(o); this._layers[l].add(o)
+			}
 		}
 	}
 
-	setMaterial() {
-
+	setMaterial(layer: number, mat: THREE.Material) {
+		this._layers[layer].traverse(e => {
+			if ((<any>e).isMesh) {
+				(<THREE.Mesh>e).material = mat
+			}
+		})
 	}
 }
 
 export {
-	LayeredObject
+	LayeredObject,
+	SpecialLayers
 }

@@ -23,6 +23,10 @@ export default class CityDemoRenderer1 extends VRRenderer {
 	private basemap = new Basemap(Road)
 	private manager = new BuildingManager()
 
+	private guiOptions: { [key: string]: any } = {
+		layer: 0
+	}
+
 	private open(mode, state: { [key: string]: any }) {
 		({
 			preview: () => { this.orbit.enabled = true },
@@ -49,6 +53,8 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		this.scene.add(new THREE.AxesHelper())
 
 		this.gui.add(this, "type", ["normalHouse"])
+		this.gui.add(this.guiOptions, "layer", [0, 1, 2])
+			.onChange((val: number) => this.camera.layers.set(val))
 		this.gui.add(this, "mode", ["building", "road", "preview"])
 			.onChange(() => {
 				const newState: { [key: string]: any } = {}
@@ -67,10 +73,12 @@ export default class CityDemoRenderer1 extends VRRenderer {
 		this.scene.add(this.ground.object)
 
 		let light = new THREE.PointLight(0xffffff, 2, 0)
+		light.layers.mask = 0xffffffff
 		light.position.set(0, 1.5, 1)
 		this.scene.add(light)
 
 		let lightHelper = new THREE.PointLightHelper(light, 0.1)
+		lightHelper.layers.mask = 0xffffffff
 		this.scene.add(lightHelper)
 	}
 

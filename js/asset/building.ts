@@ -100,7 +100,7 @@ class BuildingPrototype {
 						.rotateX(Math.PI / 2)
 
 					// build layer 0
-					proto.object.addObjectsToLayer(CityLayer.origin,
+					proto.object.addObjectsToLayer([CityLayer.Origin, CityLayer.Frame],
 						obj,
 						new THREE.Mesh(plain, BuildingPrototype.planeMaterial))
 
@@ -112,8 +112,10 @@ class BuildingPrototype {
 					frame.translate(0, h / 2, 0)
 
 					// build layer 1
-					proto.object.addObjectsToLayer(CityLayer.frame,
+					proto.object.addObjectsToLayer(CityLayer.Frame,
 						new THREE.Mesh(frame, BuildingPrototype.frameMaterial))
+
+					// proto.object.setMaterial(CityLayer.Origin, BuildingPrototype.planeMaterial)
 
 					{
 						const self = <any>proto
