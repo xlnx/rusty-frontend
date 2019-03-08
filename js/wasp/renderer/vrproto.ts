@@ -1,7 +1,6 @@
-import RendererPrototype from "./proto";
-import DirectRenderer from "./direct";
+import { DirectRenderer } from "./direct";
 
-export default class VRRendererPrototype extends DirectRenderer {
+export class VRRendererPrototype extends DirectRenderer {
 
 	private _valid: boolean = false
 	get valid() { return this._valid }

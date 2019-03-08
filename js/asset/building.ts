@@ -1,9 +1,7 @@
 import * as THREE from "three"
-import ObjAsset from "./obj";
-import { AssetPath, DistUnit, ObjectTag, CityLayer } from "./def";
+import { DistUnit, ObjectTag, CityLayer } from "./def";
 import { inBox, minPt, maxPt, Point } from "../model/geometry";;
-import XHRJson from "./json";
-import { LayeredObject } from "../wrapper/util";
+import { LayeredView, JsonAsset, ObjAsset } from "../wasp";
 
 interface TransformStep {
 	rotate?: number[],
@@ -24,15 +22,7 @@ class BuildingPrototype {
 
 	readonly placeholder: THREE.Vector2 = <any>null
 
-	readonly object = new LayeredObject("building")
-
-	constructor(proto?: BuildingPrototype) {
-		if (proto) {
-			this.object = proto.object.clone()
-			this.object.tag.object = this
-			this.placeholder = proto.placeholder
-		}
-	}
+	readonly object = new LayeredView<ObjectTag>()
 
 	private static transformObject(obj: THREE.Object3D, trans: TransformStep[]) {
 		for (let tr of trans) {
@@ -82,9 +72,9 @@ class BuildingPrototype {
 	private static async doLoadProto(path: string): Promise<BuildingPrototype> {
 
 		return new Promise((resolve, reject) => {
-			new XHRJson(path).load().then(json => {
+			new JsonAsset(path).load().then(json => {
 				const prefix = path.substr(0, path.lastIndexOf("/") + 1)
-				const def: BuildingDefination = json
+				const def = <BuildingDefination>json
 
 				const { placeholder } = def
 
@@ -96,11 +86,11 @@ class BuildingPrototype {
 					// add plain
 					const plain = new THREE.PlaneGeometry(
 						placeholder[0] * DistUnit, placeholder[1] * DistUnit)
-						.rotateX(Math.PI / 2)
+						.rotateX(-Math.PI / 2)
 
 					// build layer 0
-					proto.object.addObjectsToLayer(CityLayer.Origin,
-						obj,
+					proto.object.addToLayer(CityLayer.Origin,
+						obj.clone(),
 						new THREE.Mesh(plain, BuildingPrototype.planeMaterial))
 
 					// add frame
@@ -111,7 +101,7 @@ class BuildingPrototype {
 					frame.translate(0, h / 2, 0)
 
 					// build layer 1
-					proto.object.addObjectsToLayer(CityLayer.Frame,
+					proto.object.addToLayer(CityLayer.Frame,
 						new THREE.Mesh(frame, BuildingPrototype.frameMaterial))
 
 					// proto.object.setMaterial(CityLayer.Origin, BuildingPrototype.planeMaterial)

@@ -1,7 +1,7 @@
-import RendererPrototype from "./proto";
 import { OrbitControls } from "three-orbitcontrols-ts"
+import { RendererPrototype } from "./proto";
 
-export default class DirectRenderer extends RendererPrototype {
+export class DirectRenderer extends RendererPrototype {
 
 	public readonly orbit = new OrbitControls(
 		this.camera, this.threeJsRenderer.domElement)

@@ -1,4 +1,3 @@
-const AssetPath = "assets/"
 const DistUnit = 0.1
 
 enum CityLayer {
@@ -7,14 +6,10 @@ enum CityLayer {
 }
 
 interface ObjectTag {
-	root: boolean,
-	type: string,
-	object?: any,
-	discard?: boolean
+	type: string
 }
 
 export {
-	AssetPath,
 	DistUnit,
 	ObjectTag,
 	CityLayer

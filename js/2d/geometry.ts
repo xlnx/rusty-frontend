@@ -194,30 +194,6 @@ class Geometry2D {
 
 }
 
-// class Circle extends Geometry {
-
-// 	constructor(radius?: number, segments?: number,
-// 		thetaStart?: number, thetaLength?: number) {
-// 		this.geometry = new THREE.CircleGeometry(radius, segments,
-// 			thetaStart, thetaLength)
-// 	}
-
-// }
-
-// class Ring extends Geometry {
-
-// 	constructor(innerRadius?: number, outerRadius?: number, thetaSegments?: number,
-// 		phiSegments?: number, thetaStart?: number, thetaLength?: number) {
-// 		this.geometry = new THREE.RingGeometry(innerRadius, outerRadius,
-// 			thetaSegments, phiSegments, thetaStart, thetaLength)
-// 	}
-
-// }
-
-// class Rect implements Geometry {
-// 	constructor()
-// }
-
 export {
 	Geometry2D,
 	Variable,

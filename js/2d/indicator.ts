@@ -4,12 +4,13 @@ import { DistUnit } from "../asset/def";
 import { RoadLikeObject } from "../model/def";
 import RoadMathImpl from "../model/road";
 import { plain2world } from "./trans";
+import { Thing, Layer } from "../wasp";
 
-export default class Indicator implements RoadLikeObject {
+export default class Indicator extends Thing implements RoadLikeObject {
 
 	private static up = new THREE.Vector3(0, 1, 0)
 
-	public readonly object: THREE.Object3D
+	private readonly object: THREE.Object3D
 
 	public readonly mathImpl
 
@@ -28,6 +29,8 @@ export default class Indicator implements RoadLikeObject {
 
 	constructor(public readonly width: number, public readonly from: THREE.Vector2,
 		private v: THREE.Vector2) {
+
+		super()
 
 		const r = width / 2
 
@@ -70,6 +73,8 @@ export default class Indicator implements RoadLikeObject {
 
 		const { x, y: y_, z } = plain2world(from)
 		this.object.position.set(x, y_, z)
+		this.view.addToLayer(Layer.All, this.object)
+
 		this.to = v
 	}
 }

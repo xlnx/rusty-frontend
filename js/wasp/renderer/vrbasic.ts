@@ -1,8 +1,8 @@
-import VRRendererPrototype from "./vrproto"
 import * as THREE from "three"
 import * as dat from "dat.gui"
+import { VRRendererPrototype } from "./vrproto";
 
-export default class VRRenderer extends VRRendererPrototype {
+export class VRRenderer extends VRRendererPrototype {
 
 	protected readonly mouse = new THREE.Vector2()
 

@@ -1,13 +1,14 @@
 import * as THREE from "three"
+import { Scene } from "../basic";
 
-export default class RendererPrototype {
+export class RendererPrototype {
 	public readonly threeJsRenderer = new THREE.WebGLRenderer({ antialias: true })
 	protected readonly nextFrame = () => this.update()
 
 	private _started: boolean = false
 	get started() { return this._started }
 
-	protected readonly scene = new THREE.Scene()
+	protected readonly scene = new Scene()
 	protected readonly camera = new THREE.PerspectiveCamera(
 		75, window.innerWidth / window.innerHeight, 0.1, 1000)
 

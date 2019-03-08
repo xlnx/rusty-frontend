@@ -1,16 +1,13 @@
 import * as THREE from "three"
-import Selector from "../wrapper/selector"
 import Indicator from "../2d/indicator";
 import Ground from "../object/ground";
 import Road from "../object/road";
 import { BuildingIndicator, Building } from "../object/building";
 import { Basemap } from "../model/basemap";
-import VRRenderer from "../renderer/vrbasic";
 import { BuildingManager } from "../asset/building";
+import { VRRenderer } from "../wasp";
 
-export default class CityDemoRenderer1 extends VRRenderer {
-
-	private selector = new Selector(this.scene)
+export default class CityDemoRenderer extends VRRenderer {
 
 	private ground = new Ground(50, 50)
 
@@ -35,7 +32,6 @@ export default class CityDemoRenderer1 extends VRRenderer {
 			building: () => {
 				state.indicator = new BuildingIndicator(
 					this.manager.get(this.type)!, this.basemap)
-				this.scene.add(state.indicator.object!)
 			},
 		}[mode])()
 	}
@@ -43,8 +39,8 @@ export default class CityDemoRenderer1 extends VRRenderer {
 	private close(mode, state: { [key: string]: any }) {
 		({
 			preview: () => { this.orbit.enabled = false },
-			road: () => { !state.indicator || this.scene.remove(state.indicator.object) },
-			building: () => this.scene.remove(state.indicator.object!),
+			road: () => { !state.indicator || state.indicator.destroy() },
+			building: () => { !state.indicator || state.indicator.destroy() },
 		}[mode])()
 	}
 
@@ -72,8 +68,6 @@ export default class CityDemoRenderer1 extends VRRenderer {
 
 		this.camera.position.z = 4
 
-		this.scene.add(this.ground.object)
-
 		let light = new THREE.PointLight(0xffffff, 2, 0)
 		light.layers.mask = 0xffffffff
 		light.position.set(0, 1.5, 1)
@@ -89,7 +83,6 @@ export default class CityDemoRenderer1 extends VRRenderer {
 			const point = this.ground.intersect(this.mouse, this.camera)
 			if (point) {
 				this.state.indicator = new Indicator(this.guiOptions.width, point!, point!)
-				this.scene.add(this.state.indicator.object)
 			}
 		}
 	}
@@ -100,10 +93,7 @@ export default class CityDemoRenderer1 extends VRRenderer {
 				if (this.state.indicator) {
 					const rs = this.basemap.addRoad(
 						this.guiOptions.width, this.state.indicator.from, this.state.indicator.to)
-					for (const r of rs) {
-						this.scene.add((<any>r).object)
-					}
-					this.scene.remove(this.state.indicator.object)
+					this.state.indicator.destroy()
 					this.state.indicator = undefined
 				}
 			},

@@ -1,15 +1,15 @@
 import * as THREE from "three"
-import { AssetPath } from "./def";
+import { Asset } from "./asset"
 
-export default class TexAsset {
+export class TexAsset extends Asset<THREE.Texture> {
 
-	constructor(private readonly path: string) { }
+	constructor(path: string) { super(path) }
 
 	loadSync(): THREE.Texture {
 		let img = new Image()
 		let texture = new THREE.Texture(img)
 		texture.needsUpdate = true
-		img.src = AssetPath + this.path
+		img.src = this.path
 		return texture
 	}
 
@@ -20,7 +20,7 @@ export default class TexAsset {
 				let texture = new THREE.Texture(img)
 				resolve(texture)
 			}
-			img.src = AssetPath + this.path
+			img.src = this.path
 		})
 	}
 }

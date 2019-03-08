@@ -1,8 +1,9 @@
 import * as THREE from "three"
-import { DistUnit } from "../asset/def";
+import { DistUnit, ObjectTag } from "../asset/def";
 import { world2plain } from "../2d/trans";
+import { Thing, Layer } from "../wasp";
 
-export default class Ground {
+export default class Ground extends Thing<ObjectTag> {
 
 	public readonly target = new THREE.WebGLRenderTarget(512, 512, {
 		magFilter: THREE.LinearFilter,
@@ -15,6 +16,8 @@ export default class Ground {
 	public readonly object: THREE.Mesh
 
 	constructor(private readonly w: number, private readonly h: number) {
+		super()
+
 		let geometry = new THREE.PlaneGeometry(w * DistUnit, h * DistUnit, w, h)
 		geometry.rotateX(-Math.PI / 2)
 		geometry.translate(0, -1e-4, 0)
@@ -23,6 +26,8 @@ export default class Ground {
 			color: 0x666666
 		})
 		this.object = new THREE.Mesh(geometry, meshMaterial)
+
+		this.view.addToLayer(Layer.All, this.object)
 	}
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
