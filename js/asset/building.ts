@@ -1,9 +1,10 @@
 import * as THREE from "three"
 import ObjAsset from "./obj";
-import { AssetPath, DistUnit, ObjectTag } from "./def";
+import { AssetPath, DistUnit, ObjectTag, CityLayer } from "./def";
 import { inBox, minPt, maxPt, Point } from "../model/geometry";;
 import XHRJson from "./json";
 import { RoadWidth } from "../model/def";
+import { LayeredObject } from "../wrapper/util";
 
 interface TransformStep {
 	rotate?: number[],
@@ -22,18 +23,62 @@ class BuildingPrototype {
 
 	readonly name: string = <any>null
 
-	readonly frame: THREE.Mesh = <any>null
-	readonly object: THREE.Object3D = <any>null
 	readonly placeholder: THREE.Vector2 = <any>null
+
+	readonly object = new LayeredObject("building")
 
 	constructor(proto?: BuildingPrototype) {
 		if (proto) {
-			this.frame = proto.frame
-			this.object = proto.object.clone();
-			(<ObjectTag>this.object.userData).object = this
+			this.object = proto.object.clone()
+			this.object.tag.object = this
 			this.placeholder = proto.placeholder
 		}
 	}
+
+	private static transformObject(obj: THREE.Object3D, trans: TransformStep[]) {
+		for (let tr of trans) {
+			if (tr.rotate) {
+				obj.rotateX(tr.rotate[0])
+				obj.rotateY(tr.rotate[1])
+				obj.rotateZ(tr.rotate[2])
+			}
+			if (tr.translate) {
+				obj.translateX(tr.translate[0])
+				obj.translateY(tr.translate[1])
+				obj.translateZ(tr.translate[2])
+			}
+		}
+	}
+
+	private static scaleObject(obj: THREE.Object3D, scale: number[] | number) {
+		if (typeof scale == "number") {
+			obj.scale.set(scale, scale, scale)
+		} else {
+			obj.scale.set(scale[0], scale[1], scale[2])
+		}
+	}
+
+	private static adjustObject(obj: THREE.Object3D, def: BuildingDefination) {
+		!def.transform || BuildingPrototype.transformObject(obj, def.transform)
+		!def.scale || BuildingPrototype.scaleObject(obj, def.scale)
+		obj.scale.multiplyScalar(DistUnit)
+		obj.translateY(-new THREE.Box3().setFromObject(obj).min.y)
+	}
+
+	private static frameMaterial = new THREE.MeshPhongMaterial({
+		color: 0xeeeeee,
+		side: THREE.DoubleSide,
+		transparent: true,
+		opacity: 0.3,
+		displacementScale: 1e-4,
+		flatShading: true		// hard edges
+	})
+	private static planeMaterial = new THREE.MeshPhongMaterial({
+		color: 0x156289,
+		side: THREE.DoubleSide,
+		displacementScale: 1e-4,
+		flatShading: true		// hard edges
+	})
 
 	private static async doLoadProto(path: string): Promise<BuildingPrototype> {
 
@@ -42,79 +87,38 @@ class BuildingPrototype {
 				const prefix = path.substr(0, path.lastIndexOf("/") + 1)
 				const def: BuildingDefination = json
 
-				new ObjAsset(prefix + def.model).load().then((obj: THREE.Object3D) => {
+				const { placeholder } = def
 
+				new ObjAsset(prefix + def.model).load().then((obj: THREE.Object3D) => {
 					const proto = new BuildingPrototype()
 
-					const self = <any>proto
+					// adjust model
+					BuildingPrototype.adjustObject(obj, def)
+					// add plain
+					const plain = new THREE.PlaneGeometry(
+						placeholder[0] * DistUnit, placeholder[1] * DistUnit)
+						.rotateX(Math.PI / 2)
+
+					// build layer 0
+					proto.object.addObjectsToLayer(CityLayer.origin,
+						obj,
+						new THREE.Mesh(plain, BuildingPrototype.planeMaterial))
+
+					// add frame
+					const { max: { y: y0 }, min: { y: y1 } } = new THREE.Box3().setFromObject(obj)
+					const h = y0 - y1 + 0.05
+					const frame = new THREE.BoxGeometry(
+						def.placeholder[0] * DistUnit, h, def.placeholder[0] * DistUnit)
+					frame.translate(0, h / 2, 0)
+
+					// build layer 1
+					proto.object.addObjectsToLayer(CityLayer.frame,
+						new THREE.Mesh(frame, BuildingPrototype.frameMaterial))
 
 					{
-
+						const self = <any>proto
 						self.name = def.name
-
-						self.object = new THREE.Object3D();
-						self.object.add(obj);
-						self.object.userData = <ObjectTag>{
-							root: true,
-							type: "building"
-						}
-
-						if (def.transform) {
-							for (let transform of def.transform) {
-								if (transform.rotate) {
-									obj.rotateX(transform.rotate[0])
-									obj.rotateY(transform.rotate[1])
-									obj.rotateZ(transform.rotate[2])
-								}
-								if (transform.translate) {
-									obj.translateX(transform.translate[0])
-									obj.translateY(transform.translate[1])
-									obj.translateZ(transform.translate[2])
-								}
-							}
-						}
-						if (def.scale) {
-							if (typeof def.scale == "number") {
-								obj.scale.set(def.scale, def.scale, def.scale)
-							} else {
-								obj.scale.set(def.scale[0], def.scale[1], def.scale[2])
-							}
-						}
-						obj.scale.multiplyScalar(DistUnit)
-
-						const bbox = new THREE.Box3().setFromObject(obj)
-						obj.translateY(-bbox.min.y)
-
-						self.placeholder = new THREE.Vector2(
-							def.placeholder[0], def.placeholder[1])
-
-						// add indicators
-						let plain = new THREE.PlaneGeometry(
-							self.placeholder.x * DistUnit, self.placeholder.y * DistUnit)
-						plain.rotateX(Math.PI / 2)
-						self.object.add(new THREE.Mesh(plain, new THREE.MeshPhongMaterial({
-							color: 0x156289,
-							side: THREE.DoubleSide,
-							displacementScale: 1e-4,
-							flatShading: true		// hard edges
-						})))
-
-						let h = bbox.max.y - bbox.min.y + 0.05
-						let box = new THREE.BoxGeometry(
-							def.placeholder[0] * DistUnit, h,
-							def.placeholder[0] * DistUnit)
-						box.translate(0, h / 2, 0)
-						self.frame = new THREE.Mesh(box, new THREE.MeshPhongMaterial({
-							color: 0xeeeeee,
-							side: THREE.DoubleSide,
-							transparent: true,
-							opacity: 0.3,
-							displacementScale: 1e-4,
-							flatShading: true		// hard edges
-						}));
-						(<ObjectTag>self.frame.userData).discard = true
-						self.object.add(self.frame)
-
+						self.placeholder = new THREE.Vector2(def.placeholder[0], def.placeholder[1])
 					}
 
 					resolve(proto)
