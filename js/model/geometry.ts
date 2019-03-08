@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { quadTreeItem } from "./def";
 
 function inBox(min: Point, pts: Point[], max: Point): boolean {
     for (let pt of pts) {
@@ -149,6 +150,18 @@ class AnyRect2D {
             }
         }
         return false
+    }
+
+    treeItem(): quadTreeItem {
+        let min = minPt(this.pts)
+        let max = maxPt(this.pts)
+        return {
+            x: (min.x + max.x) / 2,
+            y: (min.y + max.y) / 2,
+            width: max.x - min.x,
+            height: max.y - min.y
+        }
+
     }
 }
 
