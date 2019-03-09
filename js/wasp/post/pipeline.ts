@@ -1,5 +1,12 @@
+import * as THREE from "three"
 import { Stage } from "./stage";
-import { WebGLRenderTarget } from "three";
+
+const gBuffer: THREE.WebGLRenderTargetOptions = {
+	minFilter: THREE.LinearFilter,
+	magFilter: THREE.LinearFilter,
+	type: THREE.FloatType,
+	stencilBuffer: false
+}
 
 export class Effect {
 
@@ -8,12 +15,12 @@ export class Effect {
 	private renderToScreen = false
 
 	private stages: Stage[] = []
-	private ta?: WebGLRenderTarget
-	private tb?: WebGLRenderTarget
+	private ta?: THREE.WebGLRenderTarget
+	private tb?: THREE.WebGLRenderTarget
 
 	get target() { return this.tb! }
 
-	constructor(target?: WebGLRenderTarget) {
+	constructor(target?: THREE.WebGLRenderTarget) {
 		if (target) {
 			this.ta = target.clone()
 			this.tb = target.clone()
@@ -28,7 +35,7 @@ export class Effect {
 	render(source: THREE.Texture[], renderer: THREE.WebGLRenderer) {
 		if (!this.ta) {
 			const { width, height } = renderer.getSize()
-			this.ta = new WebGLRenderTarget(width, height)
+			this.ta = new THREE.WebGLRenderTarget(width, height, gBuffer)
 			this.tb = this.ta.clone()
 		}
 		this.stages.forEach((p, idx) => {
@@ -115,8 +122,8 @@ class PipelineBarrierNode extends PipelineNode {
 export class Pipeline {
 
 	private effects: Effect[] = []
-	private ta: WebGLRenderTarget
-	private tb: WebGLRenderTarget
+	private ta: THREE.WebGLRenderTarget
+	private tb: THREE.WebGLRenderTarget
 
 	public readonly begin = new PipelineOriginNode(this)
 
@@ -124,7 +131,7 @@ export class Pipeline {
 
 	constructor(public readonly renderer: THREE.WebGLRenderer) {
 		const { width, height } = renderer.getSize()
-		this.ta = new WebGLRenderTarget(width, height)
+		this.ta = new THREE.WebGLRenderTarget(width, height)
 		this.tb = this.ta.clone()
 	}
 
