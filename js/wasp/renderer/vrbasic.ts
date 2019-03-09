@@ -1,12 +1,9 @@
 import * as THREE from "three"
-import * as dat from "dat.gui"
 import { VRRendererPrototype } from "./vrproto";
 
 export class VRRenderer extends VRRendererPrototype {
 
 	protected readonly mouse = new THREE.Vector2()
-
-	protected readonly gui = new dat.GUI()
 
 	constructor() {
 		super()

@@ -1,9 +1,12 @@
 import * as THREE from "three"
+import * as dat from "dat.gui"
 import { Scene } from "../basic";
 
 export class RendererPrototype {
 	public readonly threeJsRenderer = new THREE.WebGLRenderer({ antialias: true })
 	protected readonly nextFrame = () => this.update()
+
+	protected readonly gui = new dat.GUI()
 
 	private _started: boolean = false
 	get started() { return this._started }
