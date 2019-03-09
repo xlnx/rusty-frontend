@@ -83,9 +83,8 @@ export default class MyRenderer extends DirectRenderer {
 
 	private fftEffect = new FFTWaveEffect()
 
-	matNormal = new THREE.MeshPhongMaterial({
+	matNormal = new THREE.MeshPhysicalMaterial({
 		color: 0x156289,
-		emissive: 0x072534,
 		side: THREE.DoubleSide,
 		displacementMap: this.fftEffect.textures[0],
 		displacementScale: 1e-4,
@@ -99,7 +98,7 @@ export default class MyRenderer extends DirectRenderer {
 
 		this.camera.position.z = 4
 
-		let geo = new THREE.PlaneGeometry(4, 4, 100, 100)
+		let geo = new THREE.PlaneGeometry(5, 5, 100, 100)
 		geo.rotateX(-Math.PI / 3)
 		geo.translate(0, -1e-4, 0)
 		let box = new THREE.Mesh(geo, this.matNormal)
