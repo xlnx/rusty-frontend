@@ -1,2 +1,2 @@
-export * from "./composer"
+export * from "./pipeline"
 export * from "./stage"

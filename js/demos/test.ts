@@ -1,7 +1,7 @@
 import * as THREEJS from "three"
 import * as THREE_ADDONS from "three-addons"
 const THREE: typeof import("three") = { ...THREEJS, ...THREE_ADDONS }
-import { LayeredView, DirectRenderer, Pipeline, RenderStage, ShaderStage, Stage } from "../wasp";
+import { LayeredView, DirectRenderer, Pipeline, RenderStage, Stage, Effect, PostStage } from "../wasp";
 
 
 import * as frag from "./asset/a.frag"
@@ -44,25 +44,16 @@ export default class MyRenderer extends DirectRenderer {
 		lightHelper.layers.mask = 0xffffffff
 		this.scene.add(lightHelper)
 
-		// const out = new THREE.ShaderPass(THREE.CopyShader)
-		// out.renderToScreen = true
 
 		const obj: Stage = new RenderStage(this.scene, this.camera)
-		const profile: Stage = new ShaderStage(this.scene, this.camera, {
-			uniforms: {
-				resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-			},
+		const profile: Stage = new RenderStage(this.scene, this.camera, {
 			vertexShader: vert,
 			fragmentShader: frag
 		})
-		profile.renderToScreen = true
-		// const copy = new THREE.ShaderPass(THREE.CopyShader)
-		// copy.renderToScreen = true
-		// pass.renderToScreen = true
 
-		this.pipeline.addPass(obj)
-		this.pipeline.addPass(profile)
-		// this.pipeline.addPass(copy)
+		this.pipeline.begin
+			.then(obj)
+			.then(profile).out()
 	}
 
 	// private target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
