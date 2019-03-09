@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { Stage } from "./stage";
+import { Stage, Renderable, RenderOptions, PostStage } from "./stage";
 
 const gBuffer: THREE.WebGLRenderTargetOptions = {
 	minFilter: THREE.LinearFilter,
@@ -8,116 +8,285 @@ const gBuffer: THREE.WebGLRenderTargetOptions = {
 	stencilBuffer: false
 }
 
-export class Effect {
+interface TextureInfo {
+	texture: THREE.Texture,
+	alias?: string
+}
+
+export abstract class Effect<T = any> implements Renderable<T> {
 
 	public readonly isEffect = true
 
-	private renderToScreen = false
+	public readonly textures: THREE.Texture[] = []
 
-	private stages: Stage[] = []
-	private ta?: THREE.WebGLRenderTarget
-	private tb?: THREE.WebGLRenderTarget
+	protected readonly begin = new PipelineOriginNode()
 
-	get target() { return this.tb! }
-
-	constructor(target?: THREE.WebGLRenderTarget) {
-		if (target) {
-			this.ta = target.clone()
-			this.tb = target.clone()
-		}
-	}
-
-	addStage(...stage: Stage[]): this {
-		this.stages.push(...stage)
-		return this
-	}
-
-	render(source: THREE.Texture[], renderer: THREE.WebGLRenderer) {
-		if (!this.ta) {
-			const { width, height } = renderer.getSize()
-			this.ta = new THREE.WebGLRenderTarget(width, height, gBuffer)
-			this.tb = this.ta.clone()
-		}
-		this.stages.forEach((p, idx) => {
-			const [ta, tb] = [this.tb, this.ta]
-			if (idx != 0) source = [ta!.texture]
-			if (idx == this.stages.length - 1 &&
-				this.renderToScreen) {
-				p.render(source, renderer)
-			} else {
-				p.render(source, renderer, tb)
-				this.tb = tb; this.ta = ta
-			}
-		})
+	render(source: T & RenderOptions, renderer: THREE.WebGLRenderer) {
+		this.begin.render(source, renderer)
 	}
 }
 
-class PipelineNode {
+abstract class PipelineNodeBase<T=any> {
 
-	// outgoing edges
-	protected next: PipelineNode[] = []
+	public readonly isPipelineNode = true
 
-	constructor(protected readonly pipeline: Pipeline,
-		protected readonly prev?: PipelineNode,
-		public readonly effect?: Effect) { }
+	protected next: PipelineNodeBase[] = []
 
-	then(effect: Effect | Stage): PipelineNode {
-		const eff = <Effect>effect
-		const node = new PipelineNode(this.pipeline, this,
-			eff.isEffect ? eff : new Effect().addStage(<Stage><any>eff))
-		this.next.push(node)
-		return node
+	constructor(protected readonly prev?: PipelineNodeBase) { }
+
+	protected add<X extends PipelineNodeBase<T>>(e: X): X {
+		this.next.push(e); return e
+	}
+
+	then(what: Renderable, target?: THREE.WebGLRenderTarget): PipelineNode {
+		return this.add(new PipelineNode(this, what, target))
+	}
+
+	protected reset() { for (const x of this.next) x.reset() }
+
+	protected render(source: T, renderer: THREE.WebGLRenderer) {
+		for (const node of this.next) node.render(source, renderer)
+	}
+
+	protected getOutputChannels(): { texture: THREE.Texture, alias?: string }[] {
+		return []
+	}
+
+	protected getInputChannels(): { texture: THREE.Texture, alias?: string }[] {
+		return this.prev!.getOutputChannels()
+	}
+}
+
+abstract class PipelineNodeAsable<T=any> extends PipelineNodeBase<T> {
+
+	as(...uniform: string[]): PipelineAsNode {
+		return this.add(new PipelineAsNode(this, ...uniform))
+	}
+
+	abstract and(...node: PipelineNode[]): PipelineBarrierNode
+
+	protected getTargetTextures(): THREE.Texture[] {
+		return []
+	}
+
+	out(channel: number = 0) {
+		return this.add(new PipelineOutNode<T>(this, channel))
+	}
+
+	protected getOutputChannels(): { texture: THREE.Texture, alias?: string }[] {
+		return this.getTargetTextures().map((tex, idx) => { return { texture: tex } })
+	}
+}
+
+class PipelineAsNode<T=any> extends PipelineNodeAsable<T> {
+
+	protected name: string[] = []
+
+	constructor(private readonly from: PipelineNodeAsable<T>, ...uniform: string[]) {
+		super(from)
+		this.name = uniform
 	}
 
 	and(...node: PipelineNode[]): PipelineBarrierNode {
-		const barrier = new PipelineBarrierNode(this.pipeline, this)
-		barrier.addBarrier(...node)
-		return barrier
+		return this.from.and(...node)
 	}
 
-	out(): this { if (this.effect) (<any>this.effect).renderToScreen = true; return this }
+	protected getOutputChannels(): { texture: THREE.Texture, alias?: string }[] {
+		return (<PipelineAsNode>this.from).getTargetTextures().map(
+			(tex, idx) => { return { texture: tex, alias: this.name[idx] } })
+	}
+}
 
-	protected input(): THREE.Texture[] {
-		if (this.prev) {
-			return this.prev.effect ? [this.prev.effect!.target.texture] : this.prev.input()
+class PipelineOutNode<T=any> extends PipelineNodeBase<T> {
+
+	private node: PostStage
+
+	constructor(private readonly from: PipelineNodeAsable, private readonly channel = 0) {
+		super(from)
+		this.node = new PostStage({
+			fragmentShader: `void main() { vec2 tex = gl_FragCoord.xy / iResolution;
+					gl_FragColor = texture2D(iChannel[${channel}], tex); }`
+		})
+	}
+
+	render(source: T, renderer: THREE.WebGLRenderer) {
+		const opt: RenderOptions = {
+			iChannel: this.getInputChannels()
+		}
+		this.node.render(Object.assign({}, source, opt), renderer)
+		super.render(source, renderer)
+	}
+}
+
+class PipelineNode<T=any> extends PipelineNodeAsable<T> {
+
+	private readonly _getTargetTextures: () => THREE.Texture[]
+	private isEffectNode = false
+
+	private readonly uniforms = {}
+
+	constructor(prev: PipelineNodeBase,
+		private readonly node: Renderable,
+		private target?: THREE.WebGLRenderTarget) {
+
+		super(prev)
+
+		const effect = <Effect>node
+		if (this.isEffectNode = effect.isEffect) {
+			this._getTargetTextures = () => effect.textures
 		} else {
-			return []
+			this._getTargetTextures = () => [this.target!.texture]
 		}
 	}
 
-	protected reset() { for (const node of this.next) node.reset() }
+	and(...node: PipelineNode[]): PipelineBarrierNode {
+		const barrier = new PipelineBarrierNode(this)
+		barrier.and(...node)
+		return barrier
+	}
 
-	protected render() {
-		!this.effect || this.effect.render(this.input(), this.pipeline.renderer)
-		for (const node of this.next) node.render()
+	set(uniforms: { [key: string]: any }): this {
+		Object.assign(this.uniforms, uniforms)
+		return this
+	}
+
+	render(source: T, renderer: THREE.WebGLRenderer) {
+		if (!this.isEffectNode && !this.target) {
+			const { width, height } = renderer.getSize()
+			this.target = new THREE.WebGLRenderTarget(width, height, gBuffer)
+		}
+		const opt: RenderOptions = {
+			iChannel: this.getInputChannels(),
+			target: this.target
+		}
+		const x = Object.assign({ uniforms: {} }, source, opt)
+		Object.assign(x.uniforms, this.uniforms)
+		this.node.render(x, renderer)
+		super.render(source, renderer)
+	}
+
+	protected getTargetTextures() {
+		return this._getTargetTextures()
 	}
 }
 
-class PipelineOriginNode extends PipelineNode {
-	render() { super.reset(); super.render() }
+class PipelineOriginNode<T=any> extends PipelineNodeBase<T> {
+
+	constructor() { super() }
+
+	render(source: T, renderer: THREE.WebGLRenderer) {
+		this.reset(); super.render(source, renderer)
+	}
 }
 
-class PipelineBarrierNode extends PipelineNode {
+class PipelineBarrierNode<T=any> extends PipelineNodeAsable<T> {
 
 	protected barrier: PipelineNode[] = []
 	protected ok = 0
 
-	constructor(pipeline: Pipeline, prev: PipelineNode) {
-		super(pipeline, prev)
-		this.addBarrier(prev)
+	constructor(prev: PipelineNode) {
+		super(prev)
+		this.and(prev)
 	}
 
-	addBarrier(...node: PipelineNode[]) { this.barrier.push(...node) }
+	and(...node: PipelineNode[]): PipelineBarrierNode {
+		this.barrier.push(...node)
+		for (const n of node) (<any>n).next.push(this)
+		return this
+	}
 
-	protected input(): THREE.Texture[] {
-		const f = bar => bar.effect ? bar.effect!.texture : bar.input()
-		return this.barrier.map(f)
+	protected getTargetTextures(): THREE.Texture[] {
+		let res: THREE.Texture[] = []
+		this.barrier.forEach((bar, idx) => {
+			res = res.concat((<PipelineBarrierNode><any>bar).getTargetTextures())
+		})
+		return res
 	}
 
 	protected reset() { this.ok = this.barrier.length; super.reset() }
 
-	protected render() { if (--this.ok == 0) super.render() }
+	protected render(source: T, renderer: THREE.WebGLRenderer) {
+		if (--this.ok == 0) super.render(source, renderer)
+	}
 }
+
+// class PipelineNode {
+
+// 	// outgoing edges
+// 	protected next: PipelineNode[] = []
+// 	protected name: string[] = []
+
+// 	constructor(protected readonly prev?: PipelineNode,
+// 		public readonly effect?: Effect) { }
+
+// 	and(...node: PipelineNode[]): PipelineBarrierNode {
+// 		const barrier = new PipelineBarrierNode(this)
+// 		return barrier.and(...node)
+// 	}
+
+// 	set(obj: { [key: string]: any }) {
+
+// 	}
+
+// 	out(): this {
+// 		if (this.effect) (<any>this.effect).renderToScreen = true;
+// 		return this
+// 	}
+
+// 	protected input(): TextureInfo[] {
+// 		if (this.prev) {
+// 			return this.prev.effect ? [{
+// 				texture: this.prev.effect!.target.texture,
+// 				alias: this.prev.name[0]
+// 			}] : this.prev.input()
+// 		} else {
+// 			return []
+// 		}
+// 	}
+
+// 	protected reset() { for (const node of this.next) node.reset() }
+
+// 	protected render(renderer: THREE.WebGLRenderer) {
+// 		!this.effect || this.effect.render(this.input(), renderer)
+// 		for (const node of this.next) node.render(renderer)
+// 	}
+// }
+
+// class PipelineOriginNode extends PipelineNode {
+// 	render(renderer: THREE.WebGLRenderer) {
+// 		super.reset(); super.render(renderer)
+// 	}
+// }
+
+// class PipelineBarrierNode extends PipelineNode {
+
+// 	protected barrier: PipelineNode[] = []
+// 	protected ok = 0
+
+// 	constructor(prev: PipelineNode) {
+// 		super(prev)
+// 		this.and(prev)
+// 	}
+
+// 	and(...node: PipelineNode[]): PipelineBarrierNode {
+// 		this.barrier.push(...node)
+// 		for (const n of node) (<any>n).next.push(this)
+// 		return this
+// 	}
+
+// 	protected input(): TextureInfo[] {
+// 		return this.barrier.map((bar, idx) => bar.effect ? {
+// 			texture: bar.effect!.target.texture,
+// 			alias: this.name[idx]
+// 		} : { texture: <any>undefined })
+// 	}
+
+// 	protected reset() { this.ok = this.barrier.length; super.reset() }
+
+// 	protected render(renderer: THREE.WebGLRenderer) {
+// 		if (--this.ok == 0) super.render(renderer)
+// 	}
+// }
 
 export class Pipeline {
 
@@ -125,7 +294,7 @@ export class Pipeline {
 	private ta: THREE.WebGLRenderTarget
 	private tb: THREE.WebGLRenderTarget
 
-	public readonly begin = new PipelineOriginNode(this)
+	public readonly begin = new PipelineOriginNode()
 
 	get target() { return this.tb }
 
@@ -135,5 +304,5 @@ export class Pipeline {
 		this.tb = this.ta.clone()
 	}
 
-	render() { this.begin.render() }
+	render() { this.begin.render({}, this.renderer) }
 }

@@ -36,6 +36,7 @@
     "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
+    "@types/node": "^11.11.0",
     "@types/three": "^0.93.22",
     "dat.gui": "^0.7.5",
     "quadtree-lib": "^1.0.9",
