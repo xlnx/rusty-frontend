@@ -1,6 +1,4 @@
-import * as THREEJS from "three"
-import * as THREE_ADDONS from "three-addons"
-const THREE: typeof import("three") = { ...THREEJS, ...THREE_ADDONS }
+import * as THREE from "three"
 import { LayeredView, DirectRenderer, Pipeline, RenderStage, Stage, Effect, PostStage, Prefab } from "../wasp";
 
 class FFTWaveEffect extends Effect {
