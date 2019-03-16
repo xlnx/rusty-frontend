@@ -29,7 +29,7 @@ export class Scene<T extends {} = {}> extends THREE.Scene {
 			for (let obj = int.object; obj; obj = obj.parent!) {
 				const view = <ViewType<T>>obj
 				if (view.isLayeredView) {
-					return view.tag.owner
+					return view.tag.thing.owner
 				}
 			}
 		}

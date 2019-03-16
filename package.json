@@ -23,6 +23,9 @@
   "devDependencies": {
     "@types/mocha": "^5.2.6",
     "@types/should": "^13.0.0",
+    "glsl-fxaa": "^3.0.0",
+    "glslify": "^7.0.0",
+    "glslify-loader": "^2.0.0",
     "html-webpack-plugin": "^3.2.0",
     "mocha": "^6.0.2",
     "raw-loader": "^1.0.0",

@@ -1,5 +1,5 @@
 import * as THREE from "three"
-
+import * as glsl from "glslify"
 
 interface TextureInfo {
 	texture: THREE.Texture,
@@ -60,6 +60,8 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 			const sh = Object.assign({ uniforms: {} }, shader)
 			this.props = Object.assign(sh.uniforms, this.props)
 			sh.fragmentShader = RenderStage.header + sh.fragmentShader
+			sh.vertexShader = glsl(sh.vertexShader)
+			sh.fragmentShader = glsl(sh.fragmentShader)
 			this.material = new THREE.ShaderMaterial(sh)
 		}
 	}
