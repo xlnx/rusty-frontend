@@ -1,10 +1,9 @@
 import * as THREE from "three"
-import { BuildingLikeObject } from "../model/def";
-import BuildingMathImpl from "../model/building";
+import BasemapBuildingItem from "../model/buildingItem";
 import Road from "./road";
 import { Basemap } from "../model/basemap";
 import { BuildingPrototype } from "../asset/building";
-import { plain2world } from "../2d/trans";
+import { plain2world } from "../object/trans";
 import { ObjectTag, CityLayer } from "../asset/def";
 import { Thing } from "../wasp";
 
@@ -24,9 +23,9 @@ class BuildingBase extends Thing<ObjectTag> {
 	}
 }
 
-class Building extends BuildingBase implements BuildingLikeObject {
+class Building extends BuildingBase {
 
-	public readonly mathImpl: BuildingMathImpl
+	public readonly item: BasemapBuildingItem
 
 	constructor(proto: BuildingPrototype,
 		public readonly road: Road,
@@ -38,14 +37,14 @@ class Building extends BuildingBase implements BuildingLikeObject {
 		const angle = Math.PI * 0.25
 		this.view.rotateY(angle)
 
-		this.mathImpl = new BuildingMathImpl(this, angle, road, offset)
+		this.item = new BasemapBuildingItem(this.placeholder, angle, road.item, offset)
 	}
 }
 
 class BuildingIndicator extends BuildingBase {
 
 	constructor(proto: BuildingPrototype,
-		private readonly basemap: Basemap) {
+		private readonly basemap: Basemap<Road, Building>) {
 
 		super(proto)
 	}

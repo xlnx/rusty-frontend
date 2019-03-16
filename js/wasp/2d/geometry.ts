@@ -2,10 +2,10 @@ import * as THREE from "three"
 
 type Subscriber = (value: any) => void
 
-type Placeholder = Variable | number | boolean | string
-type NumberPlaceholder = NumberVariable | number
+export type Placeholder = Variable | number | boolean | string
+export type NumberPlaceholder = NumberVariable | number
 
-class Variable {
+export class Variable {
 
 	private subscribers: Subscriber[] = []
 
@@ -23,7 +23,7 @@ class Variable {
 
 }
 
-class NumberVariable extends Variable {
+export class NumberVariable extends Variable {
 
 	private static binop(op: (x: number, y: number) => number,
 		lhs: NumberVariable, rhs: NumberVariable | number): NumberVariable {
@@ -156,7 +156,7 @@ class Scale extends Transform {
 	}
 }
 
-class Geometry2D {
+export class Geometry2D {
 
 	private tr?: Transform
 
@@ -192,12 +192,4 @@ class Geometry2D {
 		}
 	}
 
-}
-
-export {
-	Geometry2D,
-	Variable,
-	Placeholder,
-	NumberVariable,
-	NumberPlaceholder
 }

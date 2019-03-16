@@ -47,6 +47,7 @@ export class Thing<T extends {} = {}> {
 	}
 
 	destroy() {
+		console.log("destroyed object :", this)
 		Scene.instance!.remove(this)
 	}
 }
