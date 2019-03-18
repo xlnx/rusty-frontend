@@ -6,6 +6,7 @@ import { BuildingPrototype } from "../asset/building";
 import { plain2world } from "../object/trans";
 import { ObjectTag, CityLayer } from "../asset/def";
 import { Thing, Layer } from "../wasp";
+import BasemapRoadItem from "../model/roadItem";
 
 class BuildingBase extends Thing<ObjectTag> {
 
@@ -25,19 +26,28 @@ class BuildingBase extends Thing<ObjectTag> {
 
 class Building extends BuildingBase {
 
-	private readonly item: BasemapBuildingItem
+	public readonly item: BasemapBuildingItem<Building>
 
-	constructor(proto: BuildingPrototype,
-		public readonly road: Road,
-		public readonly offset: number) {
+	constructor(
+		ind: BuildingIndicator
+	) {
 
-		super(proto)
+		const I = (<any>ind)
+
+		super(I.proto)
+
+		const { object } = I.proto
+
+		this.view.addToLayer(Layer.All, object.model.clone(), object.floor.clone())
 
 		// set pos and orientation of boj
-		const angle = Math.PI * 0.25
-		this.view.rotateY(angle)
+		const { x, y, z } = I.view.position
+		this.view.position.set(x, y, z)
+		this.view.rotation.y = I.view.rotation.y
 
-		this.item = new BasemapBuildingItem(this.placeholder, angle, road.item, offset)
+		console.log(this.view)
+
+		this.item = new BasemapBuildingItem(this.placeholder, I.angle, I.road, I.offset)
 	}
 }
 
@@ -56,7 +66,13 @@ class BuildingIndicator extends BuildingBase {
 		color: BuildingIndicator.validColor
 	})
 
-	constructor(proto: BuildingPrototype,
+	private road?: BasemapRoadItem<Road>
+	private offset?: number
+	private angle?: number
+	private _valid: boolean = false
+	get valid() { return this._valid }
+
+	constructor(private readonly proto: BuildingPrototype,
 		private readonly basemap: Basemap<Road, Building>) {
 
 		super(proto)
@@ -72,6 +88,10 @@ class BuildingIndicator extends BuildingBase {
 		const res = this.basemap.alignBuilding(pt, this.placeholder)
 		if (res) {
 			const { road, offset, center, angle, valid } = res
+			this.road = road
+			this.offset = offset
+			this.angle = angle
+			this._valid = valid
 			if (this.uniforms.valid.value = valid) {
 				this.mat.color.set(BuildingIndicator.validColor)
 			} else {
@@ -82,6 +102,7 @@ class BuildingIndicator extends BuildingBase {
 			this.view.rotation.y = angle
 		} else {
 			const { x, y, z } = plain2world(pt)
+			this._valid = false
 			this.view.position.set(x, y, z)
 			this.view.rotation.set(0, 0, 0)
 		}
