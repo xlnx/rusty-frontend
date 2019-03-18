@@ -150,7 +150,9 @@ class Basemap<R, B> {
       if (roadLength < placeholder.width) return
       roadLength -= placeholder.width
       AC.normalize()
+
       let origin = new THREE.Vector2(0, 0)
+      let faceDir = new THREE.Vector2(0, -1)
 
       //1: left, -1:right
       let offsetSign = (<any>AC.clone()).cross(AB) > 0 ? 1 : -1
@@ -160,7 +162,9 @@ class Basemap<R, B> {
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * offsetSign)
       let negNormDir = origin.clone().sub(normDir)
 
-      let angle = Math.acos(new THREE.Vector2(0, -1).dot(negNormDir)) * -offsetSign
+      // let angle = Math.acos(faceDir.clone().dot(negNormDir)) * -offsetSign
+      let angleSign = (<any>negNormDir.clone()).cross(faceDir) > 0 ? -1 : 1
+      let angle = Math.acos(negNormDir.clone().dot(faceDir)) * angleSign
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset + placeholder.width / 2))
         .add(normDir.clone().multiplyScalar(placeholder.height / 2 + road.width / 2))
