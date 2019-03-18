@@ -36,15 +36,22 @@ export default class Road extends Thing {
 		this.item.userData = this
 
 		const { x, y, z } = plain2world(from)
-		this.object.position.set(x, y, z)
 		const d = to.clone().sub(from)
-		this.object.setRotationFromAxisAngle(Road.up, d.angle())
 		const len = d.length() || 0.1
-		this.object.scale.set(len, 1, 1 * width) //
+
+		this.geometry.scale(len, 1, 1 * width)
+		this.geometry.rotateY(d.angle())
+		this.geometry.translate(x, y, z)
+		// this.object.position.set(x, y, z)
+		// this.object.setRotationFromAxisAngle(Road.up, d.angle())
+		// this.object.scale.set(len, 1, 1 * width) //
 		this.uvs[0][2].set(len / width, 1)
 		this.uvs[1][1].set(len / width, 0)
 		this.uvs[1][2].set(len / width, 1)
 		this.geometry.uvsNeedUpdate = true
-		this.view.addToLayer(Layer.All, this.object)
+		// this.view.addToLayer(Layer.All, this.object)
+		const wire = new THREE.WireframeHelper(this.object)
+		console.log(wire)
+		this.view.addToLayer(Layer.All, wire)
 	}
 }

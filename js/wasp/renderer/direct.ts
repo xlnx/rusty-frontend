@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { OrbitControls } from "three-orbitcontrols-ts"
+const OrbitControls = require("three-orbitcontrols")
 import { RendererPrototype } from "./proto";
 
 export class DirectRenderer extends RendererPrototype {

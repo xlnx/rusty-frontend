@@ -32,7 +32,6 @@
     "should": "^13.2.3",
     "source-map-loader": "^0.2.4",
     "three-obj-mtl-loader": "^1.0.3",
-    "three-orbitcontrols-ts": "^0.1.2",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.0.2",
     "typescript": "^3.2.4",
@@ -45,6 +44,7 @@
     "@types/three": "^0.93.22",
     "dat.gui": "^0.7.5",
     "quadtree-lib": "^1.0.9",
-    "three": "^0.101.1"
+    "three": "^0.101.1",
+    "three-orbitcontrols": "^2.102.1"
   }
 }
