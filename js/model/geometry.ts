@@ -59,12 +59,15 @@ class Seg2D {
         let b = this.to
         let c = other.from
         let d = other.to
+        console.log("this seg:", this)
+        console.log("other seg:", other)
         if (
             Math.min(a.x, b.x) <= Math.max(c.x, d.x) &&
             Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
             Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
             Math.max(a.y, b.y) >= Math.min(c.y, d.y)
         ) {
+            console.log("Rec conincide")
             //possibly line conincide
             let ab = b.clone().sub(a)
             let ac = c.clone().sub(a)

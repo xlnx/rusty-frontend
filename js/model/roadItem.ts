@@ -9,7 +9,10 @@ export default class BasemapRoadItem<T={}> extends UserData<T> {
     private _rect: AnyRect2D = <any>null
     private _quadTreeItem: QuadTreeItem<BasemapRoadItem<T>> = <any>{}
 
-    constructor(public readonly width: number, from: Point, to: Point) {
+    constructor(
+        public readonly width: number,
+        from: Point,
+        to: Point) {
         super()
 
         this._seg = new Seg2D(from, to)
@@ -66,8 +69,8 @@ export default class BasemapRoadItem<T={}> extends UserData<T> {
             let min = minPt(roadPts)
             let max = maxPt(roadPts)
             Object.assign(this._quadTreeItem, {
-                x: (min.x + max.x) / 2,
-                y: (min.y + max.y) / 2,
+                x: min.x,
+                y: min.y,
                 width: max.x - min.x,
                 height: max.y - min.y,
                 obj: this

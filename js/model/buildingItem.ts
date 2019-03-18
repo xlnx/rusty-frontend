@@ -60,8 +60,8 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
             let min = minPt(housePts)
             let max = maxPt(housePts)
             Object.assign(this._quadTreeItem, {
-                x: (min.x + max.x) / 2,
-                y: (min.y + max.y) / 2,
+                x: min.x,
+                y: min.y,
                 width: max.x - min.x,
                 height: max.y - min.y,
                 obj: this

@@ -6,6 +6,7 @@ import { Point, AnyRect2D } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
 
+
 type Restype<R> = {
   road: BasemapRoadItem<R>,
   offset: number,
@@ -15,6 +16,9 @@ type Restype<R> = {
 } | undefined
 
 class Basemap<R, B> {
+  roadID = new Map<BasemapRoadItem<R>, number>()
+  IDroad = new Map<number, BasemapRoadItem<R>>()
+  static count = 0
   private readonly edge = new Map<Point, BasemapRoadItem<R>[]>()
   private readonly buildingTree:
     QuadTree<QuadTreeItem<BasemapBuildingItem<B>>> = new QuadTree({
@@ -29,6 +33,7 @@ class Basemap<R, B> {
       maxElements: maxRoads
     })
 
+
   addRoad(width: number, from: Point, to: Point): { added: BasemapRoadItem<R>[], removed: BasemapRoadItem<R>[] } {
     let res = {
       added: <BasemapRoadItem<R>[]>[],
@@ -38,6 +43,10 @@ class Basemap<R, B> {
     let segPts: Point[] = []
     let tempRoad: BasemapRoadItem<R>[] = []
     let treeItems = this.roadTree.colliding(newRoad.quadTreeItem)
+
+    // let treeItems: any[] = []
+    // this.roadTree.each(e => treeItems.push(e))
+
     for (let item of treeItems) {
       let road = item.obj!
       if (road.seg.intersect(newRoad.seg)) {
@@ -47,13 +56,18 @@ class Basemap<R, B> {
         let dist1 = newRoad.seg.distance(c)
         let dist2 = newRoad.seg.distance(d)
         let t = dist1 / (dist1 + dist2)
-        if (isNaN(t)) continue
+        if (isNaN(t)) {
+          console.log("isNaN")
+          continue
+        }
         let crossPt = c.clone().add(cd.clone().multiplyScalar(t))
+        // console.log(Basemap.count)
+        // console.log(crossPt)
         // let tes = { from: c, to: d, crossPoint: crossPt }
 
         //if the cross point is not C or D
         if (!crossPt.equals(c) && !crossPt.equals(d)) {
-          this.removeRoad(road)
+          // this.removeRoad(road)
           res.removed.push(road)
           tempRoad.push(new BasemapRoadItem<R>(road.width, c, crossPt))
           tempRoad.push(new BasemapRoadItem<R>(road.width, crossPt, d))
@@ -66,7 +80,15 @@ class Basemap<R, B> {
       }
     }
 
+    //remove segmented roads
+    for (let road of res.removed)
+      this.removeRoad(road)
+
     segPts.push(to)
+    //sort pts by distance to fromPt
+    segPts.sort((a, b): number => {
+      return a.clone().sub(from).length() - b.clone().sub(from).length()
+    })
     let From = from
     for (let pt of segPts) {
       let newRoad = new BasemapRoadItem<R>(width, From, pt)
@@ -93,7 +115,11 @@ class Basemap<R, B> {
     else {
       this.edge.set(road.to, [road])
     }
-    this.roadTree.push(road.quadTreeItem)
+    this.roadTree.push(road.quadTreeItem, true)
+
+    this.roadID.set(road, Basemap.count)
+    this.IDroad.set(Basemap.count, road)
+    Basemap.count++
   }
 
   addBuilding(building: BasemapBuildingItem<B>) {

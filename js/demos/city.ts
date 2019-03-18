@@ -94,6 +94,13 @@ export default class CityDemoRenderer extends VRRenderer {
 		}
 	}
 
+	protected OnMouseMove(e: MouseEvent) {
+		const pt = this.ground.intersect(this.mouse, this.camera)
+		if (pt) {
+			console.log(this.basemap.roadID.get(this.basemap.selectRoad(pt)!))
+		}
+	}
+
 	protected OnMouseUp(e: MouseEvent) {
 		({
 			road: () => {

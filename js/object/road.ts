@@ -51,7 +51,7 @@ export default class Road extends Thing {
 		this.geometry.uvsNeedUpdate = true
 		// this.view.addToLayer(Layer.All, this.object)
 		const wire = new THREE.WireframeHelper(this.object)
-		console.log(wire)
+		// console.log(wire)
 		this.view.addToLayer(Layer.All, wire)
 	}
 }
