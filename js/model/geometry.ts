@@ -59,15 +59,15 @@ class Seg2D {
         let b = this.to
         let c = other.from
         let d = other.to
-        console.log("this seg:", this)
-        console.log("other seg:", other)
+        // console.log("this seg:", this)
+        // console.log("other seg:", other)
         if (
             Math.min(a.x, b.x) <= Math.max(c.x, d.x) &&
             Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
             Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
             Math.max(a.y, b.y) >= Math.min(c.y, d.y)
         ) {
-            console.log("Rec conincide")
+            // console.log("Rec conincide")
             //possibly line conincide
             let ab = b.clone().sub(a)
             let ac = c.clone().sub(a)
@@ -104,6 +104,7 @@ class AnyRect2D {
         if (!other.bbox2d.intersectsBox(this.bbox2d)) return false
         //assume road width is integer
 
+        let origin = new THREE.Vector2(0, 0)
         let otherPts = other.pts
         let otherDir = otherPts[1].clone().sub(otherPts[0])
         let otherAngle = Math.acos(otherDir.clone().normalize().x)
@@ -112,26 +113,24 @@ class AnyRect2D {
         let thisDir = thisPts[1].clone().sub(thisPts[0])
         let thisAngle = Math.acos(thisDir.clone().normalize().x)
 
+
         let thisCopy = copyPts(thisPts)
         let otherCopy = copyPts(otherPts)
-        let origin = new THREE.Vector2(0, 0)
-        for (let pt of thisCopy) {
-
-            pt.sub(otherPts[0]);
-            pt.rotateAround(origin, otherAngle);
-            pt.add(otherPts[0]);
-        }
+        let p = otherPts[0].clone().rotateAround(origin, otherAngle)
+        for (let pt of thisCopy)
+            pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(p);
         for (let pt of otherCopy)
-            pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(otherPts[0])
+            pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(p)
         let thisPtsInOther = inBox(minPt(otherCopy), thisCopy, maxPt(otherCopy))
 
         thisCopy = copyPts(thisPts)
         otherCopy = copyPts(otherPts)
+        p = thisPts[0].clone().rotateAround(origin, thisAngle)
         for (let pt of thisCopy)
-            pt.rotateAround(thisPts[0], thisAngle)
+            pt.sub(thisPts[0]).rotateAround(origin, thisAngle).add(p)
         for (let pt of otherCopy)
-            pt.rotateAround(thisPts[0], thisAngle)
-        let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, minPt(thisCopy))
+            pt.sub(thisPts[0]).rotateAround(origin, thisAngle).add(p)
+        let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, maxPt(thisCopy))
 
         //case 1
         if (thisPtsInOther || otherPtsInThis) return true

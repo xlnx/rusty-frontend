@@ -13,7 +13,7 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
         // readonly bbox2d: THREE.Box2,
         readonly angle: number,
         readonly road: BasemapRoadItem,
-        readonly offset: number
+        readonly offset: number//positive: leftside of the road
     ) {
         super()
 
@@ -42,19 +42,22 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
     private checkUpdate() {
         if (this.shouldUpdate) {
             this.shouldUpdate = false
+
+            let offset = Math.abs(this.offset)
+            let offsetSign = this.offset > 0 ? 1 : -1
             let houseRoadDir = this.road.to.clone().sub(this.road.from).normalize()
             let houseRoadNormDir = houseRoadDir.clone()
-                .rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * this.offset! > 0 ? -1 : 1)
+                .rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * offsetSign)
             let housePts = new Array<THREE.Vector2>()
             housePts[0] = this.road.from.clone()
-                .add(houseRoadDir.clone().multiplyScalar(this.offset!))
+                .add(houseRoadDir.clone().multiplyScalar(offset))
                 .add(houseRoadNormDir.clone().multiplyScalar(this.road.width / 2))
             housePts[1] = housePts[0].clone()
-                .add(houseRoadDir.clone().multiplyScalar(this.placeholder.x))
+                .add(houseRoadDir.clone().multiplyScalar(this.placeholder.width))
             housePts[2] = housePts[1].clone()
-                .add(houseRoadNormDir.clone().multiplyScalar(this.placeholder.y))
+                .add(houseRoadNormDir.clone().multiplyScalar(this.placeholder.height))
             housePts[3] = housePts[2].clone()
-                .sub(houseRoadDir.clone().multiplyScalar(this.placeholder!.x))
+                .sub(houseRoadDir.clone().multiplyScalar(this.placeholder.width))
             this._rect = new AnyRect2D(housePts)
 
             let min = minPt(housePts)

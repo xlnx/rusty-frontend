@@ -151,28 +151,32 @@ class Basemap<R, B> {
       roadLength -= placeholder.width
       AC.normalize()
       let origin = new THREE.Vector2(0, 0)
+
+      //1: left, -1:right
+      let offsetSign = (<any>AC.clone()).cross(AB) > 0 ? 1 : -1
       let offset = Math.round(AC.dot(AB) - placeholder.width / 2)
       offset = offset < 0 ? 0 : offset > roadLength ? roadLength : offset
-      let x = (<any>AB).cross(AC) < 0 ? 1 : -1//1: left, -1:right
-      let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * x)
 
-      let angle = Math.acos(new THREE.Vector2(0, -1).dot(origin.clone().sub(normDir)))
-        * (new THREE.Vector2(0, -1).dot(AC.clone()) > 0 ? 1 : -1) * -x
+      let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * offsetSign)
+      let negNormDir = origin.clone().sub(normDir)
+
+      let angle = Math.acos(new THREE.Vector2(0, -1).dot(negNormDir)) * -offsetSign
       let center = road.from.clone()
         .add(AC.clone().multiplyScalar(offset + placeholder.width / 2))
         .add(normDir.clone().multiplyScalar(placeholder.height / 2 + road.width / 2))
-      normDir.multiplyScalar(x)
+
       let rect = new AnyRect2D([
         center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
           .add(AC.clone().multiplyScalar(placeholder.width / 2)),
-        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2))
+        center.clone().add(negNormDir.clone().multiplyScalar(placeholder.height / 2))
           .add(AC.clone().multiplyScalar(placeholder.width / 2)),
-        center.clone().sub(normDir.clone().multiplyScalar(placeholder.height / 2))
+        center.clone().add(negNormDir.clone().multiplyScalar(placeholder.height / 2))
           .sub(AC.clone().multiplyScalar(placeholder.width / 2)),
         center.clone().add(normDir.clone().multiplyScalar(placeholder.height / 2))
           .sub(AC.clone().multiplyScalar(placeholder.width / 2)),
       ])
 
+      offset *= offsetSign
       let res = <Restype<R>>{
         road: road,
         offset: offset,
@@ -193,14 +197,15 @@ class Basemap<R, B> {
       }
 
       //detect road cross
-      // let intersectRoad = this.roadTree.colliding(rectItem)
-      // for (let item of intersectRoad) {
-      //   let road = item.obj!
-      //   if (rect.intersect(road.rect)) {
-      //     res!.valid = false
-      //     return res
-      //   }
-      // }
+      let intersectRoad = this.roadTree.colliding(rectItem)
+      for (let item of intersectRoad) {
+        let road = item.obj!
+        if (rect.intersect(road.rect)) {
+          res!.valid = false
+          // console.log(this.roadID.get(road))
+          return res
+        }
+      }
       return res
     }
   }
@@ -237,13 +242,11 @@ class Basemap<R, B> {
 
   selectRoad(pt: Point): BasemapRoadItem<R> | undefined {
     let res = this.getNearRoad(pt)
-    if (res) {
-      const road = res
-      if (road.seg.distance(pt) <= road.width / 2) {
-        return res
-      }
-    }
+    if (res &&
+      res.seg.distance(pt) <= res.width / 2)
+      return res
   }
+
   getNearRoad(pt: Point): BasemapRoadItem<R> | undefined {
     let res: BasemapRoadItem<R> | undefined
     let minDist = Infinity
@@ -262,7 +265,6 @@ class Basemap<R, B> {
     })
     return res
   }
-
 
 }
 
