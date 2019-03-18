@@ -1,7 +1,5 @@
-import * as THREEJS from "three"
-import * as THREE_ADDONS from "three-addons"
-const THREE: typeof import("three") = { ...THREEJS, ...THREE_ADDONS }
-import { LayeredView, DirectRenderer, Pipeline, RenderStage, Stage, Effect, PostStage } from "../wasp";
+import * as THREE from "three"
+import { LayeredView, DirectRenderer, Pipeline, RenderStage, Stage, Effect, PostStage, Thing } from "../wasp";
 
 
 import * as frag from "./asset/a.frag"
@@ -9,7 +7,8 @@ import * as vert from "./asset/a.vert"
 
 export default class MyRenderer extends DirectRenderer {
 
-	box = new LayeredView()
+	// box = new LayeredView()
+	box = new Thing()
 	state: "normal" | "profile" = "profile"
 
 	matNormal = new THREE.MeshLambertMaterial({ color: 0x666666 })
@@ -30,8 +29,7 @@ export default class MyRenderer extends DirectRenderer {
 		// geo.rotateX(-Math.PI / 3)
 		// geo.translate(0, -1e-4, 0)
 		let box = new THREE.Mesh(geo, this.matNormal)
-		this.box.addToLayer(0, box)
-		this.scene.add(this.box)
+		this.box.view.addToLayer(0, box)
 
 		this.scene.add(new THREE.AmbientLight(0xdddddd))
 
@@ -71,8 +69,8 @@ export default class MyRenderer extends DirectRenderer {
 
 		const speed = 2e-2
 
-		this.box.rotation.x += Math.sin(time) * speed
-		this.box.rotation.y += Math.cos(time) * speed
+		this.box.view.rotation.x += Math.sin(time) * speed
+		this.box.view.rotation.y += Math.cos(time) * speed
 	}
 
 	OnNewFrame() {

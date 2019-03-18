@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { DistUnit, ObjectTag } from "../asset/def";
-import { world2plain } from "../2d/trans";
+import { world2plain } from "../object/trans";
 import { Thing, Layer } from "../wasp";
 
 export default class Ground extends Thing<ObjectTag> {

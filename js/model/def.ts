@@ -5,30 +5,38 @@ const maxBuildings = 100
 const maxRoads = 100
 
 import * as THREE from "three"
-import BuildingMathImpl from "./building";
-import RoadMathImpl from "./road";
+import BasemapBuildingItem from "./building";
+import BasemapRoadItem from "./road";
 
 
-type quadTreeItem = {
+interface QuadTreeItem<T={}> {
     x: number,
     y: number,
     width: number,
     height: number,
-    obj?: RoadMathImpl | BuildingMathImpl
+    obj?: T
+    // obj?: BasemapRoadItem | BasemapBuildingItem
 }
 
-interface RoadLikeObject {
-    readonly width: number
-    readonly mathImpl: RoadMathImpl
+abstract class UserData<T> {
+    public userData?: T
 }
 
-interface BuildingLikeObject {
-    readonly placeholder: THREE.Vector2
-    readonly mathImpl: BuildingMathImpl
-}
+// interface RoadLikeObject {
+//     readonly width: number
+//     readonly item: BasemapRoadItem
+//     destroy()
+// }
+
+// interface BuildingLikeObject {
+//     readonly placeholder: THREE.Vector2
+//     readonly item: BasemapBuildingItem
+//     destroy()
+// }
 
 export {
-    quadTreeItem,
+    QuadTreeItem,
     mapWidth, mapHeight, maxBuildings, maxRoads,
-    RoadLikeObject, BuildingLikeObject,
+    UserData
+    // RoadLikeObject, BuildingLikeObject,
 }

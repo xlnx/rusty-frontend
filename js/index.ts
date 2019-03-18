@@ -1,7 +1,7 @@
 import * as wasm from "../pkg/crate"
 import GoogleDemoVR from "./demos/googleDemoVR"
 import CityDemoRenderer from "./demos/city"
-import MyRenderer from "./demos/test";
+import MyRenderer from "./demos/city";
 // import PlainDemoRenderer from "./demos/plain";
 
 // let renderer = new GoogleDemoVR();

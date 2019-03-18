@@ -1,18 +1,16 @@
 import * as THREE from "three"
-import { Geometry2D, NumberVariable } from "./geometry";
 import { DistUnit } from "../asset/def";
-import { RoadLikeObject } from "../model/def";
-import RoadMathImpl from "../model/road";
+import BasemapRoadItem from "../model/roadItem";
 import { plain2world } from "./trans";
-import { Thing, Layer } from "../wasp";
+import { Thing, Layer, Geometry2D, NumberVariable } from "../wasp";
 
-export default class Indicator extends Thing implements RoadLikeObject {
+export default class Indicator extends Thing {
 
 	private static up = new THREE.Vector3(0, 1, 0)
 
 	private readonly object: THREE.Object3D
 
-	public readonly mathImpl
+	public readonly item
 
 	private readonly l = new NumberVariable(0)
 	get length() { return this.l.value }
@@ -21,7 +19,7 @@ export default class Indicator extends Thing implements RoadLikeObject {
 	get to() { return this.v }
 	set to(v: THREE.Vector2) {
 		this.v = v
-		this.mathImpl.to = v
+		this.item.to = v
 		const d = this.to.clone().sub(this.from)
 		this.object.setRotationFromAxisAngle(Indicator.up, d.angle())
 		this.l.set(d.length() || 0.1)
@@ -34,7 +32,7 @@ export default class Indicator extends Thing implements RoadLikeObject {
 
 		const r = width / 2
 
-		this.mathImpl = new RoadMathImpl(this, from, v)
+		this.item = new BasemapRoadItem(width, from, v)
 
 		const yy = new THREE.RingGeometry(r, r + .1, 32, 0, undefined, Math.PI)
 		const y = new THREE.CircleGeometry(r, 32, 0, Math.PI)

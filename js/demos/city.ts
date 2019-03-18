@@ -1,11 +1,11 @@
 import * as THREE from "three"
-import Indicator from "../2d/indicator";
+import Indicator from "../object/indicator";
 import Ground from "../object/ground";
 import Road from "../object/road";
 import { BuildingIndicator, Building } from "../object/building";
 import { Basemap } from "../model/basemap";
 import { BuildingManager } from "../asset/building";
-import { VRRenderer } from "../wasp";
+import { VRRenderer, Pipeline, RenderStage, Prefab } from "../wasp";
 
 export default class CityDemoRenderer extends VRRenderer {
 
@@ -17,8 +17,10 @@ export default class CityDemoRenderer extends VRRenderer {
 	private readonly type: "normalHouse" = "normalHouse"
 	private state: { [key: string]: any } = {}
 
-	private basemap = new Basemap(Road)
+	private basemap = new Basemap<Road, Building>()
 	private manager = new BuildingManager()
+
+	private pipeline = new Pipeline(this.threeJsRenderer)
 
 	private guiOptions: { [key: string]: any } = {
 		layer: 0,
@@ -76,6 +78,11 @@ export default class CityDemoRenderer extends VRRenderer {
 		let lightHelper = new THREE.PointLightHelper(light, 0.1)
 		lightHelper.layers.mask = 0xffffffff
 		this.scene.add(lightHelper)
+
+		this.pipeline.begin
+			.then(new RenderStage(this.scene, this.camera))
+			.then(Prefab.FXAAShader)
+			.out()
 	}
 
 	protected OnMouseDown(e: MouseEvent) {
@@ -91,8 +98,15 @@ export default class CityDemoRenderer extends VRRenderer {
 		({
 			road: () => {
 				if (this.state.indicator) {
-					const rs = this.basemap.addRoad(
-						this.guiOptions.width, this.state.indicator.from, this.state.indicator.to)
+					const { width } = this.guiOptions
+					const { from, to } = this.state.indicator
+					const { added, removed } = this.basemap.addRoad(width, from, to)
+					for (const road of added) {
+						road.userData = new Road(width, road.from, road.to)
+					}
+					for (const road of removed) {
+						road.userData!.destroy()
+					}
 					this.state.indicator.destroy()
 					this.state.indicator = undefined
 				}
@@ -124,7 +138,7 @@ export default class CityDemoRenderer extends VRRenderer {
 					const ind: Indicator = this.state.indicator
 					const coord = this.ground.intersect(this.mouse, this.camera)
 					if (coord) ind.to = coord
-					this.basemap.alignRoad(ind)
+					this.basemap.alignRoad(ind.item)
 				}
 			} break
 			case "building": {
@@ -137,5 +151,11 @@ export default class CityDemoRenderer extends VRRenderer {
 				}
 			} break
 		}
+	}
+
+	OnNewFrame() {
+		this.pipeline.render()
+
+		requestAnimationFrame(this.nextFrame)
 	}
 }

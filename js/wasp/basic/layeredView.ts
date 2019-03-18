@@ -17,6 +17,10 @@ export class LayeredView<T extends {} = {}> extends THREE.Object3D {
 		this.userData = {}
 	}
 
+	add(...object: THREE.Object3D[]): this {
+		return this.addToLayer(0, ...object)
+	}
+
 	addToLayer(layer: number, ...object: THREE.Object3D[]): this {
 		const l = layer
 		const f = l == Layer.All ?
@@ -24,9 +28,17 @@ export class LayeredView<T extends {} = {}> extends THREE.Object3D {
 			o => o.traverse(e => e.layers.set(l))
 
 		if (!this._layers[l]) {
-			this.add(this._layers[l] = new THREE.Object3D())
+			super.add(this._layers[l] = new THREE.Object3D())
 		}
 		for (const obj of object) {
+			obj.traverse(e => {
+				const [m, self] = [<THREE.Mesh>e, this]
+				if (m.isMesh) {
+					m.onBeforeRender = function () {
+						!self.onBeforeRender || self.onBeforeRender.apply(e, <any>arguments)
+					}
+				}
+			})
 			f(obj); this._layers[l].add(obj)
 		}
 		return this
