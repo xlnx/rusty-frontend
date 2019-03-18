@@ -235,6 +235,8 @@ class Basemap {
     })
     return !!res ? res.road : undefined
   }
+
+
 }
 
 export {
