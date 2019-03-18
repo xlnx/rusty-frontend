@@ -8,7 +8,10 @@ export default class Indicator extends Thing {
 
 	private static up = new THREE.Vector3(0, 1, 0)
 
-	private readonly object: THREE.Object3D
+	private static readonly uniforms = {
+		frameColor: { value: new THREE.Vector4(0.38, 0.65, 0.76, 0.7) },
+		fillColor: { value: new THREE.Vector4(0.5, 0.72, 0.85, 0.5) }
+	}
 
 	public readonly item
 
@@ -21,7 +24,7 @@ export default class Indicator extends Thing {
 		this.v = v
 		this.item.to = v
 		const d = this.to.clone().sub(this.from)
-		this.object.setRotationFromAxisAngle(Indicator.up, d.angle())
+		this.view.setRotationFromAxisAngle(Indicator.up, d.angle())
 		this.l.set(d.length() || 0.1)
 	}
 
@@ -39,7 +42,8 @@ export default class Indicator extends Thing {
 		const h = new THREE.PlaneGeometry(1, 1, 1, 1)
 
 		const mat = new THREE.ShaderMaterial({
-			fragmentShader: "void main() { gl_FragColor = vec4(0, 0, 0.6, 0.1); }",
+			uniforms: Indicator.uniforms,
+			fragmentShader: "uniform vec4 fillColor; void main() { gl_FragColor = fillColor; }",
 			side: THREE.DoubleSide,
 			transparent: true
 		})
@@ -66,13 +70,11 @@ export default class Indicator extends Thing {
 		w.add(u1, v1, c, u2, v2, e1, e2, f1, f2, f3, f4)
 		w.scale.setScalar(DistUnit)
 		w.rotateY(Math.PI / 2)
-		this.object = new THREE.Object3D()
-		this.object.add(w)
+
+		this.view.addToLayer(Layer.All, w)
 
 		const { x, y: y_, z } = plain2world(from)
-		this.object.position.set(x, y_, z)
-		this.view.addToLayer(Layer.All, this.object)
-
+		this.view.position.set(x, y_, z)
 		this.to = v
 	}
 }

@@ -193,14 +193,14 @@ class Basemap<R, B> {
       }
 
       //detect road cross
-      let intersectRoad = this.roadTree.colliding(rectItem)
-      for (let item of intersectRoad) {
-        let road = item.obj!
-        if (rect.intersect(road.rect)) {
-          res!.valid = false
-          return res
-        }
-      }
+      // let intersectRoad = this.roadTree.colliding(rectItem)
+      // for (let item of intersectRoad) {
+      //   let road = item.obj!
+      //   if (rect.intersect(road.rect)) {
+      //     res!.valid = false
+      //     return res
+      //   }
+      // }
       return res
     }
   }

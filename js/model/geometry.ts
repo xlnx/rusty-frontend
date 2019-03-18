@@ -159,8 +159,8 @@ class AnyRect2D {
         let min = minPt(this.pts)
         let max = maxPt(this.pts)
         return {
-            x: (min.x + max.x) / 2,
-            y: (min.y + max.y) / 2,
+            x: min.x,
+            y: min.y,
             width: max.x - min.x,
             height: max.y - min.y
         }
