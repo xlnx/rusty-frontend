@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { DistUnit } from "../asset/def";
 import BasemapRoadItem from "../model/roadItem";
 import { plain2world } from "../object/trans";
-import { Thing, Layer, TexAsset } from "../wasp";
+import { Thing, Layer, TexAsset, Geometry2D } from "../wasp";
 
 export default class Road extends Thing {
 
@@ -40,8 +40,10 @@ export default class Road extends Thing {
 		const len = d.length() || 0.1
 
 		this.geometry.scale(len, 1, 1 * width)
-		this.geometry.rotateY(d.angle())
-		this.geometry.translate(x, y, z)
+
+		this.view.rotateY(d.angle())
+		this.view.position.set(x, y, z)
+
 		// this.object.position.set(x, y, z)
 		// this.object.setRotationFromAxisAngle(Road.up, d.angle())
 		// this.object.scale.set(len, 1, 1 * width) //
@@ -51,6 +53,21 @@ export default class Road extends Thing {
 		this.geometry.uvsNeedUpdate = true
 		// this.view.addToLayer(Layer.All, this.object)
 		const wire = new THREE.WireframeHelper(this.object)
+
 		this.view.addToLayer(Layer.All, wire)
+
+		// const q = new THREE.PlaneGeometry(width + 4 * 2, len)
+		// q.translate(0, len / 2, 0)
+		// const mat = new THREE.ShaderMaterial({
+		// 	fragmentShader: "void main() { gl_FragColor = vec4(0,0,0,1); }",
+		// 	side: THREE.DoubleSide,
+		// 	transparent: true
+		// })
+		// const { mesh: u1 } = new Geometry2D(q, mat)
+		// const o = new THREE.Object3D()
+		// o.rotateY(-Math.PI / 2)
+		// o.scale.setScalar(DistUnit)
+		// o.add(u1)
+		// this.view.addToLayer(Layer.All, o)
 	}
 }

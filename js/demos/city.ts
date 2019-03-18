@@ -112,17 +112,9 @@ export default class CityDemoRenderer extends VRRenderer {
 				}
 			},
 			building: () => {
-				if (this.state.indicator) {
-					// const res = this.basemap.alignBuilding(this.mouse, this.state.indicator.placeholder)
-					// if (res) {
-					// 	console.log("building added")
-					// 	const { road: r, offset: o } = res
-					// 	const b = new Building(this.manager.get(this.type)!, <Road>r, o)
-					// 	this.basemap.addBuilding(b)
-					// 	this.scene.add(b.object)
-					// 	// this.scene.remove(this.state.indicator.object)
-					// 	// this.state.indicator = undefined
-					// }
+				if (this.state.indicator && this.state.indicator.valid) {
+					const b = new Building(this.state.indicator)
+					this.basemap.addBuilding(b.item)
 				}
 			},
 			preview: () => { }
