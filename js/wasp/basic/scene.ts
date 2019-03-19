@@ -5,19 +5,7 @@ interface Point2D { x: number, y: number }
 
 export class Scene<T extends {} = {}> extends THREE.Scene {
 
-	public static instance?: Scene
-
 	private readonly raycaster = new THREE.Raycaster()
-
-	constructor() {
-		super()
-
-		if (!Scene.instance) {
-			Scene.instance = this
-		} else {
-			console.error("Wasp.Scene must be singleton")
-		}
-	}
 
 	select(coords: Point2D, camera: THREE.Camera): Thing<T> | undefined {
 

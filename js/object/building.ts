@@ -19,8 +19,6 @@ class BuildingBase extends Thing<ObjectTag> {
 
 		this.name = name
 		this.placeholder = placeholder
-		// console.log(this.view)
-		// this.view.setMaterial(CityLayer.Origin, new THREE.MeshPhongMaterial({ color: 0xff0000 }))
 	}
 }
 
@@ -57,7 +55,11 @@ class BuildingIndicator extends BuildingBase {
 	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
 
 	private mat = new THREE.MeshPhongMaterial({
-		color: BuildingIndicator.validColor
+		color: BuildingIndicator.invalidColor,
+		opacity: 0.6,
+		transparent: true,
+		polygonOffset: true,
+		polygonOffsetFactor: -1e4
 	})
 
 	private road?: BasemapRoadItem<Road>
@@ -80,9 +82,9 @@ class BuildingIndicator extends BuildingBase {
 
 		const { object } = proto
 
-		this.view.addToLayer(Layer.All, object.model.clone(), object.floor.clone())
+		this.view.addToLayer(CityLayer.Indicator, object.model.clone(), object.floor.clone())
 
-		this.view.setMaterial(Layer.All, this.mat)
+		this.view.setMaterial(CityLayer.Indicator, this.mat)
 	}
 
 	adjust(pt: THREE.Vector2) {
@@ -98,7 +100,7 @@ class BuildingIndicator extends BuildingBase {
 			this.view.rotation.y = angle
 		} else {
 			const { x, y, z } = plain2world(pt)
-			this._valid = false
+			this.setValid(false)
 			this.view.position.set(x, y, z)
 			this.view.rotation.set(0, 0, 0)
 		}

@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { DistUnit } from "../asset/def";
+import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
 import BasemapRoadItem from "../model/roadItem";
 import { plain2world } from "../object/trans";
 import { Thing, Layer, TexAsset, Geometry2D, NumberVariable } from "../wasp";
@@ -10,8 +10,8 @@ class RoadIndicator extends Thing {
 
 	// frameColor: { value: new THREE.Vector4(0.38, 0.65, 0.76, 0.7) },
 	// fillColor: { value: new THREE.Vector4(0.5, 0.72, 0.85, 0.5) }
-	private static readonly validColor = new THREE.Vector4(0.44, 0.52, 0.84, 1)
-	private static readonly invalidColor = new THREE.Vector4(0.8, 0.3, 0.2, 1)
+	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84)
+	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
 
 	private static up = new THREE.Vector3(0, 1, 0)
 
@@ -32,36 +32,26 @@ class RoadIndicator extends Thing {
 		this.l.set(d.length() || 0.1)
 	}
 
-	// 1783434
-	// b22222
-
-	private readonly matUniform = {
-		color: { value: RoadIndicator.validColor }
-	}
-	private readonly matzUniform = {
-		color: { value: RoadIndicator.validColor }
-	}
-
-	private readonly mat = new THREE.ShaderMaterial({
-		uniforms: this.matUniform,
-		fragmentShader: `uniform vec4 color;void main(){gl_FragColor = color;}`,
+	private readonly mat = new THREE.MeshBasicMaterial({
+		color: RoadIndicator.validColor,
 		side: THREE.DoubleSide,
+		opacity: 0.2,
 		transparent: true
 	})
-	private readonly matz = new THREE.ShaderMaterial({
-		uniforms: this.matzUniform,
-		fragmentShader: `uniform vec4 color;void main(){gl_FragColor = color;}`,
+	private readonly matz = new THREE.MeshBasicMaterial({
+		color: RoadIndicator.validColor,
 		side: THREE.DoubleSide,
+		opacity: 0.96,
 		transparent: true
 	})
 
 	private setValid(val: boolean) {
 		if (this._valid = val) {
-			this.matUniform.color.value = RoadIndicator.validColor
-			this.matzUniform.color.value = RoadIndicator.validColor
+			this.mat.color.set(RoadIndicator.validColor)
+			this.mat.color.set(RoadIndicator.validColor)
 		} else {
-			this.matUniform.color.value = RoadIndicator.invalidColor
-			this.matzUniform.color.value = RoadIndicator.invalidColor
+			this.matz.color.set(RoadIndicator.invalidColor)
+			this.matz.color.set(RoadIndicator.invalidColor)
 		}
 	}
 
@@ -106,7 +96,7 @@ class RoadIndicator extends Thing {
 		w.scale.setScalar(DistUnit)
 		w.rotateY(Math.PI / 2)
 
-		this.view.addToLayer(Layer.All, w)
+		this.view.addToLayer(CityLayer.Indicator, w)
 
 		const { x, y: y_, z } = plain2world(from)
 		this.view.position.set(x, y_, z)
@@ -114,7 +104,7 @@ class RoadIndicator extends Thing {
 	}
 }
 
-class Road extends Thing {
+class Road extends Thing<ObjectTag> {
 
 	private static up = new THREE.Vector3(0, 1, 0)
 

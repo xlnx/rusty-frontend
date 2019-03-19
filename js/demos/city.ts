@@ -4,11 +4,12 @@ import { RoadIndicator, Road } from "../object/road";
 import { BuildingIndicator, Building } from "../object/building";
 import { Basemap } from "../model/basemap";
 import { BuildingManager } from "../asset/building";
-import { VRRenderer, Pipeline, RenderStage, Prefab } from "../wasp";
+import { VRRenderer, Pipeline, RenderStage, Prefab, Scene, gBuffer } from "../wasp";
+import { ObjectTag, CityLayer } from "../asset/def";
 
-export default class CityDemoRenderer extends VRRenderer {
+export default class CityDemoRenderer extends VRRenderer<ObjectTag> {
 
-	private ground = new Ground(50, 50)
+	private ground = new Ground(50, 50).addTo(this.scene)
 
 	// gui controlled variables
 	private readonly mode: "building" | "road" | "preview" = "preview"
@@ -32,7 +33,7 @@ export default class CityDemoRenderer extends VRRenderer {
 			road: () => { },
 			building: () => {
 				state.indicator = new BuildingIndicator(
-					this.manager.get(this.type)!, this.basemap)
+					this.manager.get(this.type)!, this.basemap).addTo(this.scene)
 			},
 		}[mode])()
 	}
@@ -40,8 +41,8 @@ export default class CityDemoRenderer extends VRRenderer {
 	private close(mode, state: { [key: string]: any }) {
 		({
 			preview: () => { this.orbit.enabled = false },
-			road: () => { !state.indicator || state.indicator.destroy() },
-			building: () => { !state.indicator || state.indicator.destroy() },
+			road: () => { !state.indicator || state.indicator.removeFrom(this.scene) },
+			building: () => { !state.indicator || state.indicator.removeFrom(this.scene) },
 		}[mode])()
 	}
 
@@ -78,8 +79,22 @@ export default class CityDemoRenderer extends VRRenderer {
 		lightHelper.layers.mask = 0xffffffff
 		this.scene.add(lightHelper)
 
+		const { width, height } = this.threeJsRenderer.getSize()
+		const target = new THREE.WebGLRenderTarget(width, height, gBuffer)
+
 		this.pipeline.begin
-			.then(new RenderStage(this.scene, this.camera))
+			.thenExec(() => {
+				this.camera.layers.set(CityLayer.Origin)
+				this.threeJsRenderer.autoClearColor = true
+			})
+			.then(new RenderStage(this.scene, this.camera), target)
+			.thenExec(() => {
+				this.camera.layers.set(CityLayer.Indicator)
+				this.threeJsRenderer.autoClearColor = false
+				// this.threeJsRenderer.state.buffers.depth.setClear(0)
+				// this.threeJsRenderer.state.buffers.depth.reset()
+			})
+			.then(new RenderStage(this.scene, this.camera), target)
 			.then(Prefab.FXAAShader)
 			.out()
 	}
@@ -88,7 +103,8 @@ export default class CityDemoRenderer extends VRRenderer {
 		if (this.mode == "road") {
 			const point = this.ground.intersect(this.mouse, this.camera)
 			if (point) {
-				this.state.indicator = new RoadIndicator(this.basemap, this.guiOptions.width, point!, point!)
+				this.state.indicator = new RoadIndicator(this.basemap,
+					this.guiOptions.width, point!, point!).addTo(this.scene)
 			}
 		}
 	}
@@ -103,23 +119,25 @@ export default class CityDemoRenderer extends VRRenderer {
 	protected OnMouseUp(e: MouseEvent) {
 		({
 			road: () => {
-				if (this.state.indicator && this.state.indicator.valid) {
-					const { width } = this.guiOptions
-					const { from, to } = this.state.indicator
-					const { added, removed } = this.basemap.addRoad(width, from, to)
-					for (const road of added) {
-						road.userData = new Road(width, road.from, road.to)
+				if (this.state.indicator) {
+					if (this.state.indicator.valid) {
+						const { width } = this.guiOptions
+						const { from, to } = this.state.indicator
+						const { added, removed } = this.basemap.addRoad(width, from, to)
+						for (const road of added) {
+							road.userData = new Road(width, road.from, road.to).addTo(this.scene)
+						}
+						for (const road of removed) {
+							road.userData!.removeFrom(this.scene)
+						}
 					}
-					for (const road of removed) {
-						road.userData!.destroy()
-					}
-					this.state.indicator.destroy()
+					this.scene.remove(this.state.indicator)
 					this.state.indicator = undefined
 				}
 			},
 			building: () => {
 				if (this.state.indicator && this.state.indicator.valid) {
-					const b = new Building(this.state.indicator)
+					const b = new Building(this.state.indicator).addTo(this.scene)
 					this.basemap.addBuilding(b.item)
 				}
 			},
