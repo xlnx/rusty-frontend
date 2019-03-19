@@ -22,7 +22,11 @@ class BuildingPrototype {
 
 	readonly placeholder: THREE.Vector2 = <any>null
 
-	readonly object = new LayeredView<ObjectTag>()
+	readonly object: {
+		model: THREE.Object3D,
+		floor: THREE.Object3D,
+		frame: THREE.Object3D
+	} = <any>{}
 
 	private static transformObject(obj: THREE.Object3D, trans: TransformStep[]) {
 		for (let tr of trans) {
@@ -88,11 +92,6 @@ class BuildingPrototype {
 						placeholder[0] * DistUnit, placeholder[1] * DistUnit)
 						.rotateX(-Math.PI / 2)
 
-					// build layer 0
-					proto.object.addToLayer(CityLayer.Origin,
-						obj.clone(),
-						new THREE.Mesh(plain, BuildingPrototype.planeMaterial))
-
 					// add frame
 					const { max: { y: y0 }, min: { y: y1 } } = new THREE.Box3().setFromObject(obj)
 					const h = y0 - y1 + 0.05
@@ -101,8 +100,11 @@ class BuildingPrototype {
 					frame.translate(0, h / 2, 0)
 
 					// build layer 1
-					proto.object.addToLayer(CityLayer.Frame,
-						new THREE.Mesh(frame, BuildingPrototype.frameMaterial))
+
+					// build layer 0
+					proto.object.model = obj
+					proto.object.floor = new THREE.Mesh(plain, BuildingPrototype.planeMaterial)
+					proto.object.frame = new THREE.Mesh(frame, BuildingPrototype.frameMaterial)
 
 					// proto.object.setMaterial(CityLayer.Origin, BuildingPrototype.planeMaterial)
 

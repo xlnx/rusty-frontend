@@ -1,13 +1,23 @@
-import { RoadLikeObject, quadTreeItem } from "./def";
+import { QuadTreeItem, UserData } from "./def";
 import * as THREE from "three";
 import { Point, Seg2D, AnyRect2D, minPt, maxPt } from "./geometry";
 
 
-export default class RoadMathImpl {
+export default class BasemapRoadItem<T={}> extends UserData<T> {
 
     private _seg: Seg2D = <any>null
     private _rect: AnyRect2D = <any>null
-    private _quadTreeItem: quadTreeItem = <any>null
+    private _quadTreeItem: QuadTreeItem<BasemapRoadItem<T>> = <any>{}
+
+    constructor(
+        public readonly width: number,
+        from: Point,
+        to: Point) {
+        super()
+
+        this._seg = new Seg2D(from, to)
+        this.checkUpdate()
+    }
 
     private shouldUpdate: boolean = true
 
@@ -25,12 +35,6 @@ export default class RoadMathImpl {
     // set shouldUpdate(flag: boolean) { this.shouldUpdate = flag }
     // buildings: { building: Building, offset: number }[]
 
-
-    constructor(readonly road: RoadLikeObject, from: Point, to: Point) {
-        this._seg = new Seg2D(from, to)
-        this.checkUpdate()
-    }
-
     get rect(): AnyRect2D {
         this.checkUpdate()
         return this._rect
@@ -41,7 +45,7 @@ export default class RoadMathImpl {
         return this._seg
     }
 
-    get quadtreeItem(): quadTreeItem {
+    get quadTreeItem(): QuadTreeItem<BasemapRoadItem<T>> {
         this.checkUpdate()
         return this._quadTreeItem
     }
@@ -55,30 +59,22 @@ export default class RoadMathImpl {
             let roadNormDir = dir.clone().rotateAround(new THREE.Vector2(0, 0), Math.PI / 2)
             let roadPts = new Array<THREE.Vector2>()
             roadPts[0] = this.seg.from.clone().add(roadNormDir.clone()
-                .multiplyScalar(this.road.width / 2))
+                .multiplyScalar(this.width / 2))
             roadPts[1] = roadPts[0].clone().add(roadDir)
             roadPts[3] = this.seg.from.clone().add(roadNormDir.clone()
-                .multiplyScalar(-this.road.width / 2))
+                .multiplyScalar(-this.width / 2))
             roadPts[2] = roadPts[3].clone().add(roadDir)
             this._rect = new AnyRect2D(roadPts)
-            //update quadTreeItem
+            //update QuadTreeItem
             let min = minPt(roadPts)
             let max = maxPt(roadPts)
-            if (this._quadTreeItem) {
-                this._quadTreeItem.x = (min.x + max.x) / 2
-                this._quadTreeItem.y = (min.y + max.y) / 2
-                this._quadTreeItem.width = max.x - min.x
-                this._quadTreeItem.height = max.y - min.y
-            }
-            else {
-                this._quadTreeItem = {
-                    x: (min.x + max.x) / 2,
-                    y: (min.y + max.y) / 2,
-                    width: max.x - min.x,
-                    height: max.y - min.y,
-                    obj: this
-                }
-            }
+            Object.assign(this._quadTreeItem, {
+                x: min.x,
+                y: min.y,
+                width: max.x - min.x,
+                height: max.y - min.y,
+                obj: this
+            })
         }
     }
 

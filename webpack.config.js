@@ -16,7 +16,13 @@ module.exports = {
 		rules: [
 			{ test: /\.tsx?$/, loader: "ts-loader" },
 			{ enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-			{ test: /\.(frag|vert)$/, loader: "raw-loader" }
+			{
+				test: /\.(glsl|vs|fs|vert|frag)$/, exclude: /node_modules/,
+				use: [
+					"raw-loader",
+					"glslify-loader"
+				]
+			}
 		]
 	},
 	mode: "development",

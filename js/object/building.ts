@@ -1,12 +1,12 @@
 import * as THREE from "three"
-import { BuildingLikeObject } from "../model/def";
-import BuildingMathImpl from "../model/building";
-import Road from "./road";
+import BasemapBuildingItem from "../model/buildingItem";
+import { Road } from "./road";
 import { Basemap } from "../model/basemap";
 import { BuildingPrototype } from "../asset/building";
-import { plain2world } from "../2d/trans";
+import { plain2world } from "../object/trans";
 import { ObjectTag, CityLayer } from "../asset/def";
-import { Thing } from "../wasp";
+import { Thing, Layer } from "../wasp";
+import BasemapRoadItem from "../model/roadItem";
 
 class BuildingBase extends Thing<ObjectTag> {
 
@@ -15,7 +15,7 @@ class BuildingBase extends Thing<ObjectTag> {
 
 	constructor(proto: BuildingPrototype) {
 		const { name, placeholder, object } = proto
-		super(object.clone())
+		super()
 
 		this.name = name
 		this.placeholder = placeholder
@@ -24,41 +24,81 @@ class BuildingBase extends Thing<ObjectTag> {
 	}
 }
 
-class Building extends BuildingBase implements BuildingLikeObject {
+class Building extends BuildingBase {
 
-	public readonly mathImpl: BuildingMathImpl
+	public readonly item: BasemapBuildingItem<Building>
 
-	constructor(proto: BuildingPrototype,
-		public readonly road: Road,
-		public readonly offset: number) {
+	constructor(
+		ind: BuildingIndicator
+	) {
 
-		super(proto)
+		const I = (<any>ind)
+
+		super(I.proto)
+
+		const { object } = I.proto
+
+		this.view.addToLayer(Layer.All, object.model.clone(), object.floor.clone())
 
 		// set pos and orientation of boj
-		const angle = Math.PI * 0.25
-		this.view.rotateY(angle)
+		const { x, y, z } = I.view.position
+		this.view.position.set(x, y, z)
+		this.view.rotation.y = I.view.rotation.y
 
-		this.mathImpl = new BuildingMathImpl(this, angle, road, offset)
+		console.log(this.view)
+
+		this.item = new BasemapBuildingItem(this.placeholder, I.angle, I.road, I.offset)
 	}
 }
 
 class BuildingIndicator extends BuildingBase {
 
-	constructor(proto: BuildingPrototype,
-		private readonly basemap: Basemap) {
+	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84)
+	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
+
+	private mat = new THREE.MeshPhongMaterial({
+		color: BuildingIndicator.validColor
+	})
+
+	private road?: BasemapRoadItem<Road>
+	private offset?: number
+	private angle?: number
+	private _valid: boolean = false
+	get valid() { return this._valid }
+	private setValid(val: boolean) {
+		if (this._valid = val) {
+			this.mat.color.set(BuildingIndicator.validColor)
+		} else {
+			this.mat.color.set(BuildingIndicator.invalidColor)
+		}
+	}
+
+	constructor(private readonly proto: BuildingPrototype,
+		private readonly basemap: Basemap<Road, Building>) {
 
 		super(proto)
+
+		const { object } = proto
+
+		this.view.addToLayer(Layer.All, object.model.clone(), object.floor.clone())
+
+		this.view.setMaterial(Layer.All, this.mat)
 	}
 
 	adjust(pt: THREE.Vector2) {
 		const res = this.basemap.alignBuilding(pt, this.placeholder)
 		if (res) {
 			const { road, offset, center, angle, valid } = res
+			this.road = road
+			this.offset = offset
+			this.angle = angle
+			this.setValid(valid)
 			const { x, y, z } = plain2world(center)
 			this.view.position.set(x, y, z)
 			this.view.rotation.y = angle
 		} else {
 			const { x, y, z } = plain2world(pt)
+			this._valid = false
 			this.view.position.set(x, y, z)
 			this.view.rotation.set(0, 0, 0)
 		}
