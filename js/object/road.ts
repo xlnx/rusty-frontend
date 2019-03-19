@@ -2,9 +2,119 @@ import * as THREE from "three"
 import { DistUnit } from "../asset/def";
 import BasemapRoadItem from "../model/roadItem";
 import { plain2world } from "../object/trans";
-import { Thing, Layer, TexAsset, Geometry2D } from "../wasp";
+import { Thing, Layer, TexAsset, Geometry2D, NumberVariable } from "../wasp";
+import { Building } from "./building";
+import { Basemap } from "../model/basemap";
 
-export default class Road extends Thing {
+class RoadIndicator extends Thing {
+
+	// frameColor: { value: new THREE.Vector4(0.38, 0.65, 0.76, 0.7) },
+	// fillColor: { value: new THREE.Vector4(0.5, 0.72, 0.85, 0.5) }
+	private static readonly validColor = new THREE.Vector4(0.44, 0.52, 0.84, 1)
+	private static readonly invalidColor = new THREE.Vector4(0.8, 0.3, 0.2, 1)
+
+	private static up = new THREE.Vector3(0, 1, 0)
+
+	public readonly item
+
+	private readonly l = new NumberVariable(0)
+
+	private _valid = false
+
+	get valid() { return this._valid }
+	get length() { return this.l.value }
+	get to() { return this.v }
+	private setTo(coord: THREE.Vector2) {
+		this.v = coord
+		this.item.to = coord
+		const d = this.to.clone().sub(this.from)
+		this.view.setRotationFromAxisAngle(RoadIndicator.up, d.angle())
+		this.l.set(d.length() || 0.1)
+	}
+
+	// 1783434
+	// b22222
+
+	private readonly matUniform = {
+		color: { value: RoadIndicator.validColor }
+	}
+	private readonly matzUniform = {
+		color: { value: RoadIndicator.validColor }
+	}
+
+	private readonly mat = new THREE.ShaderMaterial({
+		uniforms: this.matUniform,
+		fragmentShader: `uniform vec4 color;void main(){gl_FragColor = color;}`,
+		side: THREE.DoubleSide,
+		transparent: true
+	})
+	private readonly matz = new THREE.ShaderMaterial({
+		uniforms: this.matzUniform,
+		fragmentShader: `uniform vec4 color;void main(){gl_FragColor = color;}`,
+		side: THREE.DoubleSide,
+		transparent: true
+	})
+
+	private setValid(val: boolean) {
+		if (this._valid = val) {
+			this.matUniform.color.value = RoadIndicator.validColor
+			this.matzUniform.color.value = RoadIndicator.validColor
+		} else {
+			this.matUniform.color.value = RoadIndicator.invalidColor
+			this.matzUniform.color.value = RoadIndicator.invalidColor
+		}
+	}
+
+	adjust(coord: THREE.Vector2) {
+		this.setTo(coord)
+		this.setValid(this.basemap.alignRoad(this.item))
+	}
+
+	constructor(private readonly basemap: Basemap<Road, Building>,
+		public readonly width: number,
+		public readonly from: THREE.Vector2,
+		private v: THREE.Vector2) {
+
+		super()
+
+		const r = width / 2
+
+		this.item = new BasemapRoadItem(width, from, v)
+
+		const yy = new THREE.RingGeometry(r, r + .1, 32, 0, undefined, Math.PI)
+		const y = new THREE.CircleGeometry(r, 32, 0, Math.PI)
+		const h = new THREE.PlaneGeometry(1, 1, 1, 1)
+
+		const mat = this.mat
+		const matz = this.matz
+
+		const { mesh: u1 } = new Geometry2D(y, mat)
+		const { mesh: v1 } = new Geometry2D(yy, matz)
+		const { mesh: c } = new Geometry2D(h, mat).scale(r * 2, this.l).translate(0, this.l.div(2))
+		const { mesh: u2 } = new Geometry2D(y, mat).translate(0, this.l).rotate(Math.PI)
+		const { mesh: v2 } = new Geometry2D(yy, matz).translate(0, this.l).rotate(Math.PI)
+		const { mesh: e1 } = new Geometry2D(h, matz).scale(.1, this.l).translate(r + .05, this.l.div(2))
+		const { mesh: e2 } = new Geometry2D(h, matz).scale(.1, this.l).translate(-r - .05, this.l.div(2))
+
+		const { mesh: f1 } = new Geometry2D(h, matz).scale(r * 2 + 8, .1).translate(0, 0)
+		const { mesh: f2 } = new Geometry2D(h, matz).scale(r * 2 + 8, .1).translate(0, this.l)
+		const { mesh: f3 } = new Geometry2D(h, matz).scale(.1, this.l).translate(r + 4, this.l.div(2))
+		const { mesh: f4 } = new Geometry2D(h, matz).scale(.1, this.l).translate(-r - 4, this.l.div(2))
+
+		const w = new THREE.Object3D()
+		w.add(u1, v1, c, u2, v2, e1, e2, f1, f2, f3, f4)
+		w.scale.setScalar(DistUnit)
+		w.rotateY(Math.PI / 2)
+
+		this.view.addToLayer(Layer.All, w)
+
+		const { x, y: y_, z } = plain2world(from)
+		this.view.position.set(x, y_, z)
+		this.setTo(v)
+	}
+}
+
+class Road extends Thing {
 
 	private static up = new THREE.Vector3(0, 1, 0)
 
@@ -69,4 +179,8 @@ export default class Road extends Thing {
 		// o.add(u1)
 		// this.view.addToLayer(Layer.All, o)
 	}
+}
+
+export {
+	Road, RoadIndicator
 }

@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import BasemapBuildingItem from "../model/buildingItem";
-import Road from "./road";
+import { Road } from "./road";
 import { Basemap } from "../model/basemap";
 import { BuildingPrototype } from "../asset/building";
 import { plain2world } from "../object/trans";
@@ -53,12 +53,6 @@ class Building extends BuildingBase {
 
 class BuildingIndicator extends BuildingBase {
 
-	private readonly uniforms = {
-		colorValid: { value: new THREE.Vector4(0, 0, 1, 1) },
-		colorInvalid: { value: new THREE.Vector4(1, 0, 0, 1) },
-		valid: { value: true }
-	}
-
 	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84)
 	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
 
@@ -71,6 +65,13 @@ class BuildingIndicator extends BuildingBase {
 	private angle?: number
 	private _valid: boolean = false
 	get valid() { return this._valid }
+	private setValid(val: boolean) {
+		if (this._valid = val) {
+			this.mat.color.set(BuildingIndicator.validColor)
+		} else {
+			this.mat.color.set(BuildingIndicator.invalidColor)
+		}
+	}
 
 	constructor(private readonly proto: BuildingPrototype,
 		private readonly basemap: Basemap<Road, Building>) {
@@ -91,12 +92,7 @@ class BuildingIndicator extends BuildingBase {
 			this.road = road
 			this.offset = offset
 			this.angle = angle
-			this._valid = valid
-			if (this.uniforms.valid.value = valid) {
-				this.mat.color.set(BuildingIndicator.validColor)
-			} else {
-				this.mat.color.set(BuildingIndicator.invalidColor)
-			}
+			this.setValid(valid)
 			const { x, y, z } = plain2world(center)
 			this.view.position.set(x, y, z)
 			this.view.rotation.y = angle

@@ -1,7 +1,6 @@
 import * as THREE from "three"
-import Indicator from "../object/indicator";
 import Ground from "../object/ground";
-import Road from "../object/road";
+import { RoadIndicator, Road } from "../object/road";
 import { BuildingIndicator, Building } from "../object/building";
 import { Basemap } from "../model/basemap";
 import { BuildingManager } from "../asset/building";
@@ -89,7 +88,7 @@ export default class CityDemoRenderer extends VRRenderer {
 		if (this.mode == "road") {
 			const point = this.ground.intersect(this.mouse, this.camera)
 			if (point) {
-				this.state.indicator = new Indicator(this.guiOptions.width, point!, point!)
+				this.state.indicator = new RoadIndicator(this.basemap, this.guiOptions.width, point!, point!)
 			}
 		}
 	}
@@ -104,7 +103,7 @@ export default class CityDemoRenderer extends VRRenderer {
 	protected OnMouseUp(e: MouseEvent) {
 		({
 			road: () => {
-				if (this.state.indicator) {
+				if (this.state.indicator && this.state.indicator.valid) {
 					const { width } = this.guiOptions
 					const { from, to } = this.state.indicator
 					const { added, removed } = this.basemap.addRoad(width, from, to)
@@ -131,17 +130,20 @@ export default class CityDemoRenderer extends VRRenderer {
 	OnUpdate() {
 		super.OnUpdate()
 
+		const coord = this.ground.intersect(this.mouse, this.camera)
 		switch (this.mode) {
 			case "road": {
-				if (this.state.indicator) {
-					const ind: Indicator = this.state.indicator
-					const coord = this.ground.intersect(this.mouse, this.camera)
-					if (coord) ind.to = coord
-					this.basemap.alignRoad(ind.item)
+				if (coord) {
+					if (this.state.indicator) {
+						const ind: RoadIndicator = this.state.indicator
+						ind.adjust(coord)
+					}
 				}
+				// 	if (coord) ind.to = coord
+				// 	this.basemap.alignRoad(ind.item)
+				// }
 			} break
 			case "building": {
-				const coord = this.ground.intersect(this.mouse, this.camera)
 				if (coord) {
 					if (this.state.indicator) {
 						const ind: BuildingIndicator = this.state.indicator
