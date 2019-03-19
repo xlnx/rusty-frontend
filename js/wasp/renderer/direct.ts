@@ -2,7 +2,7 @@ import * as THREE from "three"
 const OrbitControls = require("three-orbitcontrols")
 import { RendererPrototype } from "./proto";
 
-export class DirectRenderer extends RendererPrototype {
+export class DirectRenderer<T={}> extends RendererPrototype<T> {
 
 	public readonly orbit = new OrbitControls(
 		this.camera, this.threeJsRenderer.domElement)

@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { DistUnit, ObjectTag } from "../asset/def";
+import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
 import { world2plain } from "../object/trans";
 import { Thing, Layer } from "../wasp";
 
@@ -27,7 +27,7 @@ export default class Ground extends Thing<ObjectTag> {
 		})
 		this.object = new THREE.Mesh(geometry, meshMaterial)
 
-		this.view.addToLayer(Layer.All, this.object)
+		this.view.addToLayer(CityLayer.Origin, this.object)
 	}
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {

@@ -1,6 +1,6 @@
 import { DirectRenderer } from "./direct";
 
-export class VRRendererPrototype extends DirectRenderer {
+export class VRRendererPrototype<T={}> extends DirectRenderer<T> {
 
 	private _valid: boolean = false
 	get valid() { return this._valid }
