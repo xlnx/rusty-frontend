@@ -156,17 +156,17 @@ class Basemap<R, B> {
 
       //1: left, -1:right
       let offsetSign = (<any>AC.clone()).cross(AB) > 0 ? 1 : -1
-      let offset = Math.round(AC.dot(AB) - placeholder.width / 2)
-      offset = offset < 0 ? 0 : offset > roadLength ? roadLength : offset
+      let offset = Math.round(AC.dot(AB) - placeholder.width / 2) + 1
+      offset = cmp(offset, 1) < 0 ? 1 : cmp(offset, roadLength) > 0 ? roadLength : offset
 
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * offsetSign)
       let negNormDir = origin.clone().sub(normDir)
 
       // let angle = Math.acos(faceDir.clone().dot(negNormDir)) * -offsetSign
-      let angleSign = (<any>negNormDir.clone()).cross(faceDir) > 0 ? -1 : 1
+      let angleSign = cmp((<any>negNormDir.clone()).cross(faceDir), 0) > 0 ? -1 : 1
       let angle = Math.acos(negNormDir.clone().dot(faceDir)) * angleSign
       let center = road.from.clone()
-        .add(AC.clone().multiplyScalar(offset + placeholder.width / 2))
+        .add(AC.clone().multiplyScalar(offset - 1 + placeholder.width / 2))
         .add(normDir.clone().multiplyScalar(placeholder.height / 2 + road.width / 2))
 
       let rect = new AnyRect2D([
