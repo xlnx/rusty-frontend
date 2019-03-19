@@ -103,15 +103,17 @@ export default class CityDemoRenderer extends VRRenderer {
 	protected OnMouseUp(e: MouseEvent) {
 		({
 			road: () => {
-				if (this.state.indicator && this.state.indicator.valid) {
-					const { width } = this.guiOptions
-					const { from, to } = this.state.indicator
-					const { added, removed } = this.basemap.addRoad(width, from, to)
-					for (const road of added) {
-						road.userData = new Road(width, road.from, road.to)
-					}
-					for (const road of removed) {
-						road.userData!.destroy()
+				if (this.state.indicator) {
+					if (this.state.indicator.valid) {
+						const { width } = this.guiOptions
+						const { from, to } = this.state.indicator
+						const { added, removed } = this.basemap.addRoad(width, from, to)
+						for (const road of added) {
+							road.userData = new Road(width, road.from, road.to)
+						}
+						for (const road of removed) {
+							road.userData!.destroy()
+						}
 					}
 					this.state.indicator.destroy()
 					this.state.indicator = undefined
