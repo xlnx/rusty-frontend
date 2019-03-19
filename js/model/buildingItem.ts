@@ -42,7 +42,6 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
     private checkUpdate() {
         if (this.shouldUpdate) {
             this.shouldUpdate = false
-
             let offset = Math.abs(this.offset)
             let offsetSign = this.offset > 0 ? 1 : -1
             let houseRoadDir = this.road.to.clone().sub(this.road.from).normalize()

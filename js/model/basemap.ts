@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { BuildingPrototype } from "../asset/building";
 import BasemapBuildingItem from "./buildingItem";
 import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem } from "./def";
-import { Point, AnyRect2D } from "./geometry";
+import { Point, AnyRect2D, cmp } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
 
@@ -203,8 +203,9 @@ class Basemap<R, B> {
       //detect road cross
       let intersectRoad = this.roadTree.colliding(rectItem)
       for (let item of intersectRoad) {
-        let road = item.obj!
-        if (rect.intersect(road.rect)) {
+        let r = item.obj!
+        if (road == r) continue
+        if (rect.intersect(r.rect)) {
           res!.valid = false
           // console.log(this.roadID.get(road))
           return res
@@ -247,7 +248,7 @@ class Basemap<R, B> {
   selectRoad(pt: Point): BasemapRoadItem<R> | undefined {
     let res = this.getNearRoad(pt)
     if (res &&
-      res.seg.distance(pt) <= res.width / 2)
+      cmp(res.seg.distance(pt), res.width / 2) <= 0)
       return res
   }
 
