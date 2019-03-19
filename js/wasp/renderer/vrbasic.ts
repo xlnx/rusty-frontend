@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { VRRendererPrototype } from "./vrproto";
 
-export class VRRenderer extends VRRendererPrototype {
+export class VRRenderer<T={}> extends VRRendererPrototype<T> {
 
 	protected readonly mouse = new THREE.Vector2()
 

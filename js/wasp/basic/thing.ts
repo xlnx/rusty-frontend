@@ -43,12 +43,16 @@ export class Thing<T extends {} = {}> {
 				// mat.program.getUniforms().map.id.setValue(this.view.tag.thing.id)
 			}
 		}
-		Scene.instance!.add(this)
 	}
 
-	destroy() {
-		console.log("destroyed object :", this)
-		Scene.instance!.remove(this)
+	addTo(scene: Scene<T>): this {
+		scene.add(this)
+		return this
+	}
+
+	removeFrom(scene: Scene<T>): this {
+		scene.remove(this)
+		return this
 	}
 }
 
