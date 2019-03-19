@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { BuildingPrototype } from "../asset/building";
 import BasemapBuildingItem from "./buildingItem";
 import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem } from "./def";
-import { Point, AnyRect2D } from "./geometry";
+import { Point, AnyRect2D, cmp } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
 
@@ -156,17 +156,17 @@ class Basemap<R, B> {
 
       //1: left, -1:right
       let offsetSign = (<any>AC.clone()).cross(AB) > 0 ? 1 : -1
-      let offset = Math.round(AC.dot(AB) - placeholder.width / 2)
-      offset = offset < 0 ? 0 : offset > roadLength ? roadLength : offset
+      let offset = Math.round(AC.dot(AB) - placeholder.width / 2) + 1
+      offset = cmp(offset, 1) < 0 ? 1 : cmp(offset, roadLength) > 0 ? roadLength : offset
 
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * offsetSign)
       let negNormDir = origin.clone().sub(normDir)
 
       // let angle = Math.acos(faceDir.clone().dot(negNormDir)) * -offsetSign
-      let angleSign = (<any>negNormDir.clone()).cross(faceDir) > 0 ? -1 : 1
+      let angleSign = cmp((<any>negNormDir.clone()).cross(faceDir), 0) > 0 ? -1 : 1
       let angle = Math.acos(negNormDir.clone().dot(faceDir)) * angleSign
       let center = road.from.clone()
-        .add(AC.clone().multiplyScalar(offset + placeholder.width / 2))
+        .add(AC.clone().multiplyScalar(offset - 1 + placeholder.width / 2))
         .add(normDir.clone().multiplyScalar(placeholder.height / 2 + road.width / 2))
 
       let rect = new AnyRect2D([
@@ -203,8 +203,9 @@ class Basemap<R, B> {
       //detect road cross
       let intersectRoad = this.roadTree.colliding(rectItem)
       for (let item of intersectRoad) {
-        let road = item.obj!
-        if (rect.intersect(road.rect)) {
+        let r = item.obj!
+        if (road == r) continue
+        if (rect.intersect(r.rect)) {
           res!.valid = false
           // console.log(this.roadID.get(road))
           return res
@@ -247,7 +248,7 @@ class Basemap<R, B> {
   selectRoad(pt: Point): BasemapRoadItem<R> | undefined {
     let res = this.getNearRoad(pt)
     if (res &&
-      res.seg.distance(pt) <= res.width / 2)
+      cmp(res.seg.distance(pt), res.width / 2) <= 0)
       return res
   }
 

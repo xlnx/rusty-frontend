@@ -4,29 +4,29 @@ import { QuadTreeItem } from "./def";
 function inBox(min: Point, pts: Point[], max: Point): boolean {
     for (let pt of pts) {
         if (
-            cmp(pt.x, min.x) < 0 &&
-            cmp(pt.x, max.x) > 0 &&
-            cmp(pt.y, min.y) < 0 &&
-            cmp(pt.y, max.y) > 0
+            cmp(pt.x, min.x) > 0 &&
+            cmp(pt.x, max.x) < 0 &&
+            cmp(pt.y, min.y) > 0 &&
+            cmp(pt.y, max.y) < 0
         ) return true
     }
     return false
 }
 
 function minPt(pts: Point[]): Point {
-    let res = pts[0].clone()
+    let res = new THREE.Vector2(Infinity, Infinity)
     for (let pt of pts) {
-        if (pt.x < res.x) res.x = pt.x
-        if (pt.y < res.y) res.y = pt.y
+        if (cmp(pt.x, res.x) < 0) res.x = pt.x
+        if (cmp(pt.y, res.y) < 0) res.y = pt.y
     }
     return res
 }
 
 function maxPt(pts: Point[]): Point {
-    let res = pts[0].clone()
+    let res = new THREE.Vector2(-Infinity, -Infinity)
     for (let pt of pts) {
-        if (pt.x > res.x) res.x = pt.x
-        if (pt.y > res.y) res.y = pt.y
+        if (cmp(pt.x, res.x) > 0) res.x = pt.x
+        if (cmp(pt.y, res.y) > 0) res.y = pt.y
     }
     return res
 }
@@ -38,10 +38,10 @@ function copyPts(pts: Point[]): Point[] {
     return res
 }
 
-const eps = 1e-2
-// <:1, =:0, >:-1
+const eps = 1e-3
+// <:-1, =:0, >:1
 function cmp(a: number, b: number): number {
-    const val = b - a
+    const val = a - b
     return Math.abs(val) < eps ? 0 : val > 0 ? 1 : -1
 }
 
@@ -62,10 +62,10 @@ class Seg2D {
         // console.log("this seg:", this)
         // console.log("other seg:", other)
         if (
-            Math.min(a.x, b.x) <= Math.max(c.x, d.x) &&
-            Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
-            Math.min(a.y, b.y) <= Math.max(c.y, d.y) &&
-            Math.max(a.y, b.y) >= Math.min(c.y, d.y)
+            cmp(Math.min(a.x, b.x), Math.max(c.x, d.x)) <= 0 &&
+            cmp(Math.max(a.x, b.x), Math.min(c.x, d.x)) >= 0 &&
+            cmp(Math.min(a.y, b.y), Math.max(c.y, d.y)) <= 0 &&
+            cmp(Math.max(a.y, b.y), Math.min(c.y, d.y)) >= 0
         ) {
             // console.log("Rec conincide")
             //possibly line conincide
@@ -77,11 +77,11 @@ class Seg2D {
             let cb = b.clone().sub(c)
             //2.cross standing experiment
             if (flag) {
-                return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) >= 0 &&
-                    cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) >= 0
+                return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) <= 0 &&
+                    cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) <= 0
             }
-            else return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) > 0 &&
-                cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) > 0
+            else return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) < 0 &&
+                cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) < 0
         }
         return false
     }
@@ -99,6 +99,37 @@ class AnyRect2D {
         this.bbox2d = new THREE.Box2(minPt(this.pts), maxPt(this.pts))
     }
 
+    containPts(pts: Point[]): boolean {
+        for (const pt of pts) {
+            if (this.containPt(pt)) return true
+        }
+        return false
+    }
+
+    containPt(pt: Point): boolean {
+        let pts = this.pts
+        let product: number[] = []
+        let AB = pts[1].clone().sub(pts[0])
+        let AP = pt.clone().sub(pts[0])
+        product.push((<any>AB).cross(AP))
+
+        let BC = pts[2].clone().sub(pts[1])
+        let BP = pt.clone().sub(pts[1])
+        product.push((<any>BC).cross(BP))
+        if (cmp(product[0] * product[1], 0) <= 0) return false
+
+        let CD = pts[3].clone().sub(pts[2])
+        let CP = pt.clone().sub(pts[2])
+
+        product.push((<any>CD).cross(CP))
+        if (cmp(product[1] * product[2], 0) <= 0) return false
+
+        let DA = pts[0].clone().sub(pts[3])
+        let DP = pt.clone().sub(pts[3])
+        product.push((<any>DA).cross(DP))
+        return cmp(product[2] * product[3], 0) <= 0 ? false : true
+
+    }
 
     intersect(other: AnyRect2D): boolean {
         if (!other.bbox2d.intersectsBox(this.bbox2d)) return false
@@ -107,31 +138,32 @@ class AnyRect2D {
         let origin = new THREE.Vector2(0, 0)
         let otherPts = other.pts
         let otherDir = otherPts[1].clone().sub(otherPts[0])
-        let otherAngle = Math.acos(otherDir.clone().normalize().x)
+        let otherAngle = Math.acos(otherDir.clone().normalize().x) * otherDir.y < 0 ? -1 : 1
 
         let thisPts = this.pts
         let thisDir = thisPts[1].clone().sub(thisPts[0])
-        let thisAngle = Math.acos(thisDir.clone().normalize().x)
+        let thisAngle = Math.acos(thisDir.clone().normalize().x) * thisDir.y < 0 ? -1 : 1
 
+        // let thisCopy = copyPts(thisPts)
+        // let otherCopy = copyPts(otherPts)
+        // let p = otherPts[0].clone().rotateAround(origin, otherAngle)
+        // for (let pt of thisCopy)
+        //     pt.sub(otherPts[0]).rotateAround(origin, otherAngle)
+        // for (let pt of otherCopy)
+        //     pt.sub(otherPts[0]).rotateAround(origin, otherAngle)
+        // let thisPtsInOther = inBox(minPt(otherCopy), thisCopy, maxPt(otherCopy))
 
-        let thisCopy = copyPts(thisPts)
-        let otherCopy = copyPts(otherPts)
-        let p = otherPts[0].clone().rotateAround(origin, otherAngle)
-        for (let pt of thisCopy)
-            pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(p);
-        for (let pt of otherCopy)
-            pt.sub(otherPts[0]).rotateAround(origin, otherAngle).add(p)
-        let thisPtsInOther = inBox(minPt(otherCopy), thisCopy, maxPt(otherCopy))
+        // thisCopy = copyPts(thisPts)
+        // otherCopy = copyPts(otherPts)
+        // p = thisPts[0].clone().rotateAround(origin, thisAngle)
+        // for (let pt of thisCopy)
+        //     pt.sub(thisPts[0]).rotateAround(origin, thisAngle)
+        // for (let pt of otherCopy)
+        //     pt.sub(thisPts[0]).rotateAround(origin, thisAngle)
+        // let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, maxPt(thisCopy))
 
-        thisCopy = copyPts(thisPts)
-        otherCopy = copyPts(otherPts)
-        p = thisPts[0].clone().rotateAround(origin, thisAngle)
-        for (let pt of thisCopy)
-            pt.sub(thisPts[0]).rotateAround(origin, thisAngle).add(p)
-        for (let pt of otherCopy)
-            pt.sub(thisPts[0]).rotateAround(origin, thisAngle).add(p)
-        let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, maxPt(thisCopy))
-
+        let thisPtsInOther = new AnyRect2D(otherPts).containPts(thisPts)
+        let otherPtsInThis = new AnyRect2D(thisPts).containPts(otherPts)
         //case 1
         if (thisPtsInOther || otherPtsInThis) return true
         //case 2
@@ -169,6 +201,6 @@ class AnyRect2D {
 
 
 export {
-    inBox, minPt, maxPt, Point,
+    inBox, minPt, maxPt, Point, cmp,
     Seg2D, AnyRect2D
 }

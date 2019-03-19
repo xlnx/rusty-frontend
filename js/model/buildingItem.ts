@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { QuadTreeItem, UserData } from "./def";
-import { AnyRect2D, minPt, maxPt } from "./geometry";
+import { AnyRect2D, minPt, maxPt, cmp } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 
 export default class BasemapBuildingItem<T={}> extends UserData<T> {
@@ -42,7 +42,6 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
     private checkUpdate() {
         if (this.shouldUpdate) {
             this.shouldUpdate = false
-
             let offset = Math.abs(this.offset)
             let offsetSign = this.offset > 0 ? 1 : -1
             let houseRoadDir = this.road.to.clone().sub(this.road.from).normalize()
@@ -50,7 +49,7 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
                 .rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * offsetSign)
             let housePts = new Array<THREE.Vector2>()
             housePts[0] = this.road.from.clone()
-                .add(houseRoadDir.clone().multiplyScalar(offset))
+                .add(houseRoadDir.clone().multiplyScalar(offset - 1))
                 .add(houseRoadNormDir.clone().multiplyScalar(this.road.width / 2))
             housePts[1] = housePts[0].clone()
                 .add(houseRoadDir.clone().multiplyScalar(this.placeholder.width))
