@@ -6,7 +6,8 @@ import { LODPlane } from "./lodPlane";
 import { PlaneGeometry } from "three";
 
 const grid = 300
-const segh = 4
+const resolution = 256
+const seg = 8
 
 // .as("perlin")
 
@@ -60,7 +61,6 @@ const segh = 4
 // 					`
 // 				})
 
-const resolution = 512
 
 export default class Ground extends Thing<ObjectTag> {
 
@@ -88,18 +88,18 @@ export default class Ground extends Thing<ObjectTag> {
 
 		super()
 
-		const w0 = w / 4
+		const w0 = w / seg
 		this.w0 = this.uniforms.w0.value = w0
 
 		const gs = new Array(6).fill(0)
-			.map((_, i) => new THREE.PlaneGeometry(w0, w0, 1 << (8 - i), 1 << (8 - i))
+			.map((_, i) => new THREE.PlaneGeometry(w0, w0, 1 << (7 - i), 1 << (7 - i))
 				.scale(DistUnit, DistUnit, DistUnit)
 				.rotateX(-Math.PI / 2))
-		this.view.addToLayer(CityLayer.Origin, ...new Array(16).fill(0)
+		this.view.addToLayer(CityLayer.Origin, ...new Array(seg * seg).fill(0)
 			.map((_, i) => {
 				const target = new THREE.WebGLRenderTarget(resolution, resolution, {
-					wrapS: THREE.RepeatWrapping,
-					wrapT: THREE.RepeatWrapping,
+					wrapS: THREE.ClampToEdgeWrapping,
+					wrapT: THREE.ClampToEdgeWrapping,
 					minFilter: THREE.LinearFilter,
 					magFilter: THREE.LinearFilter,
 					type: THREE.FloatType,
@@ -115,12 +115,11 @@ export default class Ground extends Thing<ObjectTag> {
 
 				const lod = new THREE.LOD()
 				gs.forEach((g, j) => {
-					// const d = i * w * DistUnit * Math.sqrt(2) / 2
 					const d = j * w * DistUnit / 8
 					lod.addLevel(new THREE.Mesh(g, mat), d)
 				})
-				const x = (Math.floor(i % 4) - 1.5) * DistUnit
-				const y = (1.5 - Math.floor(i / 4)) * DistUnit
+				const x = (Math.floor(i % seg) - seg / 2 + .5) * DistUnit
+				const y = (seg / 2 - .5 - Math.floor(i / seg)) * DistUnit
 				return lod.translateX(w0 * x).translateZ(w0 * y)
 			}))
 
@@ -133,7 +132,7 @@ export default class Ground extends Thing<ObjectTag> {
 			wireframe: true
 		}))
 		this.view.addToLayer(CityLayer.Origin, this.object)
-		// this.object.visible = false
+		this.object.visible = false
 
 		this.pipeline = new Pipeline(renderer)
 		this.output = this.pipeline.begin
@@ -165,28 +164,7 @@ void main()
 	}
 
 	adjustHeight(pt: THREE.Vector2, dt: number) {
-		// , map: THREE.RenderTarget) {
-		// this.renderer.set
 
-		// const ptx = pt.clone()
-		// 	.addScalar(this.w / 2)
-		// 	.divideScalar(this.w)
-		// 	.multiplyScalar(grid)
-		// const p = ptx.clone().floor()
-		// // ptx.addScalar(0.5)
-
-		// const dpg = this.w / grid
-
-		// console.log(p.x, p.y)
-		// const r = radius + 3, l = grid + 1
-		// const fl = (x, y) => x - x % y
-
-		// const sigma = 2
-		// const sig2 = 2 * sigma * sigma
-		// const gaussian = x => Math.exp(-x * x / sig2)
-		// Math.max(1 - x * x * .01, 0)
-
-		// // const src = <THREE.BufferAttribute>this.geometryProto.getAttribute("position")
 		const dst = <THREE.BufferAttribute>this.geometry.getAttribute("position")
 		const arr = (<number[]>dst.array)
 
@@ -199,72 +177,73 @@ void main()
 			.divideScalar(this.w0)
 			.floor()
 
-		for (const [dx, dy] of [
-			[0, 0], [-1, -1], [-1, 0], [1, 1], [1, 0],
-			[1, -1], [0, -1], [-1, -1], [-1, 0]
-		]) {
+		for (const dx of [-1, 0, 1]) {
+			for (const dy of [-1, 0, 1]) {
 
-			const [x, y] = [x0 + dx, y0 + dy]
-			if (!(x >= 0 && y >= 0 && x < 4 && y < 4)) continue
+				const [x, y] = [x0 + dx, y0 + dy]
+				if (!(x >= 0 && y >= 0 && x < seg && y < seg)) continue
 
-			const orig = new THREE.Vector2(x, y).multiplyScalar(this.w0)
-			const wc = wp.clone().sub(orig)
+				const orig = new THREE.Vector2(x, y).multiplyScalar(this.w0)
+				const wc = wp.clone().sub(orig)
 
-			const minp = wc.clone().subScalar(radius + 1)
-				.min(new THREE.Vector2(this.w0, this.w0))
-				.max(new THREE.Vector2(0, 0))
-				.multiplyScalar(resolution / this.w0)
-				.floor()
-			const maxp = wc.clone().addScalar(radius + 1)
-				.max(new THREE.Vector2(0, 0))
-				.min(new THREE.Vector2(this.w0, this.w0))
-				.multiplyScalar(resolution / this.w0)
-				.ceil()
-			const dist = maxp.clone().sub(minp)
+				console.log(x, y)
 
-			if (!dist.x || !dist.y) continue
+				const minp = wc.clone().subScalar(radius + 1)
+					.min(new THREE.Vector2(this.w0, this.w0))
+					.max(new THREE.Vector2(0, 0))
+					.multiplyScalar(resolution / this.w0)
+					.floor()
+				const maxp = wc.clone().addScalar(radius + 1)
+					.max(new THREE.Vector2(0, 0))
+					.min(new THREE.Vector2(this.w0, this.w0))
+					.multiplyScalar(resolution / this.w0)
+					.ceil()
+				const dist = maxp.clone().sub(minp)
 
-			this.renderer.setViewport(minp.x, minp.y, dist.x, dist.y)
+				if (!dist.x || !dist.y) continue
 
-			const target = this.lodTargets[x + 4 * y]
+				// console.log(x, y)
 
-			this.output.target = target
-			this.uniforms.prev.value = target.texture
-			this.uniforms.wc.value = wc
-			this.uniforms.scale.value = scale
-			this.uniforms.r.value = radius
-			this.pipeline.render()
+				this.renderer.setViewport(minp.x, minp.y, dist.x, dist.y)
 
-			const buffer = new Float32Array(dist.x * dist.y * 4)
+				const target = this.lodTargets[x + seg * y]
 
-			this.renderer.readRenderTargetPixels(target,
-				minp.x, minp.y, dist.x, dist.y, buffer)
+				this.output.target = target
+				this.uniforms.prev.value = target.texture
+				this.uniforms.wc.value = wc
+				this.uniforms.scale.value = scale
+				this.uniforms.r.value = radius
+				this.pipeline.render()
 
-			console.log(buffer)
+				const buffer = new Float32Array(dist.x * dist.y * 4)
 
-			const sample = (uv: THREE.Vector2) => {
-				const xy = uv.clone()
-					.multiplyScalar(resolution)
-					.sub(minp)
-				// interpolate
-				return buffer[4 * (xy.x + xy.y * dist.x) + 0]
+				this.renderer.readRenderTargetPixels(target,
+					minp.x, minp.y, dist.x, dist.y, buffer)
+
+				// console.log(buffer)
+
+				const sample = (uv: THREE.Vector2) => {
+					const xy = uv.clone()
+						.multiplyScalar(resolution)
+						.sub(minp)
+					// interpolate
+					return buffer[4 * (xy.x + xy.y * dist.x) + 0]
+				}
+
+				// for (let i = p.x - r; i < p.x + r; ++i) {
+				// 	if (i >= fl(p.x, l) && i < fl(p.x, l) + l) {
+				// 		for (let j = p.y - r; j < p.y + r; ++j) {
+				// 			if (j >= fl(p.y, l) && j < fl(p.y, l) + l) {
+				// 				const d = new THREE.Vector2(i, j).sub(ptx).length() * dpg
+				// 				const h = gaussian(d)
+				// 				arr[3 * (l * (l - j - 1) + i) + 1] += h * scale
+				// 				// console.log(src.array[3 * (l * j + i)])
+				// 			}
+				// 		}
+				// 	}
+				// }
+				// console.log("update")
 			}
-
-			// for (let i = p.x - r; i < p.x + r; ++i) {
-			// 	if (i >= fl(p.x, l) && i < fl(p.x, l) + l) {
-			// 		for (let j = p.y - r; j < p.y + r; ++j) {
-			// 			if (j >= fl(p.y, l) && j < fl(p.y, l) + l) {
-			// 				const d = new THREE.Vector2(i, j).sub(ptx).length() * dpg
-			// 				const h = gaussian(d)
-			// 				arr[3 * (l * (l - j - 1) + i) + 1] += h * scale
-			// 				// console.log(src.array[3 * (l * j + i)])
-			// 			}
-			// 		}
-			// 	}
-			// }
-			// console.log("update")
-
-			// this.renderer.setViewport(<any>vp)
 		}
 
 		this.renderer.setViewport(0, 0,
@@ -275,7 +254,9 @@ void main()
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
 		this.raycaster.setFromCamera(coord, camera)
+		this.object.visible = true
 		const ints = this.raycaster.intersectObject(this.object)
+		this.object.visible = false
 		if (!ints.length) return undefined
 		return world2plain(ints[0].point)
 	}
