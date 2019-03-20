@@ -11,8 +11,7 @@ export abstract class VRState {
 	OnMouseDown(e: MouseEvent) { }
 	OnMouseUp(e: MouseEvent) { }
 	OnUpdate() { }
-	OnTimer10() { }
-	OnTimer100() { }
+	OnTimer(millis: number) { }
 }
 
 export class VRStatefulRenderer<T={}> extends VRRenderer<T> {
@@ -24,8 +23,8 @@ export class VRStatefulRenderer<T={}> extends VRRenderer<T> {
 	constructor() {
 		super()
 
-		const timer10 = setInterval(() => this.OnTimer10(), 100)
-		const timer100 = setInterval(() => this.OnTimer100(), 100)
+		let t = 0
+		const timer = setInterval(() => this.OnTimer(t += 10), 10)
 	}
 
 	protected get state() { return this._tag! }
@@ -64,12 +63,8 @@ export class VRStatefulRenderer<T={}> extends VRRenderer<T> {
 		this._state!.OnUpdate()
 	}
 
-	protected OnTimer100() {
-		this._state!.OnTimer100()
-	}
-
-	protected OnTimer10() {
-		this._state!.OnTimer10()
+	protected OnTimer(millis: number) {
+		this._state!.OnTimer(millis)
 	}
 
 }

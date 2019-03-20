@@ -184,8 +184,8 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 			OnMouseDown() { this.enable = true }
 			OnMouseUp() { this.enable = false }
 
-			OnTimer10() {
-				if (this.enable) {
+			OnTimer(millis: number) {
+				if (millis % 10 == 0 && this.enable) {
 					const coord = self.ground.intersect(self.mouse, self.camera)
 					if (coord) {
 						const { x, y } = coord.clone()
@@ -207,6 +207,8 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 	}
 
 	OnNewFrame() {
+		this.ground.updateLOD(this.camera)
+
 		this.pipeline.render()
 
 		requestAnimationFrame(this.nextFrame)
