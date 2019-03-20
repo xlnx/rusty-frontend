@@ -157,7 +157,7 @@ class Basemap<R, B> {
       //1: left, -1:right
       let offsetSign = (<any>AC.clone()).cross(AB) > 0 ? 1 : -1
       let offset = Math.round(AC.dot(AB) - placeholder.width / 2) + 1
-      offset = cmp(offset, 1) < 0 ? 1 : cmp(offset, roadLength) > 0 ? roadLength : offset
+      offset = cmp(offset, 1) < 0 ? 1 : cmp(offset, roadLength + 1) > 0 ? roadLength + 1 : offset
 
       let normDir = AC.clone().rotateAround(origin, Math.PI / 2 * offsetSign)
       let negNormDir = origin.clone().sub(normDir)
