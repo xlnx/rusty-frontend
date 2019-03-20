@@ -1,164 +1,209 @@
 import * as THREE from "three"
-import { LayeredView, DirectRenderer, Pipeline, RenderStage, PostStage, Prefab } from "../wasp";
+import Ground from "../object/ground";
+import { RoadIndicator, Road } from "../object/road";
+import { BuildingIndicator, Building } from "../object/building";
+import { Basemap } from "../model/basemap";
+import { BuildingManager } from "../asset/building";
+import { VRRenderer, Pipeline, RenderStage, Prefab, Scene, gBuffer, PostStage } from "../wasp";
+import { ObjectTag, CityLayer } from "../asset/def";
 
-class G extends THREE.BufferGeometry {
-	constructor() {
-		super()
+import * as terrain from "./shaders/terrain.frag"
+import { VRStatefulRenderer, VRState } from "../wasp/renderer/vrstateful";
 
-		let vertices = new Float32Array([
-			1, 1, 1,
-			1, -1, 1,
-			-1, -1, 1,
-			-1, 1, 1,
-			1, 1, -1,
-			1, -1, -1,
-			-1, -1, -1,
-			-1, 1, -1,
-		])
-		let indices = [
-			0, 2, 1,
-			0, 3, 2,
+export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
-			4, 5, 6,
-			4, 6, 7,
+	private ground = new Ground(this.threeJsRenderer, 600).addTo(this.scene)
+	// = new Ground(50, 50).addTo(this.scene)
 
-			2, 3, 7,
-			2, 7, 6,
+	// gui controlled variables
+	private readonly type: "normalHouse" = "normalHouse"
 
-			0, 4, 3,
-			4, 7, 3,
+	private basemap = new Basemap<Road, Building>()
+	private manager = new BuildingManager()
 
-			1, 2, 5,
-			2, 6, 5,
-
-			0, 1, 4,
-			1, 5, 4
-		]
-		this.addAttribute("position", new THREE.BufferAttribute(vertices, 3))
-		this.setIndex(indices)
-	}
-}
-
-class LODPlane extends THREE.BufferGeometry {
-	constructor(C: number, M: number, w0: number) {
-		super()
-		let geometry = new THREE.BufferGeometry();
-		let indices: Array<any> = [];
-		let vertices: Array<any> = [];
-		let w = w0;
-		let offset = 0;
-		let line = M * 2 + 1;
-		let e = M;
-		let b = M;
-		vertices.length = C * (2 * M + 1) * (2 * M + 1) * 2;
-		let ipos = 0;
-		for (let k = 0; k != C; ++k) {
-			for (let i = -M; i <= M; ++i) {
-				for (let j = -M; j <= M; ++j) {
-					vertices[ipos++] = j * w; vertices[ipos++] = 0; vertices[ipos++] = i * w;
-				}
-			}
-			for (let i = 1; i != line - 2; ++i) {
-				for (let j = 1; j != line - 2; ++j) {
-					if (i < e || i >= b || j < e || j >= b) {
-						let lt = offset + i * line + j;
-						indices.push(lt, lt + line + 1, lt + 1,
-							lt, lt + line, lt + line + 1);
-					}
-				}
-			}
-			for (let j = 2; j < line - 2; j += 2) {
-				let lt = offset + 0 * line + j;
-				indices.push(lt, lt + line - 1, lt + line,
-					lt, lt + line, lt + line + 1,
-					lt, lt + 1 + line, lt + 2);
-			}
-			for (let j = 2; j < line - 2; j += 2) {
-				let lt = offset + (line - 1) * line + j;
-				indices.push(lt, lt - line, lt - line - 1,
-					lt, lt - line + 1, lt - line,
-					lt, lt + 2, lt + 1 - line);
-			}
-			for (let i = 2; i < line - 2; i += 2) {
-				let lt = offset + i * line + 0;
-				indices.push(lt, lt + 1, lt + 1 - line,
-					lt, lt + 1 + line, lt + 1,
-					lt, lt + 2 * line, lt + 1 + line);
-			}
-			for (let i = 2; i < line - 2; i += 2) {
-				let lt = offset + i * line + (line - 1);
-				indices.push(lt, lt - 1 - line, lt - 1,
-					lt, lt - 1, lt - 1 + line,
-					lt, lt - 1 + line, lt + 2 * line);
-			}
-
-			let lt = offset;
-			indices.push(lt, lt + 1 + line, lt + 2,
-				lt, lt + 2 * line, lt + 1 + line);
-			lt = offset + (line - 1);
-			indices.push(lt, lt - 1 + line, lt + 2 * line);
-			lt = offset + line * (line - 1);
-			indices.push(lt, lt + 2, lt + 1 - line);
-
-			w *= 2;
-			offset += (M * 2 + 1) * (M * 2 + 1);
-			e = M / 2;
-			b = 3 * M / 2;
-		}
-		geometry.setIndex(indices)
-		const normals = new Array(vertices.length).fill(0).map((_, i) => i % 3 == 1 ? 1 : 0)
-		const mx = M * w / 2;
-		const uvs = vertices.map(e => (e / mx + 1) * .5).filter((_, i) => i % 3 != 1)
-		geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-		geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
-		geometry.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
-		return geometry;
-
-	}
-}
-
-export default class MyRenderer extends DirectRenderer {
-
-	private box = new LayeredView()
-	private state: "normal" | "profile" = "normal"
 	private pipeline = new Pipeline(this.threeJsRenderer)
 
-	matNormal = new THREE.MeshPhysicalMaterial({
-		color: 0x156289,
-		displacementScale: 1e-4,
-		flatShading: true		// hard edges
-	})
+	private guiOptions: { [key: string]: any } = {
+		layer: 0,
+		width: 1
+	}
 
 	constructor() {
 		super()
 
-		this.gui.add(this, "state", ["normal", "profile"])
+		this.scene.add(new THREE.AxesHelper())
+
+		this.gui.add(this, "type", ["normalHouse"])
+		this.gui.add(this.guiOptions, "width", [1, 2, 3, 4, 5, 6, 7, 8])
+		this.gui.add(this.guiOptions, "layer", [0, 1, 2])
+			.onChange((val: number) => this.camera.layers.set(val))
+
+		this.addStates()
+
+		this.manager.load([
+			"building2-obj/building_04.json"
+		])
 
 		this.camera.position.z = 4
-
-		let geo = new LODPlane(3, 32, 0.02)
-		geo.rotateX(Math.PI / 3)
-		geo.translate(0, -1e-4, 0)
-		let box = new THREE.Mesh(geo, this.matNormal)
-		// this.box.addToLayer(0, box)
-		this.box.addToLayer(0, new THREE.WireframeHelper(box))
-		this.scene.add(this.box)
-
-		this.scene.add(new THREE.AmbientLight(0xcccccc))
 
 		let light = new THREE.PointLight(0xffffff, 2, 0)
 		light.layers.mask = 0xffffffff
 		light.position.set(0, 1.5, 1)
 		this.scene.add(light)
 
+		this.scene.add(new THREE.AmbientLight(0x777777))
+
 		let lightHelper = new THREE.PointLightHelper(light, 0.1)
 		lightHelper.layers.mask = 0xffffffff
 		this.scene.add(lightHelper)
 
-		const { begin } = this.pipeline
-		begin.then(new RenderStage(this.scene, this.camera))
+		const { width, height } = this.threeJsRenderer.getSize()
+		const target = new THREE.WebGLRenderTarget(width, height, gBuffer)
+
+		this.pipeline.begin
+			.thenExec(() => {
+				this.camera.layers.set(CityLayer.Origin)
+				this.threeJsRenderer.autoClearColor = true
+			})
+			.then(new RenderStage(this.scene, this.camera), target)
+			.thenExec(() => {
+				this.camera.layers.set(CityLayer.Indicator)
+				this.threeJsRenderer.autoClearColor = false
+			})
+			.then(new RenderStage(this.scene, this.camera), target)
 			.then(Prefab.FXAAShader)
 			.out()
+	}
+
+	private addStates() {
+		const obj = { state: "preview" }
+		this.gui.add(obj, "state", ["building", "road", "preview", "adjust"])
+			.onChange(x => this.state = x)
+
+		const self = this
+
+		this.addState(new class extends VRState {
+			constructor() { super("building") }
+
+			private indicator?: BuildingIndicator
+
+			OnEnter() {
+				this.indicator = new BuildingIndicator(
+					self.manager.get(self.type)!, self.basemap).addTo(self.scene)
+			}
+
+			OnLeave() {
+				this.indicator!.removeFrom(self.scene)
+			}
+
+			OnMouseUp() {
+				if (this.indicator && this.indicator.valid) {
+					const b = new Building(this.indicator).addTo(self.scene)
+					self.basemap.addBuilding(b.item)
+				}
+			}
+
+			OnUpdate() {
+				const coord = self.ground.intersect(self.mouse, self.camera)
+
+				if (coord) {
+					if (this.indicator) {
+						const ind: BuildingIndicator = this.indicator
+						ind.adjust(coord)
+					}
+				}
+			}
+
+		})
+
+		this.addState(new class extends VRState {
+			constructor() { super("road") }
+
+			private indicator?: RoadIndicator
+
+			OnLeave() {
+				if (this.indicator) {
+					this.indicator.removeFrom(self.scene)
+					this.indicator = undefined
+				}
+			}
+
+			OnMouseDown() {
+				const point = self.ground.intersect(self.mouse, self.camera)
+				if (point) {
+					this.indicator = new RoadIndicator(self.basemap,
+						self.guiOptions.width, point!, point!).addTo(self.scene)
+				}
+			}
+
+			OnMouseUp() {
+				if (this.indicator) {
+					if (this.indicator.valid) {
+						const { width } = self.guiOptions
+						const { from, to } = this.indicator
+						const { added, removed } = self.basemap.addRoad(width, from, to)
+						for (const road of added) {
+							road.userData = new Road(width, road.from, road.to)
+								.addTo(self.scene)
+						}
+						for (const road of removed) {
+							road.userData!
+								.removeFrom(self.scene)
+						}
+					}
+					this.indicator.removeFrom(self.scene)
+					this.indicator = undefined
+				}
+			}
+
+			OnUpdate() {
+				const coord = self.ground.intersect(self.mouse, self.camera)
+
+				if (coord) {
+					if (this.indicator) {
+						const ind: RoadIndicator = this.indicator
+						ind.adjust(coord)
+					}
+				}
+			}
+		})
+
+		this.addState(new class extends VRState {
+			constructor() { super("preview") }
+
+			OnEnter() { self.orbit.enabled = true }
+			OnLeave() { self.orbit.enabled = false }
+		})
+
+		this.addState(new class extends VRState {
+			constructor() { super("adjust") }
+
+			private enable = false
+
+			OnLeave() { this.enable = false }
+			OnMouseDown() { this.enable = true }
+			OnMouseUp() { this.enable = false }
+
+			OnTimer10() {
+				if (this.enable) {
+					const coord = self.ground.intersect(self.mouse, self.camera)
+					if (coord) {
+						const { x, y } = coord.clone()
+							.divideScalar(50)
+							.addScalar(.5)
+							.sub(new THREE.Vector2(0, 1))
+							.multiply(new THREE.Vector2(1, -1))
+							.multiplyScalar(512)
+							.floor()
+						// this.ground.applyDisplacementMap()
+						self.ground.adjustHeight(coord, 10)
+						// console.log(x, y)
+					}
+				}
+			}
+		})
+
+		this.state = obj.state
 	}
 
 	OnNewFrame() {

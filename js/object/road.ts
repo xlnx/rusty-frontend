@@ -154,20 +154,6 @@ class Road extends Thing<ObjectTag> {
 		// this.view.addToLayer(Layer.All, this.object)
 		const wire = new THREE.WireframeHelper(this.object)
 		this.view.addToLayer(Layer.All, wire)
-
-		// const q = new THREE.PlaneGeometry(width + 4 * 2, len)
-		// q.translate(0, len / 2, 0)
-		// const mat = new THREE.ShaderMaterial({
-		// 	fragmentShader: "void main() { gl_FragColor = vec4(0,0,0,1); }",
-		// 	side: THREE.DoubleSide,
-		// 	transparent: true
-		// })
-		// const { mesh: u1 } = new Geometry2D(q, mat)
-		// const o = new THREE.Object3D()
-		// o.rotateY(-Math.PI / 2)
-		// o.scale.setScalar(DistUnit)
-		// o.add(u1)
-		// this.view.addToLayer(Layer.All, o)
 	}
 }
 
