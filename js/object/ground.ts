@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
 import { world2plain } from "../object/trans";
-import { Thing, Layer } from "../wasp";
+import { Thing, Layer, TexAsset } from "../wasp";
 import { LODPlane } from "./lodPlane";
 
 export default class Ground extends Thing<ObjectTag> {
@@ -23,11 +23,13 @@ export default class Ground extends Thing<ObjectTag> {
 		//new THREE.PlaneGeometry(w * DistUnit, h * DistUnit, w, h)
 		// geometry.rotateX(-Math.PI / 2)
 		geometry.translate(0, -1e-4, 0)
+		const texture = new TexAsset("textures/c.png").loadSync()
 		let meshMaterial = new THREE.MeshStandardMaterial({
 			// map: this.target.texture
 			color: 0x666666,
 			wireframe: true,
-			displacementMap: 
+			displacementMap: texture,
+			displacementScale: .5
 		})
 		this.object = new THREE.Mesh(geometry, meshMaterial)
 
