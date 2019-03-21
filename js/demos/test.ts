@@ -144,6 +144,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 						const { added, removed } = self.basemap.addRoad(width, from, to)
 						for (const road of added) {
 							road.userData = new Road(width, road.from, road.to)
+								.boxGeometry(self.ground)
 								.addTo(self.scene)
 						}
 						for (const road of removed) {

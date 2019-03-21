@@ -7,6 +7,7 @@ import { Building } from "./building";
 import { Basemap } from "../model/basemap";
 import { Asset } from "../wasp/asset/asset";
 import { ParametricGeometry } from "three";
+import Ground from "./ground";
 
 class RoadIndicator extends Thing {
 
@@ -116,20 +117,20 @@ class Road extends Thing<ObjectTag> {
 		return new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide })
 	})()
 
-	private static geometry = (() => {
-		const geometry = new THREE.PlaneGeometry(1, 1, 1, 1)
-		geometry.rotateX(-Math.PI / 2)
-		geometry.translate(0.5, 0, 0)
-		geometry.scale(DistUnit, DistUnit, DistUnit)
-		return geometry
-	})()
+	// private static geometry = (() => {
+	// 	const geometry = new THREE.PlaneGeometry(1, 1, 1, 1)
+	// 	geometry.rotateX(-Math.PI / 2)
+	// 	geometry.translate(0.5, 0, 0)
+	// 	geometry.scale(DistUnit, DistUnit, DistUnit)
+	// 	return geometry
+	// })()
 
 	// private readonly geometry = Road.geometry.clone()
 	// private readonly uvs = this.geometry.faceVertexUvs[0]
 
 	// private readonly object = new THREE.Mesh(this.geometry, Road.material)
 	private geometry: THREE.Geometry = <any>null
-	private object: THREE.Mesh
+	private object: THREE.Mesh = <any>null
 
 
 	public readonly item: BasemapRoadItem<Road>
@@ -139,11 +140,6 @@ class Road extends Thing<ObjectTag> {
 
 		this.item = new BasemapRoadItem<Road>(width, from, to)
 		this.item.userData = this
-
-		this.adjust()
-		console.log("ss", this.geometry)
-		this.object = new THREE.Mesh(this.geometry, Road.material)
-
 		// const d = to.clone().sub(from)
 		// const len = d.length() || 0.1
 
@@ -152,8 +148,8 @@ class Road extends Thing<ObjectTag> {
 
 
 		// this.view.rotateY(d.angle())
-		const { x, y, z } = plain2world(from)
-		this.view.position.set(x, y, z)
+		// const { x, y, z } = plain2world(from)
+		// this.view.position.set(x, y, z)
 
 		// this.object.position.set(x, y, z)
 		// this.object.setRotationFromAxisAngle(Road.up, d.angle())
@@ -162,47 +158,118 @@ class Road extends Thing<ObjectTag> {
 		// this.uvs[1][1].set(len / width, 0)
 		// this.uvs[1][2].set(len / width, 1)
 		// this.view.addToLayer(Layer.All, this.object)
-		const wire = new THREE.WireframeHelper(this.object)
-		this.view.addToLayer(Layer.All, wire)
+
 	}
 
-	static height(pos: THREE.Vector3): number {
-		return 0.01
-	}
-	adjust() {
+	planeGeometry(ground: Ground): Road {
 		//need height fix here
 		let origin = new THREE.Vector3(0, 0, 0)
 		let up = new THREE.Vector3(0, 1, 0)
 		let width = this.item.width * DistUnit
 
-		let from = origin.clone()
-		let From = plain2world(this.item.from)
-		let fromHeight = Road.height(From)
+		let from = this.item.from
+		let From = plain2world(from)
+		let fromHeight = ground.getHeight(from)
 
-		let to = plain2world(this.item.to.clone().sub(this.item.from))
+		let to = this.item.to
 		let To = plain2world(this.item.to)
-		let toHeight = Road.height(To)
+		let toHeight = ground.getHeight(to)
 
-		from.add(new THREE.Vector3(0, fromHeight, 0))
-		to.add(new THREE.Vector3(0, toHeight, 0))
-		let dir = to.clone().sub(from)
+		// console.log(fromHeight, toHeight)
+
+		// From.add(new THREE.Vector3(0, fromHeight, 0))
+		// To.add(new THREE.Vector3(0, toHeight, 0))
+		let dir = To.clone().sub(From)
 		let norm = dir.clone().normalize().cross(up).multiplyScalar(width)
 		// console.log("from:", from, " to:", to)
-		let start = from.clone().sub(norm.clone().multiplyScalar(0.5))
+		let start = From.clone().sub(norm.clone().multiplyScalar(0.5))
 		// console.log(start, dir, norm)
 
-		console.log("begin")
 		let uSeg = 10
-		let vSeg = 10
+		let vSeg = 5
 		this.geometry = new THREE.ParametricGeometry((u, v, w) => {
-			w = start.clone()
+			const { x, y, z } = start.clone()
+			let d = from.clone()
+				.add(to.clone()
+					.sub(from)
+					.multiplyScalar(u))
+			w.set(x, ground.getHeight(d), z)
 			w.add(dir.clone().multiplyScalar(u))
 				.add(norm.clone().multiplyScalar(v))
 			// console.log(w)
 		}, uSeg, vSeg).clone()
 		console.log(this.geometry)
 
-		// geo.translate(From.x, From.y, From.z)
+		this.object = new THREE.Mesh(this.geometry, Road.material)
+		const wire = new THREE.WireframeHelper(this.object)
+		this.view.addToLayer(Layer.All, wire)
+		// this.geometry.translate(From.x, From.y, From.z)
+		return this
+	}
+
+	boxGeometry(ground: Ground): Road {
+		//need height fix here
+		let origin = new THREE.Vector3(0, 0, 0)
+		let up = new THREE.Vector3(0, 1, 0)
+		let botWidth = this.item.width * 0.1
+		let midWidth = this.item.width * DistUnit + botWidth
+		let upWidth = midWidth + botWidth
+
+		let from = this.item.from
+		let From = plain2world(from)
+		let fromHeight = ground.getHeight(from)
+
+		let to = this.item.to
+		let To = plain2world(this.item.to)
+		let toHeight = ground.getHeight(to)
+
+		// console.log(fromHeight, toHeight)
+
+		// From.add(new THREE.Vector3(0, fromHeight, 0))
+		// To.add(new THREE.Vector3(0, toHeight, 0))
+		let dir = To.clone().sub(From)
+		let norm = dir.clone().normalize().cross(up).multiplyScalar(upWidth)
+		// console.log("from:", from, " to:", to)
+		let start = From.clone()
+			.sub(norm.clone().multiplyScalar(0.5))
+		// console.log(start, dir, norm)
+
+		let uSeg = Math.round(dir.length()) * 5
+		let botVPos = 1
+		let midVPos = 5 + botVPos
+		let upVPos = botVPos + midVPos
+		let vSeg = upVPos
+		this.geometry = new THREE.ParametricGeometry((u, v, w) => {
+			const { x, y, z } = start.clone()
+			let vPos = Math.round(vSeg * v)
+			let axesPos = from.clone()
+				.add(to.clone()
+					.sub(from)
+					.multiplyScalar(u))
+			if (vPos < botVPos) {
+				w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
+					.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
+			}
+			else if (vPos > midVPos) {
+				w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
+					.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
+			}
+			else {
+				w.set(x, ground.getHeight(axesPos), z)
+			}
+			w.add(dir.clone().multiplyScalar(u))
+				.add(norm.clone().multiplyScalar(v))
+				.add(new THREE.Vector3(0, botWidth / 5, 0))
+			// console.log(w)
+		}, uSeg, vSeg)
+		// console.log(this.geometry)
+
+		this.object = new THREE.Mesh(this.geometry, Road.material)
+		const wire = new THREE.WireframeHelper(this.object)
+		this.view.addToLayer(Layer.All, wire)
+		// this.geometry.translate(From.x, From.y, From.z)
+
+		return this
 	}
 }
 

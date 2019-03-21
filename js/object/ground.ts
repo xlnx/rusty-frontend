@@ -151,6 +151,7 @@ export default class Ground extends Thing<ObjectTag> {
 	}
 
 	getHeight(pt: THREE.Vector2) {
+
 		const p = pt.clone()
 			.addScalar(this.w / 2)
 			.divideScalar(this.w)
