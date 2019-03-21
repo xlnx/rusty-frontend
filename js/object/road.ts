@@ -181,11 +181,11 @@ class Road extends Thing<ObjectTag> {
 			let norm = dir.clone().normalize().cross(up).multiplyScalar(upWidth)
 			let start = origin.clone()
 
-			let uSeg = Math.round(dir.length()) * 3
+			let uSeg = Math.round(dir.length()) * 3 + 1
 			let botVPos = 1
 			let midVPos = 1 + botVPos
 			let upVPos = botVPos + midVPos
-			let vSeg = upVPos
+			let vSeg = upVPos + 1
 
 			// console.log(from, to)
 			let pts: THREE.Vector2[] = []
@@ -198,93 +198,88 @@ class Road extends Thing<ObjectTag> {
 			}
 			// console.log(pts)
 			let heights = ground.getHeight(pts)
-			console.log(heights)
+			// console.log(heights)
 
 			let vCount = 0
 			let lastV = 0
-			const geometry = new THREE.ParametricGeometry((u, v, w) => {
-				const { x, y, z } = start.clone()
-				let vPos = Math.round(vSeg * v)
-				let uPos = Math.round(uSeg * u)
+			// const geometry = new THREE.ParametricGeometry((u, v, w) => {
+			// 	const { x, y, z } = start.clone()
+			// 	let vPos = Math.round(vSeg * v)
+			// 	let uPos = Math.round(uSeg * u)
 
-				let height = heights[uPos] / DistUnit
-				if (vPos < botVPos) {
-					// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
-					// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
-					w.set(x, height - (botVPos - vPos) * botWidth, z)
-						.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
-				}
-				else if (vPos > midVPos) {
-					// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
-					// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
-					w.set(x, height - (vPos - midVPos) * botWidth, z)
-						.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
-				}
-				else {
-					// w.set(x, ground.getHeight(axesPos), z)
-					w.set(x, height, z)
-					// w.set(x, 0, z)
-				}
-				w.add(dir.clone().multiplyScalar(u))
-					.add(norm.clone().multiplyScalar(v))
-					.add(new THREE.Vector3(0, botWidth / 5, 0))
-				// console.log(w)
-			}, uSeg, vSeg)
-
-			// let geometry = new THREE.Geometry()
-			// let face = geometry.faces
-			// let uvs = geometry.faceVertexUvs[0]
-			// for (let u = 0; u < uSeg; ++u) {
-			// 	for (let v = 0; v < vSeg; ++v) {
-
-			// 		let w = origin.clone()
-			// 		const { x, y, z } = start.clone()
-			// 		let vPos = Math.round(vSeg * v)
-			// 		let uPos = Math.round(uSeg * u)
-
-			// 		let height = heights[uPos] / DistUnit
-			// 		if (vPos < botVPos) {
-			// 			// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
-			// 			// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
-			// 			w.set(x, height - (botVPos - vPos) * botWidth, z)
-			// 				.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
-			// 		}
-			// 		else if (vPos > midVPos) {
-			// 			// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
-			// 			// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
-			// 			w.set(x, height - (vPos - midVPos) * botWidth, z)
-			// 				.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
-			// 		}
-			// 		else {
-			// 			// w.set(x, ground.getHeight(axesPos), z)
-			// 			w.set(x, height, z)
-			// 			// w.set(x, 0, z)
-			// 		}
-			// 		w.add(dir.clone().multiplyScalar(u))
-			// 			.add(norm.clone().multiplyScalar(v))
-			// 			.add(new THREE.Vector3(0, botWidth / 5, 0))
-
-			// 		geometry.vertices.push(w)
+			// 	let height = heights[uPos] / DistUnit
+			// 	if (vPos < botVPos) {
+			// 		// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
+			// 		// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
+			// 		w.set(x, height - (botVPos - vPos) * botWidth, z)
+			// 			.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
 			// 	}
-			// }
-
-			// let dif = [[0, 0], [vSeg, 0], [0, 1], [vSeg, 1]]
-			// let idx = 0
-			// for (let u = 0; u < uSeg; ++u) {
-			// 	for (let v = 0; v < vSeg; ++v) {
-			// 		let ptIdx = u * vSeg + v
-			// 		let pts: number[] = []
-			// 		for (let i = 0; i < 4; ++i)
-			// 			pts.push(ptIdx + dif[i][0] + dif[i][1])
-			// 		// face.push(new THREE.Face3(pts[0], pts[1], pts[2]))
-			// 		// face.push(new THREE.Face3(pts[1], pts[2], pts[3]))
-			// 		face[idx] = (new THREE.Face3(pts[0], pts[1], pts[2]))
-			// 		face[idx + 1] = (new THREE.Face3(pts[1], pts[2], pts[3]))
-			// 		idx += 2
+			// 	else if (vPos > midVPos) {
+			// 		// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
+			// 		// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
+			// 		w.set(x, height - (vPos - midVPos) * botWidth, z)
+			// 			.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
 			// 	}
-			// }
-			// geometry.elementsNeedUpdate = true
-			// geometry.computeFaceNormals()
+			// 	else {
+			// 		// w.set(x, ground.getHeight(axesPos), z)
+			// 		w.set(x, height, z)
+			// 		// w.set(x, 0, z)
+			// 	}
+			// 	w.add(dir.clone().multiplyScalar(u))
+			// 		.add(norm.clone().multiplyScalar(v))
+			// 		.add(new THREE.Vector3(0, botWidth / 5, 0))
+			// 	// console.log(w)
+			// }, uSeg, vSeg)
+
+			const geometry = new THREE.Geometry()
+			let face = geometry.faces
+			for (let u = 0; u < uSeg; ++u) {
+				for (let v = 0; v < vSeg; ++v) {
+
+					let uPos = u / (uSeg - 1)
+					let w = start.clone()
+					const { x, y, z } = start.clone()
+
+					let height = heights[u] / DistUnit
+					if (v < botVPos) {
+						// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
+						// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
+						w.set(x, height - (botVPos - v) * botWidth, z)
+							.add(norm.clone().multiplyScalar(botVPos / vSeg - v / vSeg))
+					}
+					else if (v > midVPos) {
+						// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
+						// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
+						w.set(x, height - (v - midVPos) * botWidth, z)
+							.sub(norm.clone().multiplyScalar(v / vSeg - midVPos / vSeg))
+					}
+					else {
+						// w.set(x, ground.getHeight(axesPos), z)
+						w.set(x, height, z)
+						// w.set(x, 0, z)
+					}
+					w.add(dir.clone().multiplyScalar(uPos))
+						.add(norm.clone().multiplyScalar(v / vSeg))
+						.add(new THREE.Vector3(0, botWidth / 5, 0))
+
+					geometry.vertices.push(w)
+				}
+			}
+			let dif = [0, 1, vSeg, vSeg + 1]
+			let ptIdx = 0
+			for (let u = 0; u < uSeg - 1; ++u) {
+				for (let v = 0; v < vSeg - 1; ++v) {
+					let pts: number[] = []
+					for (let i = 0; i < 4; ++i)
+						pts.push(ptIdx + dif[i])
+					face.push(new THREE.Face3(pts[0], pts[1], pts[2]))
+					face.push(new THREE.Face3(pts[1], pts[2], pts[3]))
+					++ptIdx
+				}
+				++ptIdx
+			}
+			geometry.elementsNeedUpdate = true
+			geometry.computeFaceNormals()
 
 			resolve(geometry)
 		})

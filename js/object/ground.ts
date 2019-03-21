@@ -173,7 +173,7 @@ export default class Ground extends Thing<ObjectTag> {
 		pscr.forEach(p => maxp.max(p))
 		maxp.addScalar(1)
 
-		console.log(minp, maxp)
+		// console.log(minp, maxp)
 
 		const rect = new THREE.Vector4(
 			minp.x, minp.y, maxp.x - minp.x, maxp.y - minp.y)
