@@ -68,6 +68,7 @@ export default class BasemapRoadItem<T={}> extends UserData<T> {
             //update QuadTreeItem
             let min = minPt(roadPts)
             let max = maxPt(roadPts)
+
             Object.assign(this._quadTreeItem, {
                 x: min.x,
                 y: min.y,

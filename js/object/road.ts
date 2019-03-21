@@ -5,6 +5,8 @@ import { plain2world } from "../object/trans";
 import { Thing, Layer, TexAsset, Geometry2D, NumberVariable } from "../wasp";
 import { Building } from "./building";
 import { Basemap } from "../model/basemap";
+import { Asset } from "../wasp/asset/asset";
+import { ParametricGeometry } from "three";
 
 class RoadIndicator extends Thing {
 
@@ -122,10 +124,13 @@ class Road extends Thing<ObjectTag> {
 		return geometry
 	})()
 
-	private readonly geometry = Road.geometry.clone()
-	private readonly uvs = this.geometry.faceVertexUvs[0]
+	// private readonly geometry = Road.geometry.clone()
+	// private readonly uvs = this.geometry.faceVertexUvs[0]
 
-	private readonly object = new THREE.Mesh(this.geometry, Road.material)
+	// private readonly object = new THREE.Mesh(this.geometry, Road.material)
+	private geometry: THREE.Geometry = <any>null
+	private object: THREE.Mesh
+
 
 	public readonly item: BasemapRoadItem<Road>
 
@@ -135,22 +140,27 @@ class Road extends Thing<ObjectTag> {
 		this.item = new BasemapRoadItem<Road>(width, from, to)
 		this.item.userData = this
 
+		this.adjust()
+		console.log("ss", this.geometry)
+		this.object = new THREE.Mesh(this.geometry, Road.material)
+
+		// const d = to.clone().sub(from)
+		// const len = d.length() || 0.1
+
+		//test
+		// this.geometry.scale(len, 1, 1 * width)
+
+
+		// this.view.rotateY(d.angle())
 		const { x, y, z } = plain2world(from)
-		const d = to.clone().sub(from)
-		const len = d.length() || 0.1
-
-		this.geometry.scale(len, 1, 1 * width)
-
-		this.view.rotateY(d.angle())
 		this.view.position.set(x, y, z)
 
 		// this.object.position.set(x, y, z)
 		// this.object.setRotationFromAxisAngle(Road.up, d.angle())
 		// this.object.scale.set(len, 1, 1 * width) //
-		this.uvs[0][2].set(len / width, 1)
-		this.uvs[1][1].set(len / width, 0)
-		this.uvs[1][2].set(len / width, 1)
-		this.geometry.uvsNeedUpdate = true
+		// this.uvs[0][2].set(len / width, 1)
+		// this.uvs[1][1].set(len / width, 0)
+		// this.uvs[1][2].set(len / width, 1)
 		// this.view.addToLayer(Layer.All, this.object)
 		const wire = new THREE.WireframeHelper(this.object)
 		this.view.addToLayer(Layer.All, wire)
@@ -168,6 +178,45 @@ class Road extends Thing<ObjectTag> {
 		// o.scale.setScalar(DistUnit)
 		// o.add(u1)
 		// this.view.addToLayer(Layer.All, o)
+	}
+
+	static height(pos: THREE.Vector3): number {
+		return 0.01
+	}
+	adjust() {
+		//need height fix here
+		let origin = new THREE.Vector3(0, 0, 0)
+		let up = new THREE.Vector3(0, 1, 0)
+		let width = this.item.width * DistUnit
+
+		let from = origin.clone()
+		let From = plain2world(this.item.from)
+		let fromHeight = Road.height(From)
+
+		let to = plain2world(this.item.to.clone().sub(this.item.from))
+		let To = plain2world(this.item.to)
+		let toHeight = Road.height(To)
+
+		from.add(new THREE.Vector3(0, fromHeight, 0))
+		to.add(new THREE.Vector3(0, toHeight, 0))
+		let dir = to.clone().sub(from)
+		let norm = dir.clone().normalize().cross(up).multiplyScalar(width)
+		// console.log("from:", from, " to:", to)
+		let start = from.clone().sub(norm.clone().multiplyScalar(0.5))
+		// console.log(start, dir, norm)
+
+		console.log("begin")
+		let uSeg = 10
+		let vSeg = 10
+		this.geometry = new THREE.ParametricGeometry((u, v, w) => {
+			w = start.clone()
+			w.add(dir.clone().multiplyScalar(u))
+				.add(norm.clone().multiplyScalar(v))
+			// console.log(w)
+		}, uSeg, vSeg).clone()
+		console.log(this.geometry)
+
+		// geo.translate(From.x, From.y, From.z)
 	}
 }
 

@@ -116,7 +116,6 @@ class LODPlane extends THREE.BufferGeometry {
 
 	}
 }
-
 export default class MyRenderer extends DirectRenderer {
 
 	private box = new LayeredView()
@@ -136,10 +135,50 @@ export default class MyRenderer extends DirectRenderer {
 
 		this.camera.position.z = 4
 
-		let geo = new LODPlane(3, 32, 0.02)
-		geo.rotateX(Math.PI / 3)
-		geo.translate(0, -1e-4, 0)
-		let box = new THREE.Mesh(geo, this.matNormal)
+
+
+		let start = new THREE.Vector3(0, 0, 0)
+		let end = new THREE.Vector3(1, 1, 1)
+		let dir = end.clone().sub(start)
+		const width = 1
+		const origin = start.clone()
+		const up = new THREE.Vector3(0, 1, 0)
+		let norm = dir.clone().cross(up).normalize()
+		start.sub(norm.clone().multiplyScalar(width / 2))
+		end.sub(norm.clone().multiplyScalar(width / 2))
+		norm = origin.clone().sub(norm)
+		let uSeg = 10
+		let vSeg = 10
+		let geo = new THREE.ParametricGeometry((u, v, w) => {
+			let U = Math.round(uSeg * u)
+			let V = Math.round(vSeg * v)
+			const { x, y, z } = start
+			w.set(x, y, z).add(dir.clone().multiplyScalar(u)).add(norm.clone().multiplyScalar(v))
+			// return start.clone().add(dir.clone().multiplyScalar(u)).add(norm.clone().multiplyScalar(v))
+		}, uSeg, vSeg)
+
+		// function plane(u, v, w) {
+		// 	var width = 50, height = 100;//平面宽高尺寸
+		// 	var x = u * width;//等比例运算
+		// 	var y = v * height;//等比例运算
+		// 	var z = 0;
+		// 	w.set(x, y, z)
+		// }
+		// var geometry = new THREE.ParametricGeometry(plane, 10, 10);
+		var material = new THREE.MeshPhongMaterial({
+			color: 0x0000ff,//三角面颜色
+			side: THREE.DoubleSide//两面可见
+		});//材质对象
+		material.wireframe = true;//线条模式渲染(查看细分数)
+		var mesh = new THREE.Mesh(geo, material);//线模型对象
+		this.scene.add(mesh);//线模型添加到场景中
+		console.log(geo)
+
+
+		let g = new LODPlane(3, 32, 0.02)
+		// g.rotateX(Math.PI / 3)
+		// g.translate(0, -1e-4, 0)
+		let box = new THREE.Mesh(g, this.matNormal)
 		// this.box.addToLayer(0, box)
 		this.box.addToLayer(0, new THREE.WireframeHelper(box))
 		this.scene.add(this.box)
@@ -154,6 +193,8 @@ export default class MyRenderer extends DirectRenderer {
 		let lightHelper = new THREE.PointLightHelper(light, 0.1)
 		lightHelper.layers.mask = 0xffffffff
 		this.scene.add(lightHelper)
+
+		this.scene.add(new THREE.AxesHelper(10))
 
 		const { begin } = this.pipeline
 		begin.then(new RenderStage(this.scene, this.camera))
