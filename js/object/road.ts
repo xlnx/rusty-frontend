@@ -150,75 +150,15 @@ class Road extends Thing<ObjectTag> {
 			.then(geometry => {
 				this.geometry = geometry
 				this.object = new THREE.Mesh(this.geometry, Road.material)
+
+				let from = plain2world(this.item.from)
+				this.view.scale.set(DistUnit, DistUnit, DistUnit)
+				this.view.translateX(from.x)
+				this.view.translateZ(from.z)
+
 				const wire = new THREE.WireframeHelper(this.object)
 				this.view.addToLayer(Layer.All, wire)
 			})
-
-		// const d = to.clone().sub(from)
-		// const len = d.length() || 0.1
-
-		//test
-		// this.geometry.scale(len, 1, 1 * width)
-
-
-		// this.view.rotateY(d.angle())
-		// const { x, y, z } = plain2world(from)
-		// this.view.position.set(x, y, z)
-
-		// this.object.position.set(x, y, z)
-		// this.object.setRotationFromAxisAngle(Road.up, d.angle())
-		// this.object.scale.set(len, 1, 1 * width) //
-		// this.uvs[0][2].set(len / width, 1)
-		// this.uvs[1][1].set(len / width, 0)
-		// this.uvs[1][2].set(len / width, 1)
-		// this.view.addToLayer(Layer.All, this.object)
-
-	}
-
-	planeGeometry(ground: Ground): Road {
-		//need height fix here
-		let origin = new THREE.Vector3(0, 0, 0)
-		let up = new THREE.Vector3(0, 1, 0)
-		let width = this.item.width * DistUnit
-
-		let from = this.item.from
-		let From = plain2world(from)
-		let fromHeight = ground.getHeight(from)
-
-		let to = this.item.to
-		let To = plain2world(this.item.to)
-		let toHeight = ground.getHeight(to)
-
-		// console.log(fromHeight, toHeight)
-
-		// From.add(new THREE.Vector3(0, fromHeight, 0))
-		// To.add(new THREE.Vector3(0, toHeight, 0))
-		let dir = To.clone().sub(From)
-		let norm = dir.clone().normalize().cross(up).multiplyScalar(width)
-		// console.log("from:", from, " to:", to)
-		let start = From.clone().sub(norm.clone().multiplyScalar(0.5))
-		// console.log(start, dir, norm)
-
-		let uSeg = 10
-		let vSeg = 5
-		this.geometry = new THREE.ParametricGeometry((u, v, w) => {
-			const { x, y, z } = start.clone()
-			let d = from.clone()
-				.add(to.clone()
-					.sub(from)
-					.multiplyScalar(u))
-			w.set(x, ground.getHeight(d), z)
-			w.add(dir.clone().multiplyScalar(u))
-				.add(norm.clone().multiplyScalar(v))
-			// console.log(w)
-		}, uSeg, vSeg).clone()
-		console.log(this.geometry)
-
-		this.object = new THREE.Mesh(this.geometry, Road.material)
-		const wire = new THREE.WireframeHelper(this.object)
-		this.view.addToLayer(Layer.All, wire)
-		// this.geometry.translate(From.x, From.y, From.z)
-		return this
 	}
 
 	async boxGeometry(ground: Ground): Promise<Geometry> {
@@ -228,53 +168,46 @@ class Road extends Thing<ObjectTag> {
 			let origin = new THREE.Vector3(0, 0, 0)
 			let up = new THREE.Vector3(0, 1, 0)
 			let botWidth = this.item.width * 0.1
-			let midWidth = this.item.width * DistUnit + botWidth
+			let midWidth = this.item.width + botWidth
 			let upWidth = midWidth + botWidth
 
-			let from = this.item.from
-			let From = plain2world(from)
-			let fromHeight = ground.getHeight(from)
+			let from = this.item.from.clone()
+			let From = new THREE.Vector3(from.x, 0, -from.y)
 
-			let to = this.item.to
-			let To = plain2world(this.item.to)
-			let toHeight = ground.getHeight(to)
+			let to = this.item.to.clone()
+			let To = new THREE.Vector3(to.x, 0, -to.y)
 
-			// console.log(fromHeight, toHeight)
-
-			// From.add(new THREE.Vector3(0, fromHeight, 0))
-			// To.add(new THREE.Vector3(0, toHeight, 0))
 			let dir = To.clone().sub(From)
 			let norm = dir.clone().normalize().cross(up).multiplyScalar(upWidth)
-			// console.log("from:", from, " to:", to)
-			let start = From.clone()
-				.sub(norm.clone().multiplyScalar(0.5))
-			// console.log(start, dir, norm)
+			let start = origin.clone()
 
 			let uSeg = Math.round(dir.length()) * 3
 			let botVPos = 1
-			let midVPos = 5 + botVPos
+			let midVPos = 1 + botVPos
 			let upVPos = botVPos + midVPos
 			let vSeg = upVPos
 
-			let pts: Vector2[] = []
+			// console.log(from, to)
+			let pts: THREE.Vector2[] = []
 			for (let i = 0; i < uSeg; ++i) {
 				let pt = from.clone()
 					.add(to.clone()
 						.sub(from)
-						.multiplyScalar(i))
+						.multiplyScalar(i / uSeg))
 				pts.push(pt)
 			}
-			let heights = (pts)
+			// console.log(pts)
+			let heights = ground.getHeight(pts)
+			console.log(heights)
 
+			let vCount = 0
+			let lastV = 0
 			const geometry = new THREE.ParametricGeometry((u, v, w) => {
 				const { x, y, z } = start.clone()
 				let vPos = Math.round(vSeg * v)
 				let uPos = Math.round(uSeg * u)
-				// let axesPos = from.clone()
-				// 	.add(to.clone()
-				// 		.sub(from)
-				// 		.multiplyScalar(u))
-				let height = heights[uPos]
+
+				let height = heights[uPos] / DistUnit
 				if (vPos < botVPos) {
 					// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
 					// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
@@ -297,16 +230,66 @@ class Road extends Thing<ObjectTag> {
 					.add(new THREE.Vector3(0, botWidth / 5, 0))
 				// console.log(w)
 			}, uSeg, vSeg)
-			// console.log(this.geometry)
 
-			// this.object = new THREE.Mesh(this.geometry, Road.material)
-			// const wire = new THREE.WireframeHelper(this.object)
-			// this.view.addToLayer(Layer.All, wire)
-			// this.geometry.translate(From.x, From.y, From.z)
+			// let geometry = new THREE.Geometry()
+			// let face = geometry.faces
+			// let uvs = geometry.faceVertexUvs[0]
+			// for (let u = 0; u < uSeg; ++u) {
+			// 	for (let v = 0; v < vSeg; ++v) {
+
+			// 		let w = origin.clone()
+			// 		const { x, y, z } = start.clone()
+			// 		let vPos = Math.round(vSeg * v)
+			// 		let uPos = Math.round(uSeg * u)
+
+			// 		let height = heights[uPos] / DistUnit
+			// 		if (vPos < botVPos) {
+			// 			// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
+			// 			// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
+			// 			w.set(x, height - (botVPos - vPos) * botWidth, z)
+			// 				.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
+			// 		}
+			// 		else if (vPos > midVPos) {
+			// 			// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
+			// 			// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
+			// 			w.set(x, height - (vPos - midVPos) * botWidth, z)
+			// 				.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
+			// 		}
+			// 		else {
+			// 			// w.set(x, ground.getHeight(axesPos), z)
+			// 			w.set(x, height, z)
+			// 			// w.set(x, 0, z)
+			// 		}
+			// 		w.add(dir.clone().multiplyScalar(u))
+			// 			.add(norm.clone().multiplyScalar(v))
+			// 			.add(new THREE.Vector3(0, botWidth / 5, 0))
+
+			// 		geometry.vertices.push(w)
+			// 	}
+			// }
+
+			// let dif = [[0, 0], [vSeg, 0], [0, 1], [vSeg, 1]]
+			// let idx = 0
+			// for (let u = 0; u < uSeg; ++u) {
+			// 	for (let v = 0; v < vSeg; ++v) {
+			// 		let ptIdx = u * vSeg + v
+			// 		let pts: number[] = []
+			// 		for (let i = 0; i < 4; ++i)
+			// 			pts.push(ptIdx + dif[i][0] + dif[i][1])
+			// 		// face.push(new THREE.Face3(pts[0], pts[1], pts[2]))
+			// 		// face.push(new THREE.Face3(pts[1], pts[2], pts[3]))
+			// 		face[idx] = (new THREE.Face3(pts[0], pts[1], pts[2]))
+			// 		face[idx + 1] = (new THREE.Face3(pts[1], pts[2], pts[3]))
+			// 		idx += 2
+			// 	}
+			// }
+			// geometry.elementsNeedUpdate = true
+			// geometry.computeFaceNormals()
 
 			resolve(geometry)
 		})
 	}
+
 }
 
 export {
