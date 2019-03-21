@@ -6,7 +6,7 @@ import { Thing, Layer, TexAsset, Geometry2D, NumberVariable } from "../wasp";
 import { Building } from "./building";
 import { Basemap } from "../model/basemap";
 import { Asset } from "../wasp/asset/asset";
-import { ParametricGeometry } from "three";
+import { ParametricGeometry, Geometry, Vector2 } from "three";
 import Ground from "./ground";
 
 class RoadIndicator extends Thing {
@@ -135,11 +135,25 @@ class Road extends Thing<ObjectTag> {
 
 	public readonly item: BasemapRoadItem<Road>
 
-	constructor(public readonly width: number, from: THREE.Vector2, to: THREE.Vector2) {
+	constructor(
+		ground: Ground,
+		public readonly width: number,
+		from: THREE.Vector2,
+		to: THREE.Vector2) {
+
 		super()
 
 		this.item = new BasemapRoadItem<Road>(width, from, to)
 		this.item.userData = this
+
+		this.boxGeometry(ground)
+			.then(geometry => {
+				this.geometry = geometry
+				this.object = new THREE.Mesh(this.geometry, Road.material)
+				const wire = new THREE.WireframeHelper(this.object)
+				this.view.addToLayer(Layer.All, wire)
+			})
+
 		// const d = to.clone().sub(from)
 		// const len = d.length() || 0.1
 
@@ -207,69 +221,91 @@ class Road extends Thing<ObjectTag> {
 		return this
 	}
 
-	boxGeometry(ground: Ground): Road {
-		//need height fix here
-		let origin = new THREE.Vector3(0, 0, 0)
-		let up = new THREE.Vector3(0, 1, 0)
-		let botWidth = this.item.width * 0.1
-		let midWidth = this.item.width * DistUnit + botWidth
-		let upWidth = midWidth + botWidth
+	async boxGeometry(ground: Ground): Promise<Geometry> {
+		return new Promise((resolve, reject) => {
 
-		let from = this.item.from
-		let From = plain2world(from)
-		let fromHeight = ground.getHeight(from)
+			//need height fix here
+			let origin = new THREE.Vector3(0, 0, 0)
+			let up = new THREE.Vector3(0, 1, 0)
+			let botWidth = this.item.width * 0.1
+			let midWidth = this.item.width * DistUnit + botWidth
+			let upWidth = midWidth + botWidth
 
-		let to = this.item.to
-		let To = plain2world(this.item.to)
-		let toHeight = ground.getHeight(to)
+			let from = this.item.from
+			let From = plain2world(from)
+			let fromHeight = ground.getHeight(from)
 
-		// console.log(fromHeight, toHeight)
+			let to = this.item.to
+			let To = plain2world(this.item.to)
+			let toHeight = ground.getHeight(to)
 
-		// From.add(new THREE.Vector3(0, fromHeight, 0))
-		// To.add(new THREE.Vector3(0, toHeight, 0))
-		let dir = To.clone().sub(From)
-		let norm = dir.clone().normalize().cross(up).multiplyScalar(upWidth)
-		// console.log("from:", from, " to:", to)
-		let start = From.clone()
-			.sub(norm.clone().multiplyScalar(0.5))
-		// console.log(start, dir, norm)
+			// console.log(fromHeight, toHeight)
 
-		let uSeg = Math.round(dir.length()) * 5
-		let botVPos = 1
-		let midVPos = 5 + botVPos
-		let upVPos = botVPos + midVPos
-		let vSeg = upVPos
-		this.geometry = new THREE.ParametricGeometry((u, v, w) => {
-			const { x, y, z } = start.clone()
-			let vPos = Math.round(vSeg * v)
-			let axesPos = from.clone()
-				.add(to.clone()
-					.sub(from)
-					.multiplyScalar(u))
-			if (vPos < botVPos) {
-				w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
-					.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
+			// From.add(new THREE.Vector3(0, fromHeight, 0))
+			// To.add(new THREE.Vector3(0, toHeight, 0))
+			let dir = To.clone().sub(From)
+			let norm = dir.clone().normalize().cross(up).multiplyScalar(upWidth)
+			// console.log("from:", from, " to:", to)
+			let start = From.clone()
+				.sub(norm.clone().multiplyScalar(0.5))
+			// console.log(start, dir, norm)
+
+			let uSeg = Math.round(dir.length()) * 3
+			let botVPos = 1
+			let midVPos = 5 + botVPos
+			let upVPos = botVPos + midVPos
+			let vSeg = upVPos
+
+			let pts: Vector2[] = []
+			for (let i = 0; i < uSeg; ++i) {
+				let pt = from.clone()
+					.add(to.clone()
+						.sub(from)
+						.multiplyScalar(i))
+				pts.push(pt)
 			}
-			else if (vPos > midVPos) {
-				w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
-					.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
-			}
-			else {
-				w.set(x, ground.getHeight(axesPos), z)
-			}
-			w.add(dir.clone().multiplyScalar(u))
-				.add(norm.clone().multiplyScalar(v))
-				.add(new THREE.Vector3(0, botWidth / 5, 0))
-			// console.log(w)
-		}, uSeg, vSeg)
-		// console.log(this.geometry)
+			let heights = (pts)
 
-		this.object = new THREE.Mesh(this.geometry, Road.material)
-		const wire = new THREE.WireframeHelper(this.object)
-		this.view.addToLayer(Layer.All, wire)
-		// this.geometry.translate(From.x, From.y, From.z)
+			const geometry = new THREE.ParametricGeometry((u, v, w) => {
+				const { x, y, z } = start.clone()
+				let vPos = Math.round(vSeg * v)
+				let uPos = Math.round(uSeg * u)
+				// let axesPos = from.clone()
+				// 	.add(to.clone()
+				// 		.sub(from)
+				// 		.multiplyScalar(u))
+				let height = heights[uPos]
+				if (vPos < botVPos) {
+					// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
+					// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
+					w.set(x, height - (botVPos - vPos) * botWidth, z)
+						.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
+				}
+				else if (vPos > midVPos) {
+					// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
+					// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
+					w.set(x, height - (vPos - midVPos) * botWidth, z)
+						.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
+				}
+				else {
+					// w.set(x, ground.getHeight(axesPos), z)
+					w.set(x, height, z)
+					// w.set(x, 0, z)
+				}
+				w.add(dir.clone().multiplyScalar(u))
+					.add(norm.clone().multiplyScalar(v))
+					.add(new THREE.Vector3(0, botWidth / 5, 0))
+				// console.log(w)
+			}, uSeg, vSeg)
+			// console.log(this.geometry)
 
-		return this
+			// this.object = new THREE.Mesh(this.geometry, Road.material)
+			// const wire = new THREE.WireframeHelper(this.object)
+			// this.view.addToLayer(Layer.All, wire)
+			// this.geometry.translate(From.x, From.y, From.z)
+
+			resolve(geometry)
+		})
 	}
 }
 
