@@ -83,6 +83,12 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 		renderer.render(this.scene, this.camera, source.target)
 		this.scene.overrideMaterial = overrideMaterial
 	}
+
+	set(uniform: string, value: any) {
+		if (uniform in this.props) {
+			this.props[uniform].value = value
+		}
+	}
 }
 
 interface FragmentShader {
@@ -105,4 +111,5 @@ export class PostStage<T = any> extends RenderStage<T> {
 
 		super(scene, PostStage.cam, sh)
 	}
+
 }

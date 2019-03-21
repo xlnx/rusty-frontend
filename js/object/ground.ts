@@ -1,8 +1,9 @@
 import * as THREE from "three"
 import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
 import { world2plain } from "../object/trans";
-import { Thing, Layer, TexAsset, Pipeline, Prefab, PostStage } from "../wasp";
+import { Thing, Layer, TexAsset, Pipeline, Prefab, PostStage, TerrianGenerator } from "../wasp";
 import * as heightMapShader from "./heightMap.frag"
+import * as heightMapCopyShader from "./heightMapCopy.frag"
 import { LODPlane } from "./lodPlane";
 
 const grid = 300
@@ -72,13 +73,6 @@ export default class Ground extends Thing<ObjectTag> {
 
 	private readonly pipeline: Pipeline
 
-	private readonly uniforms = {
-		w: { type: "f", value: 0 },
-		scale: { type: "f", value: 1 },
-		prev: { type: "t", value: <THREE.Texture><any>undefined },
-		wc: { type: "f2", value: <THREE.Vector2><any>undefined },
-		r: { type: "f", value: 0 }
-	}
 	private readonly lodTarget = new THREE.WebGLRenderTarget(resolution, resolution, {
 		wrapS: THREE.ClampToEdgeWrapping,
 		wrapT: THREE.ClampToEdgeWrapping,
@@ -88,7 +82,13 @@ export default class Ground extends Thing<ObjectTag> {
 		stencilBuffer: false,
 		depthBuffer: false
 	})
-	private readonly output
+	private readonly uniforms = {
+		w: { type: "f", value: 0 },
+		scale: { type: "f", value: 1 },
+		prev: { type: "t", value: this.lodTarget.texture },
+		wc: { type: "f2", value: <THREE.Vector2><any>undefined },
+		r: { type: "f", value: 0 }
+	}
 
 	constructor(private readonly renderer: THREE.WebGLRenderer,
 		private readonly w: number) {
@@ -139,15 +139,24 @@ export default class Ground extends Thing<ObjectTag> {
 			wireframe: true
 		}))
 		this.view.addToLayer(CityLayer.Origin, this.object)
-		this.object.visible = false
+		// this.object.visible = false
 
 		this.pipeline = new Pipeline(renderer)
-		this.output = this.pipeline.begin
+		this.pipeline.begin
 			.then(new PostStage({
 				uniforms: this.uniforms,
 				fragmentShader: heightMapShader
 			}))
-			.then(Prefab.CopyShader)
+			.then(new PostStage({
+				uniforms: this.uniforms,
+				fragmentShader: heightMapCopyShader
+			}), this.lodTarget)
+
+		new TerrianGenerator(this.renderer).generate({
+			target: this.lodTarget,
+			scale: 5
+		})
+		this.updateWireframe(0, 0, grid, grid)
 	}
 
 	getHeight(pt: THREE.Vector2) {
@@ -156,7 +165,7 @@ export default class Ground extends Thing<ObjectTag> {
 			.divideScalar(this.w)
 			.multiplyScalar(resolution)
 			.floor()
-		// min()
+		// interpolate
 
 		const buffer = new Float32Array(4)
 		this.renderer.readRenderTargetPixels(this.lodTarget,
@@ -165,10 +174,67 @@ export default class Ground extends Thing<ObjectTag> {
 		return buffer[4 * 0 + 1]
 	}
 
-	adjustHeight(pt: THREE.Vector2, dt: number) {
+	private updateWireframe(x: number, y: number, width: number, height: number) {
+
+		if (height <= 0 || width <= 0) return
+
+		const l = grid + 1
+		const minp = new THREE.Vector2(x, y)
+			.divideScalar(grid)
+			.multiplyScalar(resolution)
+			.floor()
+			.max(new THREE.Vector2(0, 0))
+			.min(new THREE.Vector2(resolution - 1, resolution - 1))
+		const maxp = new THREE.Vector2(x + width, y + height)
+			.divideScalar(grid)
+			.multiplyScalar(resolution)
+			.ceil()
+			.max(new THREE.Vector2(0, 0))
+			.min(new THREE.Vector2(resolution - 1, resolution - 1))
+		const dist = maxp.clone().sub(minp)
+
+		const buffer = new Float32Array(dist.x * dist.y * 4)
+
+		this.renderer.readRenderTargetPixels(this.lodTarget,
+			minp.x, minp.y, dist.x, dist.y, buffer)
+
+		const sample = (uv: THREE.Vector2) => {
+			const xy = uv.clone()
+				.multiplyScalar(resolution)
+				.sub(minp)
+				// interpolate
+				.floor()
+			const ok = xy.x >= 0 && xy.y >= 0 &&
+				xy.x < dist.x && xy.y < dist.y
+			return {
+				h: buffer[4 * (xy.x + xy.y * dist.x) + 0],
+				ok: ok
+			}
+		}
 
 		const dst = <THREE.BufferAttribute>this.geometry.getAttribute("position")
 		const arr = (<number[]>dst.array)
+
+		for (let i = x; i < x + width; ++i) {
+			if (i >= 0 && i < l) {
+				for (let j = y; j < y + height; ++j) {
+					if (j >= 0 && j < l) {
+						const uv = new THREE.Vector2(i, j).divideScalar(grid)
+						// const d = new THREE.Vector2(i, j).sub(ptx).length() * dpg
+						const { h, ok } = sample(uv)
+						if (ok) {
+							arr[3 * (l * (l - j - 1) + i) + 1] = h
+						}
+						// console.log(src.array[3 * (l * j + i)])
+					}
+				}
+			}
+		}
+
+		dst.needsUpdate = true
+	}
+
+	adjustHeight(pt: THREE.Vector2, dt: number) {
 
 		const radius = 8
 		const speed = 10 * DistUnit
@@ -191,73 +257,32 @@ export default class Ground extends Thing<ObjectTag> {
 
 		if (!dist.x || !dist.y) return
 
-		this.renderer.setViewport(minp.x, minp.y, dist.x, dist.y)
+		// this.renderer.setViewport(minp.x, minp.y, dist.x, dist.y)
 
-		const target = this.lodTarget
-		// s[x + seg * y]
-
-		this.output.target = target
-		this.uniforms.prev.value = target.texture
 		this.uniforms.wc.value = wp
 		this.uniforms.scale.value = scale
 		this.uniforms.r.value = radius
 		this.pipeline.render()
 
-		const buffer = new Float32Array(dist.x * dist.y * 4)
-
-		this.renderer.readRenderTargetPixels(target,
-			minp.x, minp.y, dist.x, dist.y, buffer)
-
-		const sample = (uv: THREE.Vector2) => {
-			const xy = uv.clone()
-				.multiplyScalar(resolution)
-				.sub(minp)
-				// interpolate
-				.floor()
-			const ok = xy.x >= 0 && xy.y >= 0 &&
-				xy.x < dist.x && xy.y < dist.y
-			return {
-				h: buffer[4 * (xy.x + xy.y * dist.x) + 0],
-				ok: ok
-			}
-		}
+		// this.renderer.setViewport(0, 0,
+		// 	this.renderer.getSize().width, this.renderer.getSize().height)
 
 		const p = wp.clone()
 			.divideScalar(this.w)
 			.multiplyScalar(grid)
 			.floor()
-		const l = grid + 1
 		const r = Math.ceil(radius / this.w * grid + 1)
 
-		for (let i = p.x - r; i <= p.x + r; ++i) {
-			if (i >= 0 && i < l) {
-				for (let j = p.y - r; j <= p.y + r; ++j) {
-					if (j >= 0 && j < l) {
-						const uv = new THREE.Vector2(i, j).divideScalar(grid)
-						// const d = new THREE.Vector2(i, j).sub(ptx).length() * dpg
-						const { h, ok } = sample(uv)
-						if (ok) {
-							arr[3 * (l * (l - j - 1) + i) + 1] = h
-						}
-						// console.log(src.array[3 * (l * j + i)])
-					}
-				}
-			}
-		}
-
-		this.renderer.setViewport(0, 0,
-			this.renderer.getSize().width, this.renderer.getSize().height)
-
-		dst.needsUpdate = true
+		this.updateWireframe(p.x - r, p.y - r, 2 * r + 1, 2 * r + 1)
 
 		// console.log(this.getHeight(pt))
 	}
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
 		this.raycaster.setFromCamera(coord, camera)
-		this.object.visible = true
+		// this.object.visible = true
 		const ints = this.raycaster.intersectObject(this.object)
-		this.object.visible = false
+		// this.object.visible = false
 		if (!ints.length) return undefined
 		return world2plain(ints[0].point)
 	}

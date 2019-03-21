@@ -20,7 +20,8 @@ export namespace Prefab {
 	export const GaussianShader = new PostStage({ fragmentShader: gaussian })
 	export const BlueShader = new PostStage({ fragmentShader: blue })
 	export const PerlinShader = new PostStage({ fragmentShader: perlin })
-	export const ScaleShader = (x: THREE.Vector4 | number) => {
+	export const ScaleShader = (x?: THREE.Vector4 | number) => {
+		if (typeof x == "undefined") x = 1
 		if (typeof x == "number") x = new THREE.Vector4(x, x, x, x)
 		return new PostStage({ uniforms: { scale: { value: x } }, fragmentShader: scale })
 	}

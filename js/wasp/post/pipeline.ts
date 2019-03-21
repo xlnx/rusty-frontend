@@ -26,14 +26,14 @@ export abstract class Effect<T = any> implements Renderable<T> {
 	}
 }
 
-abstract class PipelineNodeBase<T=any> {
+export abstract class PipelineNodeBase<T=any> {
 
 	public readonly isPipelineNode = true
 	private callbacks: (() => void)[] = []
 
 	protected next: PipelineNodeBase[] = []
 
-	constructor(protected readonly prev?: PipelineNodeBase) { }
+	protected constructor(protected readonly prev?: PipelineNodeBase) { }
 
 	protected add<X extends PipelineNodeBase<T>>(e: X): X {
 		this.next.push(e); return e
@@ -45,7 +45,7 @@ abstract class PipelineNodeBase<T=any> {
 	}
 
 	then(what: Renderable, target?: THREE.WebGLRenderTarget): PipelineNode {
-		return this.add(new PipelineNode(this, what, target))
+		return this.add(new (<any>PipelineNode)(this, what, target))
 	}
 
 	protected reset() { for (const x of this.next) x.reset() }
@@ -67,7 +67,7 @@ abstract class PipelineNodeBase<T=any> {
 abstract class PipelineNodeAsable<T=any> extends PipelineNodeBase<T> {
 
 	as(...uniform: string[]): PipelineAsNode {
-		return this.add(new PipelineAsNode(this, ...uniform))
+		return this.add(new (<any>PipelineAsNode)(this, ...uniform))
 	}
 
 	abstract and(...node: PipelineNode[]): PipelineBarrierNode
@@ -76,8 +76,8 @@ abstract class PipelineNodeAsable<T=any> extends PipelineNodeBase<T> {
 		return []
 	}
 
-	out(channel: number = 0) {
-		return this.add(new PipelineOutNode<T>(this, channel))
+	out(channel: number = 0): PipelineOutNode<T> {
+		return this.add(new (<any>PipelineOutNode)(this, channel))
 	}
 
 	protected getOutputChannels(): { texture: THREE.Texture, alias?: string }[] {
@@ -85,11 +85,11 @@ abstract class PipelineNodeAsable<T=any> extends PipelineNodeBase<T> {
 	}
 }
 
-class PipelineAsNode<T=any> extends PipelineNodeAsable<T> {
+export class PipelineAsNode<T=any> extends PipelineNodeAsable<T> {
 
 	protected name: string[] = []
 
-	constructor(private readonly from: PipelineNodeAsable<T>, ...uniform: string[]) {
+	protected constructor(private readonly from: PipelineNodeAsable<T>, ...uniform: string[]) {
 		super(from)
 		this.name = uniform
 	}
@@ -104,11 +104,11 @@ class PipelineAsNode<T=any> extends PipelineNodeAsable<T> {
 	}
 }
 
-class PipelineOutNode<T=any> extends PipelineNodeBase<T> {
+export class PipelineOutNode<T=any> extends PipelineNodeBase<T> {
 
 	private node: PostStage
 
-	constructor(private readonly from: PipelineNodeAsable, private readonly channel = 0) {
+	protected constructor(private readonly from: PipelineNodeAsable, private readonly channel = 0) {
 		super(from)
 		this.node = new PostStage({
 			fragmentShader: `void main() { vec2 tex = gl_FragCoord.xy / iResolution;
@@ -125,20 +125,20 @@ class PipelineOutNode<T=any> extends PipelineNodeBase<T> {
 	}
 }
 
-class PipelineNode<T=any> extends PipelineNodeAsable<T> {
+export class PipelineNode<T=any> extends PipelineNodeAsable<T> {
 
 	private readonly _getTargetTextures: () => THREE.Texture[]
 	private isEffectNode = false
 
 	private readonly uniforms = {}
 
-	set target(val: THREE.WebGLRenderTarget) {
+	set target(val: THREE.WebGLRenderTarget | undefined) {
 		if (!this.isEffectNode) {
 			this._target = val
 		}
 	}
 
-	constructor(prev: PipelineNodeBase,
+	protected constructor(prev: PipelineNodeBase,
 		private readonly node: Renderable,
 		private _target?: THREE.WebGLRenderTarget) {
 
@@ -153,7 +153,7 @@ class PipelineNode<T=any> extends PipelineNodeAsable<T> {
 	}
 
 	and(...node: PipelineNode[]): PipelineBarrierNode {
-		const barrier = new PipelineBarrierNode(this)
+		const barrier = new (<any>PipelineBarrierNode)(this)
 		barrier.and(...node)
 		return barrier
 	}
@@ -183,7 +183,7 @@ class PipelineNode<T=any> extends PipelineNodeAsable<T> {
 	}
 }
 
-class PipelineOriginNode<T=any> extends PipelineNodeBase<T> {
+export class PipelineOriginNode<T=any> extends PipelineNodeBase<T> {
 
 	constructor() { super() }
 
@@ -192,12 +192,12 @@ class PipelineOriginNode<T=any> extends PipelineNodeBase<T> {
 	}
 }
 
-class PipelineBarrierNode<T=any> extends PipelineNodeAsable<T> {
+export class PipelineBarrierNode<T=any> extends PipelineNodeAsable<T> {
 
 	protected barrier: PipelineNode[] = []
 	protected ok = 0
 
-	constructor(prev: PipelineNode) {
+	protected constructor(prev: PipelineNode) {
 		super(prev)
 		this.and(prev)
 	}

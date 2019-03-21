@@ -10,12 +10,11 @@ void main()
 
 	float d = length(wp - wc);
 
-	if (d < r * 1.1) {
-		
-		float gaussian = exp(-d*d/8.);
-		vec4 texel = texture2D(prev, tex);
+	if (d < r) {
 
-		gl_FragColor = texel + gaussian * scale;
+		vec4 texel = texture2D(iChannel[0], tex);
+
+		gl_FragColor = texel;
 
 	} else {
 		discard;
