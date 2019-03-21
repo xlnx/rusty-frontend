@@ -1,8 +1,12 @@
 import * as THREE from "three"
 
 export class LODPlane extends THREE.BufferGeometry {
-    constructor(C: number, M: number, w0: number) {
+    constructor(C: number, W: number) {
         super()
+
+        const M = 32
+        const w0 = W / 2 / M / (1 << (C - 1))
+
         let geometry = new THREE.BufferGeometry();
         let indices: Array<any> = [];
         let vertices: Array<any> = [];
@@ -67,12 +71,18 @@ export class LODPlane extends THREE.BufferGeometry {
             b = 3 * M / 2;
         }
         geometry.setIndex(indices)
-        const normals = new Array(vertices.length).fill(0).map((_, i) => i % 3 == 1 ? 1 : 0)
+        const normals = new Array(vertices.length)
+            .fill(0)
+            .map((_, i) => i % 3 == 1 ? 1 : 0)
         const mx = M * w / 2;
-        const uvs = vertices.map(e => (e / mx + 1) * .5).filter((_, i) => i % 3 != 1)
+        const uvs = vertices
+            .filter((_, i) => i % 3 != 1)
+            .map((e, i) => (e / mx * (i & 1 ? -1 : 1) + 1) * .5)
+
         geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
         geometry.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+        geometry.rotateX(Math.PI / 2)
         return geometry;
 
     }

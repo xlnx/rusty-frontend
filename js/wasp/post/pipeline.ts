@@ -132,9 +132,15 @@ class PipelineNode<T=any> extends PipelineNodeAsable<T> {
 
 	private readonly uniforms = {}
 
+	set target(val: THREE.WebGLRenderTarget) {
+		if (!this.isEffectNode) {
+			this._target = val
+		}
+	}
+
 	constructor(prev: PipelineNodeBase,
 		private readonly node: Renderable,
-		private target?: THREE.WebGLRenderTarget) {
+		private _target?: THREE.WebGLRenderTarget) {
 
 		super(prev)
 
@@ -142,7 +148,7 @@ class PipelineNode<T=any> extends PipelineNodeAsable<T> {
 		if (this.isEffectNode = effect.isEffect) {
 			this._getTargetTextures = () => effect.textures
 		} else {
-			this._getTargetTextures = () => [this.target!.texture]
+			this._getTargetTextures = () => [this._target!.texture]
 		}
 	}
 
@@ -158,13 +164,13 @@ class PipelineNode<T=any> extends PipelineNodeAsable<T> {
 	}
 
 	render(source: T, renderer: THREE.WebGLRenderer) {
-		if (!this.isEffectNode && !this.target) {
+		if (!this.isEffectNode && !this._target) {
 			const { width, height } = renderer.getSize()
-			this.target = new THREE.WebGLRenderTarget(width, height, gBuffer)
+			this._target = new THREE.WebGLRenderTarget(width, height, gBuffer)
 		}
 		const opt: RenderOptions = {
 			iChannel: this.getInputChannels(),
-			target: this.target
+			target: this._target
 		}
 		const x = Object.assign({ uniforms: {} }, source, opt)
 		Object.assign(x.uniforms, this.uniforms)
