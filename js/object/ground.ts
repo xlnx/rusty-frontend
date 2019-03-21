@@ -159,19 +159,31 @@ export default class Ground extends Thing<ObjectTag> {
 		this.updateWireframe(0, 0, grid, grid)
 	}
 
-	getHeight(pt: THREE.Vector2) {
-		const p = pt.clone()
+	getHeight(pt: THREE.Vector2[]) {
+		const pscr = pt.map(p => p.clone()
 			.addScalar(this.w / 2)
 			.divideScalar(this.w)
 			.multiplyScalar(resolution)
 			.floor()
+		)
+		const minp = pscr[0].clone()
+		pscr.forEach(p => minp.min(p))
+		const maxp = pscr[0].clone()
+		pscr.forEach(p => maxp.max(p))
+
+		const rect = new THREE.Vector4(
+			minp.x, minp.y, maxp.x - minp.x, maxp.y - minp.y)
+
 		// interpolate
 
 		const buffer = new Float32Array(4)
 		this.renderer.readRenderTargetPixels(this.lodTarget,
-			p.x, p.y, 1, 1, buffer)
+			rect.x, rect.y, rect.z, rect.w, buffer)
 
-		return buffer[4 * 0 + 1]
+		return pscr.map(p => {
+			const { x, y } = p.sub(minp)
+			return buffer[4 * (x + y * rect.z)]
+		})
 	}
 
 	private updateWireframe(x: number, y: number, width: number, height: number) {
