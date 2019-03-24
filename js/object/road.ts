@@ -168,7 +168,7 @@ class Road extends Thing<ObjectTag> {
 			let origin = new THREE.Vector3(0, 0, 0)
 			let up = new THREE.Vector3(0, 1, 0)
 			let botWidth = this.item.width * 0.1
-			let midWidth = this.item.width + botWidth
+			let midWidth = this.item.width * 3 + botWidth
 			let upWidth = midWidth + botWidth
 
 			let from = this.item.from.clone()
