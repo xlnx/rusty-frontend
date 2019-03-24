@@ -15,7 +15,7 @@ void main()
 		float gaussian = exp(-d*d/8.);
 		vec4 texel = texture2D(prev, tex);
 
-		gl_FragColor = texel + gaussian * scale;
+		gl_FragColor = vec4(texel.x + gaussian * scale, 0, 0, 0);
 
 	} else {
 		discard;

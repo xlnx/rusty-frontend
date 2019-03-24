@@ -114,7 +114,11 @@ class Road extends Thing<ObjectTag> {
 	private static material = (() => {
 		const texture = new TexAsset("textures/b.png").loadSync()
 		texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-		return new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide })
+		return new THREE.MeshLambertMaterial({
+			map: texture,
+			side: THREE.DoubleSide,
+			// wireframe: true
+		})
 	})()
 
 	// private static geometry = (() => {
@@ -148,16 +152,26 @@ class Road extends Thing<ObjectTag> {
 
 		this.boxGeometry(ground)
 			.then(geometry => {
+				console.log(geometry)
+
 				this.geometry = geometry
 				this.object = new THREE.Mesh(this.geometry, Road.material)
 
-				let from = plain2world(this.item.from)
-				this.view.scale.set(DistUnit, DistUnit, DistUnit)
-				this.view.translateX(from.x)
-				this.view.translateZ(from.z)
+				const mat = Road.material.clone()
+				mat.wireframe = true
 
-				const wire = new THREE.WireframeHelper(this.object)
-				this.view.addToLayer(Layer.All, wire)
+				const w = new THREE.Object3D()
+				w.add(
+					this.object,
+					// new THREE.Mesh(this.geometry, mat)
+				)
+				w.scale.set(DistUnit, DistUnit, DistUnit)
+
+				const { x, z } = plain2world(this.item.from)
+				w.translateX(x)
+				w.translateZ(z)
+
+				this.view.addToLayer(Layer.All, w)
 			})
 	}
 
@@ -200,8 +214,8 @@ class Road extends Thing<ObjectTag> {
 			let heights = ground.getHeight(pts)
 			// console.log(heights)
 
-			let vCount = 0
-			let lastV = 0
+			// let vCount = 0
+			// let lastV = 0
 			// const geometry = new THREE.ParametricGeometry((u, v, w) => {
 			// 	const { x, y, z } = start.clone()
 			// 	let vPos = Math.round(vSeg * v)
@@ -240,7 +254,7 @@ class Road extends Thing<ObjectTag> {
 					let w = start.clone()
 					const { x, y, z } = start.clone()
 
-					let height = heights[u] / DistUnit
+					let height = heights[u]
 					if (v < botVPos) {
 						// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
 						// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
