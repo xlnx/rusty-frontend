@@ -152,7 +152,7 @@ class Road extends Thing<ObjectTag> {
 
 		this.boxGeometry(ground)
 			.then(geometry => {
-				console.log(geometry)
+				// console.log(geometry)
 
 				this.geometry = geometry
 				this.object = new THREE.Mesh(this.geometry, Road.material)
@@ -171,7 +171,7 @@ class Road extends Thing<ObjectTag> {
 				w.translateX(x)
 				w.translateZ(z)
 
-				this.view.addToLayer(Layer.All, w)
+				this.view.addToLayer(CityLayer.Origin, w)
 			})
 	}
 

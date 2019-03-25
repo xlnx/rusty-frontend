@@ -1,3 +1,5 @@
 export * from "./json"
 export * from "./obj"
+export * from "./fbx"
+export * from "./model"
 export * from "./tex"

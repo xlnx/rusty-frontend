@@ -1,7 +1,7 @@
 import * as THREEJS from "three"
 import * as THREE_ADDONS from "three-addons"
 const THREE: typeof import("three") = { ...THREEJS, ...THREE_ADDONS }
-import { LayeredView, DirectRenderer, Pipeline, RenderStage, Stage, Effect, PostStage, Prefab } from "../wasp";
+import { LayeredView, DirectRenderer, Pipeline, RenderStage, Stage, Effect, PostStage } from "../wasp";
 import { loadavg } from "os";
 import { Geometry, BufferGeometry, PlaneGeometry, MeshPhongMaterial } from "three";
 
@@ -410,7 +410,7 @@ export default class MyRenderer extends DirectRenderer {
 
 		const { begin } = this.pipeline
 		const res = begin.then(this.fftEffect)
-		// .then(Prefab.CopyShader, target)
+		// .then(CopyShader, target)
 		// .out()
 
 		// res

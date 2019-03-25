@@ -1,5 +1,6 @@
 import * as THREE from "three"
-import { Pipeline, Prefab, PostStage, PipelineNode } from "../post";
+import { Pipeline, PostStage, PipelineNode } from "../post";
+import { ScaleShader, PerlinShader } from "../prefab";
 
 export interface TerrianGeneratorOptions {
 	target: THREE.WebGLRenderTarget,
@@ -10,12 +11,12 @@ export class TerrianGenerator {
 
 	private readonly pipeline: Pipeline
 	private readonly output: PipelineNode
-	private readonly scale = Prefab.ScaleShader()
+	private readonly scale = new PostStage(ScaleShader)
 
 	constructor(private readonly renderer: THREE.WebGLRenderer) {
 		this.pipeline = new Pipeline(renderer)
 		this.output = this.pipeline.begin
-			.then(Prefab.PerlinShader)
+			.then(new PostStage(PerlinShader))
 			.as("perlin")
 			.then(new PostStage({
 				fragmentShader: `
@@ -36,7 +37,7 @@ void main()
 
 	generate(options: TerrianGeneratorOptions) {
 		const c = options.scale || 1
-		this.scale.set("scale", new THREE.Vector4(c, c, c, c))
+		this.scale.set("scale", new THREE.Vector3(c, c, c))
 
 		this.output.target = options.target
 		this.pipeline.render()

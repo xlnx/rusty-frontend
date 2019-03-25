@@ -8,11 +8,6 @@ export const gBuffer: THREE.WebGLRenderTargetOptions = {
 	stencilBuffer: false
 }
 
-interface TextureInfo {
-	texture: THREE.Texture,
-	alias?: string
-}
-
 export abstract class Effect<T = any> implements Renderable<T> {
 
 	public readonly isEffect = true

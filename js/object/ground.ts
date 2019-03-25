@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
 import { world2plain } from "../object/trans";
-import { Thing, Layer, TexAsset, Pipeline, Prefab, PostStage, TerrianGenerator } from "../wasp";
+import { Thing, Layer, TexAsset, Pipeline, PostStage, TerrianGenerator } from "../wasp";
 import * as heightMapShader from "./heightMap.frag"
 import * as heightMapCopyShader from "./heightMapCopy.frag"
 import { LODPlane } from "./lodPlane";
@@ -18,7 +18,7 @@ const seg = 8
 
 // 		const pl = new Pipeline(this.renderer)
 // 		pl.begin
-// 			.then(Prefab.PerlinShader)
+// 			.then(PerlinShader)
 // 			.as("perlin")
 // 			.then(new PostStage({
 // 				fragmentShader: `
@@ -115,7 +115,7 @@ export default class Ground extends Thing<ObjectTag> {
 			// normalMap: this.normalTarget.texture,
 			flatShading: true
 		})
-		this.view.addToLayer(CityLayer.Origin, ...new Array(seg * seg).fill(0)
+		this.view.addToLayer(CityLayer.Frame, ...new Array(seg * seg).fill(0)
 			.map((_, i) => {
 				const lod = new THREE.LOD()
 				const ix = Math.floor(i % seg)
@@ -132,7 +132,7 @@ export default class Ground extends Thing<ObjectTag> {
 
 					uv.needsUpdate = true
 					const m1 = mat.clone()
-					m1.wireframe = true
+					// m1.wireframe = true
 					// m1.wireframeLinewidth = 5
 					lod.addLevel(new THREE.Object3D()
 						.add(
@@ -150,14 +150,20 @@ export default class Ground extends Thing<ObjectTag> {
 			.rotateX(-Math.PI / 2)
 			.translate(0, -1e-4, 0)
 		this.object = new THREE.Mesh(this.geometry, new THREE.MeshStandardMaterial({
-			color: 0x0000ff,
-			wireframe: true
+			color: 0x666666,
+			flatShading: true
+			// wireframe: true
 		}))
 		this.view.addToLayer(CityLayer.Origin, this.object)
-		this.object.visible = false
+		// this.object.visible = false
 
+		let autoClearColor = renderer.autoClearColor
 		this.pipeline = new Pipeline(renderer)
 		this.pipeline.begin
+			.thenExec(() => {
+				autoClearColor = renderer.autoClearColor
+				renderer.autoClearColor = false
+			})
 			.then(new PostStage({
 				uniforms: this.uniforms,
 				fragmentShader: heightMapShader
@@ -166,6 +172,9 @@ export default class Ground extends Thing<ObjectTag> {
 				uniforms: this.uniforms,
 				fragmentShader: heightMapCopyShader
 			}), this.lodTarget)
+			.thenExec(() => {
+				renderer.autoClearColor = autoClearColor
+			})
 
 		// this.normalPipeline = new Pipeline(renderer)
 		// this.normalPipeline.begin
@@ -297,6 +306,7 @@ export default class Ground extends Thing<ObjectTag> {
 		}
 
 		dst.needsUpdate = true
+		this.geometry.computeVertexNormals()
 	}
 
 	adjustHeight(pt: THREE.Vector2, dt: number) {
@@ -346,9 +356,9 @@ export default class Ground extends Thing<ObjectTag> {
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
 		this.raycaster.setFromCamera(coord, camera)
-		this.object.visible = true
+		// this.object.visible = true
 		const ints = this.raycaster.intersectObject(this.object)
-		this.object.visible = false
+		// this.object.visible = false
 		if (!ints.length) return undefined
 		return world2plain(ints[0].point)
 	}

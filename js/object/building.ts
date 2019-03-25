@@ -36,14 +36,15 @@ class Building extends BuildingBase {
 
 		const { object } = I.proto
 
-		this.view.addToLayer(Layer.All, object.model.clone(), object.floor.clone())
+		// console.log(object.model)
+		this.view.addToLayer(CityLayer.Origin, object.model.clone())
 
 		// set pos and orientation of boj
 		const { x, y, z } = I.view.position
 		this.view.position.set(x, y, z)
 		this.view.rotation.y = I.view.rotation.y
 
-		console.log(this.view)
+		// console.log(this.view)
 
 		this.item = new BasemapBuildingItem(this.placeholder, I.angle, I.road, I.offset)
 	}

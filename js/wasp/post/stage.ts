@@ -1,19 +1,15 @@
 import * as THREE from "three"
 import * as glsl from "glslify"
+import { Prefab } from "./prefab";
 
-interface TextureInfo {
-	texture: THREE.Texture,
-	alias?: string
-}
+const PostStageVertexShader = `
+	varying vec2 vUv;
+	void main() {
+		gl_Position = vec4(position, 1);
+		vUv = uv;
+	}`
 
-interface Uniform {
-	value?: any,
-	type?: string
-}
-
-interface Shader {
-	uniforms?: { [uniform: string]: Uniform },
-	vertexShader: string,
+export interface Shader extends THREE.ShaderMaterialParameters {
 	fragmentShader: string
 }
 
@@ -43,26 +39,37 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 	uniform float iTime;
 	`
 
-	private material?: THREE.ShaderMaterial
+	private _material?: THREE.Material
 	private props = {
 		iResolution: { value: new THREE.Vector2() },
 		iTime: { value: window.performance.now() * 1e-3 },
 		iChannel: <{ value: THREE.Texture[] }>{ type: "t", value: [] }
 	}
+	get material() { return this._material }
+	get shaderMaterial() {
+		return this._material instanceof THREE.ShaderMaterial ?
+			<THREE.ShaderMaterial>this._material : undefined
+	}
 
 	constructor(
 		protected readonly scene: THREE.Scene,
-		protected readonly camera: THREE.Camera, shader?: Shader
+		protected readonly camera: THREE.Camera, shader?: Shader | THREE.Material
 	) {
 		super()
 
 		if (shader) {
-			const sh = Object.assign({ uniforms: {} }, shader)
-			this.props = Object.assign(sh.uniforms, this.props)
-			sh.fragmentShader = RenderStage.header + sh.fragmentShader
-			sh.vertexShader = glsl(sh.vertexShader)
-			sh.fragmentShader = glsl(sh.fragmentShader)
-			this.material = new THREE.ShaderMaterial(sh)
+			if ((<THREE.Material>shader).isMaterial) {
+				shader = <THREE.Material>shader
+				this._material = shader
+			} else {
+				shader = <Shader>shader
+				const sh = Object.assign({ uniforms: {} }, shader)
+				this.props = Object.assign(sh.uniforms, this.props)
+				sh.fragmentShader = RenderStage.header + sh.fragmentShader
+				sh.vertexShader = glsl(sh.vertexShader)
+				sh.fragmentShader = glsl(sh.fragmentShader)
+				this._material = new THREE.ShaderMaterial(sh)
+			}
 		}
 	}
 
@@ -79,7 +86,7 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 		this.props.iTime.value = window.performance.now() * 1e-3
 
 		const { overrideMaterial } = this.scene
-		this.scene.overrideMaterial = this.material ? this.material : null
+		this.scene.overrideMaterial = this._material ? this._material : null
 		renderer.render(this.scene, this.camera, source.target)
 		this.scene.overrideMaterial = overrideMaterial
 	}
@@ -91,22 +98,16 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 	}
 }
 
-interface FragmentShader {
-	uniforms?: { [uniform: string]: Uniform },
-	fragmentShader: string
-}
-
 export class PostStage<T = any> extends RenderStage<T> {
 
 	private static geo = new THREE.PlaneGeometry(2, 2)
 	private static cam = new THREE.Camera()
 
-	constructor(shader: FragmentShader) {
-		const sh = Object.assign({
-			vertexShader: "void main() { gl_Position = vec4(position, 1); }",
-			uniforms: {}
-		}, shader)
+	constructor(shader: Shader) {
+		const sh = Object.assign({}, shader)
+		sh.vertexShader = PostStageVertexShader
 		const scene = new THREE.Scene()
+
 		scene.add(new THREE.Mesh(PostStage.geo))
 
 		super(scene, PostStage.cam, sh)

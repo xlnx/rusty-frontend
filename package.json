@@ -31,6 +31,8 @@
     "raw-loader": "^1.0.0",
     "should": "^13.2.3",
     "source-map-loader": "^0.2.4",
+    "three-fbx-loader": "^1.0.3",
+    "three-fbxloader-offical": "^1.0.0",
     "three-obj-mtl-loader": "^1.0.3",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.0.2",

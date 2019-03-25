@@ -7,6 +7,7 @@ export abstract class VRState {
 	OnEnter() { }
 	OnLeave() { }
 
+	OnMsg(e: { [key: string]: any }) { }
 	OnMouseMove(e: MouseEvent) { }
 	OnMouseDown(e: MouseEvent) { }
 	OnMouseUp(e: MouseEvent) { }
@@ -37,6 +38,10 @@ export class VRStatefulRenderer<T={}> extends VRRenderer<T> {
 			this._state = this.states.get(this._tag)!
 			this._state!.OnEnter()
 		}
+	}
+
+	protected postMsg(e: { [key: string]: any }) {
+		this._state!.OnMsg(e)
 	}
 
 	protected addState(state: VRState) {
