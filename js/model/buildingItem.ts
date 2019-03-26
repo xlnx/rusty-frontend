@@ -59,15 +59,9 @@ export default class BasemapBuildingItem<T={}> extends UserData<T> {
                 .sub(houseRoadDir.clone().multiplyScalar(this.placeholder.width))
             this._rect = new AnyRect2D(housePts)
 
-            let min = minPt(housePts)
-            let max = maxPt(housePts)
-            Object.assign(this._quadTreeItem, {
-                x: min.x,
-                y: min.y,
-                width: max.x - min.x,
-                height: max.y - min.y,
-                obj: this
-            })
+            //update QuadTreeItem
+            Object.assign(this._quadTreeItem, { obj: this })
+            Object.assign(this._quadTreeItem, this._rect.treeItem())
         }
     }
 } 

@@ -102,14 +102,14 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
 		let light = new THREE.PointLight(0xffffff, 2, 0)
 		light.layers.mask = 0xffffffff
-		light.intensity = 1
+		light.intensity = 0.5
 		light.position.set(0, 1.5, 1)
 		this.scene.add(light)
 
 		this.scene.add(new THREE.AmbientLight(0x666666))
 
 		const amb = new THREE.AmbientLight(0xffffff)
-		amb.intensity = 1
+		amb.intensity = 0.5
 		this.scene.add(amb)
 
 		let lightHelper = new THREE.PointLightHelper(light, 0.1)

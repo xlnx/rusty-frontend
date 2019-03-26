@@ -1,10 +1,11 @@
 import * as THREE from "three"
 import { BuildingPrototype } from "../asset/building";
 import BasemapBuildingItem from "./buildingItem";
-import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem } from "./def";
-import { Point, AnyRect2D, cmp } from "./geometry";
+import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem, PointDetectRadius, AttachRadius } from "./def";
+import { Point, AnyRect2D, cmp, ParallelRect2D } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
+import { Vector2 } from "three";
 
 
 type Restype<R> = {
@@ -133,6 +134,14 @@ class Basemap<R, B> {
     for (let item of intersectBuilding) {
       let building = item.obj!
       if (building.intersectRoad(road))
+        return false
+    }
+
+    //detect road cross
+    let intersectRoad = this.roadTree.colliding(road.quadTreeItem)
+    for (let item of intersectRoad) {
+      let r = item.obj!
+      if (r.rect.intersect(road.rect))
         return false
     }
     return true
@@ -271,6 +280,40 @@ class Basemap<R, B> {
     return res
   }
 
+  attachNearPoint(pt: Point): Point {
+    const near = this.getNearPoint(pt)
+    return near && near.distanceTo(pt) <= AttachRadius && near || pt
+  }
+
+  getCandidatePoints(pt: Point): Point[] {
+    return this.getNearPoints(pt)
+  }
+
+  getNearPoints(pt: Point): Point[] {
+    let res: Point[] = []
+    let rect = new ParallelRect2D(pt, PointDetectRadius)
+    //detect road cross
+    let roads = this.roadTree.colliding(rect.treeItem())
+    for (const item of roads) {
+      const road = item.obj!
+      if (pt.distanceTo(road.from.clone()) <= PointDetectRadius) res.push(road.from.clone())
+      if (pt.distanceTo(road.to.clone()) <= PointDetectRadius) res.push(road.to.clone())
+    }
+    return res
+  }
+
+  getNearPoint(pt: Point): Point | undefined {
+    let res: Point | undefined
+    let minDist = Infinity
+    for (const p of this.getNearPoints(pt)) {
+      const dist = p.distanceTo(pt)
+      if (dist < minDist) {
+        minDist = dist
+        res = p.clone()
+      }
+    }
+    return res
+  }
 }
 
 export {

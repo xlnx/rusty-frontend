@@ -1,4 +1,7 @@
+import { AttachRadius } from "../model/def";
+
 const DistUnit = 0.1
+const PointRadius = AttachRadius * DistUnit
 
 enum CityLayer {
 	Origin = 0,
@@ -14,5 +17,6 @@ interface ObjectTag {
 export {
 	DistUnit,
 	ObjectTag,
-	CityLayer
+	CityLayer,
+	PointRadius
 }
