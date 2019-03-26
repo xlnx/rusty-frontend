@@ -25,11 +25,13 @@
     "@types/should": "^13.0.0",
     "glsl-fxaa": "^3.0.0",
     "glslify": "^7.0.0",
+    "glslify-import": "^3.1.0",
     "glslify-loader": "^2.0.0",
     "html-webpack-plugin": "^3.2.0",
     "mocha": "^6.0.2",
     "raw-loader": "^1.0.0",
     "should": "^13.2.3",
+    "simplex-noise": "^2.4.0",
     "source-map-loader": "^0.2.4",
     "three-fbx-loader": "^1.0.3",
     "three-fbxloader-offical": "^1.0.0",
@@ -48,5 +50,10 @@
     "quadtree-lib": "^1.0.9",
     "three": "^0.101.1",
     "three-orbitcontrols": "^2.102.1"
+  },
+  "glslify": {
+    "transform": [
+      "glslify-import"
+    ]
   }
 }

@@ -5,11 +5,11 @@ import { BuildingIndicator, Building } from "../object/building";
 import { Basemap } from "../model/basemap";
 import { BuildingManager } from "../asset/building";
 import { VRRenderer, Pipeline, RenderStage, Scene, gBuffer, PostStage } from "../wasp";
-import { ObjectTag, CityLayer } from "../asset/def";
+import { ObjectTag, CityLayer, DistUnit } from "../asset/def";
 
 import * as terrain from "./shaders/terrain.frag"
 import { VRStatefulRenderer, VRState } from "../wasp/renderer/vrstateful";
-import { SAOEffect, DepthLimitedBlurEffect, AccumulateShader, FXAAShader } from "../wasp/prefab";
+import { SAOEffect, DepthLimitedBlurEffect, AccumulateShader, FXAAShader, SSAOEffect } from "../wasp/prefab";
 
 function updateDropdown(target, list) {
 	let innerHTMLStr = "";
@@ -134,36 +134,57 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
 		const renderopt = this.gui.addFolder("render")
 		renderopt.open()
-		const sao = {
-			bias: 0.3,
-			intensity: 2.7,
-			scale: 79,
-			kernelRadius: 8.1,
-			minResolution: 0
+		// const sao = {
+		// 	bias: 0.3,
+		// 	intensity: 2.7,
+		// 	scale: 79,
+		// 	kernelRadius: 28.1,
+		// 	minResolution: 0
+		// }
+		// const saoEffect = new SAOEffect({
+		// 	resolution: new THREE.Vector2(width, height).divideScalar(2).floor(),
+		// 	depthTexture: depthTexture,
+		// 	normalTexture: normalTarget.texture,
+		// 	camera: this.camera,
+		// 	uniforms: sao
+		// })
+		// const saoopt = renderopt.addFolder("sao")
+		// saoopt.open()
+		// saoopt.add(sao, "bias", -1, 1)
+		// saoopt.add(sao, "intensity", 0, 10)
+		// saoopt.add(sao, "scale", 0, 100)
+		// saoopt.add(sao, "kernelRadius", 1, 50)
+		// saoopt.add(sao, "minResolution", 0, 1)
+
+		const ssao = {
+			kernelRadius: 3 * DistUnit,
+			minDistance: 0.01 * DistUnit,
+			maxDistance: 0.4 * DistUnit,
 		}
-		const saoEffect = new SAOEffect({
+		const ssaoopt = renderopt.addFolder("ssao")
+		ssaoopt.open()
+		ssaoopt.add(ssao, "kernelRadius", 0, 1)
+		ssaoopt.add(ssao, "minDistance", 0, 0.1)
+		ssaoopt.add(ssao, "maxDistance", 0.01, 0.1)
+		const ssaoEffect = new SSAOEffect({
 			resolution: new THREE.Vector2(width, height).divideScalar(2).floor(),
 			depthTexture: depthTexture,
 			normalTexture: normalTarget.texture,
 			camera: this.camera,
-			uniforms: sao
+			uniforms: ssao
 		})
-		const saoopt = renderopt.addFolder("sao")
-		saoopt.open()
-		saoopt.add(sao, "bias", -1, 1)
-		saoopt.add(sao, "intensity", 0, 10)
-		saoopt.add(sao, "scale", 0, 100)
-		saoopt.add(sao, "kernelRadius", 1, 50)
-		saoopt.add(sao, "minResolution", 0, 1)
 
 		const blur = {
 			resolution: new THREE.Vector2(width, height),
 			depthTexture: depthTexture,
-			image: saoEffect.textures[0],
+			image: ssaoEffect.textures[0],
 			camera: this.camera,
-			radius: 6,
-			stddev: 8.5,
-			depthCutoff: 1
+			// radius: 6,
+			// stddev: 8.5,
+			// depthCutoff: 0.1
+			radius: 3,
+			stddev: 9.6,
+			depthCutoff: 0.04
 		}
 		const blurEffect = new DepthLimitedBlurEffect(blur)
 		const bluropt = renderopt.addFolder("blur")
@@ -193,7 +214,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 			.then(new RenderStage(this.scene, this.camera, new THREE.MeshNormalMaterial()),
 				normalTarget)
 			.then(new PostStage(FXAAShader))
-			.then(saoEffect)
+			.then(ssaoEffect)
 			.then(blurEffect)
 			.and(beauty)
 			.then(new PostStage({
