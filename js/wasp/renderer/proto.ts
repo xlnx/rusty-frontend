@@ -13,7 +13,7 @@ export class RendererPrototype<T={}> {
 
 	protected readonly scene = new Scene<T>()
 	protected readonly camera = new THREE.PerspectiveCamera(
-		75, window.innerWidth / window.innerHeight, 0.1, 1000)
+		75, window.innerWidth / window.innerHeight, 0.2, 50)
 
 	constructor() {
 		this.threeJsRenderer.setPixelRatio(window.devicePixelRatio)

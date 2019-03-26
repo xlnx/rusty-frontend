@@ -95,7 +95,7 @@
 // 				// this.threeJsRenderer.state.buffers.depth.reset()
 // 			})
 // 			.then(new RenderStage(this.scene, this.camera), target)
-// 			.then(Prefab.FXAAShader)
+// 			.then(FXAAShader)
 // 			.out()
 // 	}
 

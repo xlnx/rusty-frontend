@@ -114,7 +114,11 @@ class Road extends Thing<ObjectTag> {
 	private static material = (() => {
 		const texture = new TexAsset("textures/b.png").loadSync()
 		texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-		return new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide })
+		return new THREE.MeshLambertMaterial({
+			map: texture,
+			side: THREE.DoubleSide,
+			// wireframe: true
+		})
 	})()
 
 	private geometry: THREE.Geometry = <any>null
@@ -136,7 +140,7 @@ class Road extends Thing<ObjectTag> {
 
 		this.boxGeometry(ground)
 			.then(res => {
-				const { geometry, startHeight, roadWidth } = res
+				const { geometry, startHeight } = res
 				this.geometry = geometry
 				this.object = new THREE.Mesh(this.geometry, Road.material)
 
@@ -154,8 +158,7 @@ class Road extends Thing<ObjectTag> {
 				this.view.translateY(startHeight * DistUnit)
 				// // this.object.scale.set(DistUnit, DistUnit, DistUnit)
 
-				const wire = new THREE.WireframeHelper(this.object)
-				this.view.addToLayer(Layer.All, wire)
+				this.view.addToLayer(CityLayer.Origin, this.object)
 			})
 	}
 
@@ -216,7 +219,7 @@ class Road extends Thing<ObjectTag> {
 					let w = start.clone()
 					const { x, y, z } = start.clone()
 
-					let height = heights[u] / DistUnit
+					let height = heights[u]
 					if (v < botVPos) {
 						// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
 						// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)

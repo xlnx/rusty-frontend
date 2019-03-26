@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { DistUnit, ObjectTag, CityLayer } from "./def";
 import { inBox, minPt, maxPt, Point } from "../model/geometry";;
-import { LayeredView, JsonAsset, ObjAsset } from "../wasp";
+import { LayeredView, JsonAsset, ModelAsset } from "../wasp";
 
 interface TransformStep {
 	rotate?: number[],
@@ -82,7 +82,9 @@ class BuildingPrototype {
 
 				const { placeholder } = def
 
-				new ObjAsset(prefix + def.model).load().then((obj: THREE.Object3D) => {
+				new ModelAsset(prefix + def.model).load().then((obj: THREE.Object3D) => {
+
+					// console.log(obj)
 					const proto = new BuildingPrototype()
 
 					// adjust model
@@ -135,7 +137,8 @@ class BuildingPrototype {
 				(--jobs == 0) && resolve(buildings)
 			}
 			paths.forEach((path: string, idx: number) =>
-				BuildingPrototype.doLoadProto(path)
+				BuildingPrototype.doLoadProto(path.match(/\/index.json$/i) ?
+					path : path + "/index.json")
 					.then(e => res(e, idx), e => rej(e, idx)))
 		})
 	}
@@ -152,15 +155,21 @@ class BuildingManager {
 		this.resources.clear()
 	}
 
-	load(path: string[] | string): Promise<{}> {
+	load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
+		this._ready = false
 		return new Promise((resolve, reject) => {
-			this._ready = false
 			BuildingPrototype.load(path).then((protos: (BuildingPrototype | undefined)[]) => {
 				for (let proto of protos) {
-					if (proto) this.resources.set(proto.name, proto)
+					if (proto) {
+						if (this.resources.has(proto.name)) {
+							console.warn(`Prototype with name ${proto.name} already exists.`)
+						} else {
+							this.resources.set(proto.name, proto)
+						}
+					}
 				}
 				this._ready = true
-				resolve()
+				resolve(protos)
 			})
 		})
 	}

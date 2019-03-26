@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
 import { world2plain } from "../object/trans";
-import { Thing, Layer, TexAsset, Pipeline, Prefab, PostStage, TerrianGenerator } from "../wasp";
+import { Thing, Layer, TexAsset, Pipeline, PostStage, TerrianGenerator } from "../wasp";
 import * as heightMapShader from "./heightMap.frag"
 import * as heightMapCopyShader from "./heightMapCopy.frag"
 import { LODPlane } from "./lodPlane";
@@ -18,7 +18,7 @@ const seg = 8
 
 // 		const pl = new Pipeline(this.renderer)
 // 		pl.begin
-// 			.then(Prefab.PerlinShader)
+// 			.then(PerlinShader)
 // 			.as("perlin")
 // 			.then(new PostStage({
 // 				fragmentShader: `
@@ -72,6 +72,7 @@ export default class Ground extends Thing<ObjectTag> {
 	private readonly geometry: THREE.BufferGeometry
 
 	private readonly pipeline: Pipeline
+	// private readonly normalPipeline: Pipeline
 
 	private readonly lodTarget = new THREE.WebGLRenderTarget(resolution, resolution, {
 		wrapS: THREE.ClampToEdgeWrapping,
@@ -82,6 +83,7 @@ export default class Ground extends Thing<ObjectTag> {
 		stencilBuffer: false,
 		depthBuffer: false
 	})
+	private readonly normalTarget = this.lodTarget.clone()
 	private readonly uniforms = {
 		w: { type: "f", value: 0 },
 		scale: { type: "f", value: 1 },
@@ -98,16 +100,22 @@ export default class Ground extends Thing<ObjectTag> {
 		this.uniforms.w.value = w
 		const w0 = w / seg
 
-		const gs = new Array(6).fill(0)
-			.map((_, i) => new THREE.PlaneBufferGeometry(w0, w0, 1 << (7 - i), 1 << (7 - i))
+		const gs = new Array(5).fill(0)
+			.map((_, i) => new THREE.PlaneBufferGeometry(w0, w0, 1 << (6 - i), 1 << (6 - i))
 				.scale(DistUnit, DistUnit, DistUnit)
 				.rotateX(-Math.PI / 2))
-		const mat = new THREE.MeshStandardMaterial({
-			color: 0x666666,
-			wireframe: true,
-			displacementMap: this.lodTarget.texture
+		const mat = new THREE.MeshPhysicalMaterial({
+			color: 0x2194ce,
+			// wireframe: true,
+			roughness: 0.9,
+			metalness: 0.2,
+			reflectivity: 0.2,
+			displacementMap: this.lodTarget.texture,
+			displacementScale: DistUnit,
+			// normalMap: this.normalTarget.texture,
+			flatShading: true
 		})
-		this.view.addToLayer(CityLayer.Origin, ...new Array(seg * seg).fill(0)
+		this.view.addToLayer(CityLayer.Frame, ...new Array(seg * seg).fill(0)
 			.map((_, i) => {
 				const lod = new THREE.LOD()
 				const ix = Math.floor(i % seg)
@@ -123,7 +131,14 @@ export default class Ground extends Thing<ObjectTag> {
 					}
 
 					uv.needsUpdate = true
-					lod.addLevel(new THREE.Mesh(g0, mat), d)
+					const m1 = mat.clone()
+					// m1.wireframe = true
+					// m1.wireframeLinewidth = 5
+					lod.addLevel(new THREE.Object3D()
+						.add(
+							new THREE.Mesh(g0, mat),
+							// new THREE.Mesh(g0, m1)
+						), d)
 				})
 				const x = (ix - seg / 2 + .5) * DistUnit
 				const y = (seg / 2 - .5 - iy) * DistUnit
@@ -134,15 +149,24 @@ export default class Ground extends Thing<ObjectTag> {
 			.scale(DistUnit, DistUnit, DistUnit)
 			.rotateX(-Math.PI / 2)
 			.translate(0, -1e-4, 0)
-		this.object = new THREE.Mesh(this.geometry, new THREE.MeshStandardMaterial({
-			color: 0x0000ff,
-			wireframe: true
+		this.object = new THREE.Mesh(this.geometry, new THREE.MeshPhysicalMaterial({
+			color: 0x666666,
+			roughness: 0.9,
+			metalness: 0.2,
+			reflectivity: 0.2,
+			flatShading: true
+			// wireframe: true
 		}))
 		this.view.addToLayer(CityLayer.Origin, this.object)
 		// this.object.visible = false
 
+		let autoClearColor = renderer.autoClearColor
 		this.pipeline = new Pipeline(renderer)
 		this.pipeline.begin
+			.thenExec(() => {
+				autoClearColor = renderer.autoClearColor
+				renderer.autoClearColor = false
+			})
 			.then(new PostStage({
 				uniforms: this.uniforms,
 				fragmentShader: heightMapShader
@@ -151,12 +175,42 @@ export default class Ground extends Thing<ObjectTag> {
 				uniforms: this.uniforms,
 				fragmentShader: heightMapCopyShader
 			}), this.lodTarget)
+			.thenExec(() => {
+				renderer.autoClearColor = autoClearColor
+			})
+
+		// this.normalPipeline = new Pipeline(renderer)
+		// this.normalPipeline.begin
+		// 	.then(new PostStage({
+		// 		uniforms: this.uniforms,
+		// 		fragmentShader: `
+		// 		uniform float w;
+		// 		uniform sampler2D prev;
+		// 		void main() { 
+		// 			vec2 c = gl_FragCoord.xy / iResolution;
+		// 			vec2 ne = (gl_FragCoord.xy + vec2(1, 1)) / iResolution;
+		// 			vec2 nw = (gl_FragCoord.xy + vec2(-1, 1)) / iResolution;
+		// 			float d = w / iResolution.x;
+
+		// 			float hc = texture2D(prev, c).x;
+		// 			float hne = texture2D(prev, ne).x;
+		// 			float hnw = texture2D(prev, nw).x;
+
+		// 			vec3 vne = vec3(d, d, hne - hc);
+		// 			vec3 vnw = vec3(-d, d, hnw - hc);
+		// 			vec3 n = normalize(cross(vne, vnw));
+
+		// 			gl_FragColor = vec4(n, 0) * .5 + .5;
+		// 			// gl_FragColor = vec4(0,texture2D(prev, tex), 0) * .5 + .5; 
+		// 		}`
+		// 	}), this.normalTarget)
 
 		new TerrianGenerator(this.renderer).generate({
 			target: this.lodTarget,
-			scale: 5
+			scale: 5 * 1 / DistUnit
 		})
 		this.updateWireframe(0, 0, grid, grid)
+		// this.updateNormal()
 	}
 
 	getHeight(pt: THREE.Vector2[]) {
@@ -192,6 +246,10 @@ export default class Ground extends Thing<ObjectTag> {
 		// console.log(res)
 		return res
 	}
+
+	// private updateNormal() {
+	// 	this.normalPipeline.render()
+	// }
 
 	private updateWireframe(x: number, y: number, width: number, height: number) {
 
@@ -242,7 +300,7 @@ export default class Ground extends Thing<ObjectTag> {
 						// const d = new THREE.Vector2(i, j).sub(ptx).length() * dpg
 						const { h, ok } = sample(uv)
 						if (ok) {
-							arr[3 * (l * (l - j - 1) + i) + 1] = h
+							arr[3 * (l * (l - j - 1) + i) + 1] = h * DistUnit
 						}
 						// console.log(src.array[3 * (l * j + i)])
 					}
@@ -251,12 +309,13 @@ export default class Ground extends Thing<ObjectTag> {
 		}
 
 		dst.needsUpdate = true
+		this.geometry.computeVertexNormals()
 	}
 
 	adjustHeight(pt: THREE.Vector2, dt: number) {
 
 		const radius = 8
-		const speed = 10 * DistUnit
+		const speed = 10
 		const scale = speed * dt * 1e-3
 
 		let wp = pt.clone()
@@ -293,6 +352,7 @@ export default class Ground extends Thing<ObjectTag> {
 		const r = Math.ceil(radius / this.w * grid + 1)
 
 		this.updateWireframe(p.x - r, p.y - r, 2 * r + 1, 2 * r + 1)
+		// this.updateNormal()
 
 		// console.log(this.getHeight(pt))
 	}
