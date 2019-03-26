@@ -149,8 +149,11 @@ export default class Ground extends Thing<ObjectTag> {
 			.scale(DistUnit, DistUnit, DistUnit)
 			.rotateX(-Math.PI / 2)
 			.translate(0, -1e-4, 0)
-		this.object = new THREE.Mesh(this.geometry, new THREE.MeshStandardMaterial({
+		this.object = new THREE.Mesh(this.geometry, new THREE.MeshPhysicalMaterial({
 			color: 0x666666,
+			roughness: 0.9,
+			metalness: 0.2,
+			reflectivity: 0.2,
 			flatShading: true
 			// wireframe: true
 		}))

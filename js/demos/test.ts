@@ -9,8 +9,7 @@ import { ObjectTag, CityLayer } from "../asset/def";
 
 import * as terrain from "./shaders/terrain.frag"
 import { VRStatefulRenderer, VRState } from "../wasp/renderer/vrstateful";
-import { SAOEffect, DepthLimitedBlurEffect, AccumulateShader } from "../wasp/prefab";
-import { FXAAShader } from "three";
+import { SAOEffect, DepthLimitedBlurEffect, AccumulateShader, FXAAShader } from "../wasp/prefab";
 
 function updateDropdown(target, list) {
 	let innerHTMLStr = "";
@@ -136,19 +135,42 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 		const renderopt = this.gui.addFolder("render")
 		renderopt.open()
 		const sao = {
-			bias: 0.5,
-			intensity: 0.5,
-			scale: 10,
-			kernelRadius: 30,
+			bias: 0.3,
+			intensity: 2.7,
+			scale: 79,
+			kernelRadius: 8.1,
 			minResolution: 0
 		}
+		const saoEffect = new SAOEffect({
+			resolution: new THREE.Vector2(width, height).divideScalar(2).floor(),
+			depthTexture: depthTexture,
+			normalTexture: normalTarget.texture,
+			camera: this.camera,
+			uniforms: sao
+		})
 		const saoopt = renderopt.addFolder("sao")
 		saoopt.open()
 		saoopt.add(sao, "bias", -1, 1)
-		saoopt.add(sao, "intensity", 0, 1)
-		saoopt.add(sao, "scale", 0, 10)
+		saoopt.add(sao, "intensity", 0, 10)
+		saoopt.add(sao, "scale", 0, 100)
 		saoopt.add(sao, "kernelRadius", 1, 50)
 		saoopt.add(sao, "minResolution", 0, 1)
+
+		const blur = {
+			resolution: new THREE.Vector2(width, height),
+			depthTexture: depthTexture,
+			image: saoEffect.textures[0],
+			camera: this.camera,
+			radius: 6,
+			stddev: 8.5,
+			depthCutoff: 1
+		}
+		const blurEffect = new DepthLimitedBlurEffect(blur)
+		const bluropt = renderopt.addFolder("blur")
+		bluropt.open()
+		bluropt.add(blur, "radius", 0, 100).step(1)
+		bluropt.add(blur, "stddev", 1, 25)
+		bluropt.add(blur, "depthCutoff", 0, 1)
 
 		const beauty = this.pipeline.begin
 			.thenExec(() => {
@@ -156,54 +178,39 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 				this.threeJsRenderer.autoClearColor = true
 			})
 			.then(new RenderStage(this.scene, this.camera), target)
+		// .then(new PostStage({
+		// 	uniforms: { depth: { value: depthTexture } },
+		// 	fragmentShader: `
+		// 	varying vec2 vUv;
+		// 	uniform sampler2D depth;
+		// 	void main() {
+		// 		gl_FragColor = vec4(texture2D(depth, vUv).x);
+		// 	}
+		// 	`
+		// }))
 
-		const saoEffect = new SAOEffect({
-			resolution: new THREE.Vector2(width, height),
-			depthTexture: depthTexture,
-			normalTexture: normalTarget.texture,
-			camera: this.camera,
-			uniforms: sao
-		})
 		const normal = beauty
 			.then(new RenderStage(this.scene, this.camera, new THREE.MeshNormalMaterial()),
 				normalTarget)
+			.then(new PostStage(FXAAShader))
 			.then(saoEffect)
-			.then(new DepthLimitedBlurEffect({
-				resolution: new THREE.Vector2(width, height),
-				depthTexture: depthTexture,
-				image: saoEffect.textures[0],
-				camera: this.camera,
-				radius: 8,
-				stddev: 4,
-				depthCutoff: 0.1
-			}))
+			.then(blurEffect)
 			.and(beauty)
 			.then(new PostStage({
 				fragmentShader: `
-				varying vec2 vUv;
-				void main() {
-					vec4 tex = texture2D(iChannel[1], vUv);
-					float a = texture2D(iChannel[0], vUv).r;
-					gl_FragColor = mix(tex, tex * .4, 1.-a);
-				}
-				`
+					varying vec2 vUv;
+					void main() {
+						vec4 tex = texture2D(iChannel[1], vUv);
+						float a = texture2D(iChannel[0], vUv).r;
+						gl_FragColor = mix(tex, tex * .4, 1.-a);
+					}
+					`
 			}), final)
-			// .then(new PostStage({
-			// 	uniforms: { depth: { value: depthTexture } },
-			// 	fragmentShader: `
-			// 	varying vec2 vUv;
-			// 	uniform sampler2D depth;
-			// 	void main() {
-			// 		gl_FragColor = vec4(texture2D(depth, vUv).x);
-			// 	}
-			// 	`
-			// }))
 			.thenExec(() => {
 				this.camera.layers.set(CityLayer.Indicator)
 				this.threeJsRenderer.autoClearColor = false
 			})
 			.then(new RenderStage(this.scene, this.camera), final)
-			// .then(new PostStage(FXAAShader))
 			.out()
 	}
 

@@ -66,10 +66,10 @@ export class DepthLimitedBlurEffect<T=any> extends Effect<T> {
 
 		super()
 
-		const { image, camera, depthTexture, radius, stddev, depthCutoff } = params
+		const { image, camera, depthTexture, radius, stddev } = params
 		const { width, height } = params.resolution
 
-		const vtarget = new THREE.WebGLRenderTarget(width, height, {
+		const vtarget = new THREE.WebGLRenderTarget(width / 2, height / 2, {
 			minFilter: THREE.NearestFilter,
 			magFilter: THREE.NearestFilter,
 			format: THREE.RGBAFormat
@@ -96,13 +96,27 @@ export class DepthLimitedBlurEffect<T=any> extends Effect<T> {
 		BlurShaderUtils.configure(hstage.shaderMaterial!, radius, stddev, new THREE.Vector2(0, 1))
 		BlurShaderUtils.configure(vstage.shaderMaterial!, radius, stddev, new THREE.Vector2(1, 0))
 
+		let prevRadius = radius
+		let prevStddev = stddev
 		this.begin
 			.thenExec(() => {
+				const { radius, stddev, depthCutoff } = params
+
 				hstage.shaderMaterial!.uniforms.cameraNear.value = camera.near
 				hstage.shaderMaterial!.uniforms.cameraFar.value = camera.far
+				hstage.shaderMaterial!.uniforms.depthCutoff.value = depthCutoff
 
 				vstage.shaderMaterial!.uniforms.cameraNear.value = camera.near
 				vstage.shaderMaterial!.uniforms.cameraFar.value = camera.far
+				vstage.shaderMaterial!.uniforms.depthCutoff.value = depthCutoff
+
+				if (prevRadius != radius || prevStddev != stddev) {
+					BlurShaderUtils.configure(hstage.shaderMaterial!, radius, stddev, new THREE.Vector2(0, 1))
+					BlurShaderUtils.configure(vstage.shaderMaterial!, radius, stddev, new THREE.Vector2(1, 0))
+				}
+
+				prevRadius = radius
+				prevStddev = stddev
 			})
 			.then(hstage, htarget)
 			.then(vstage, vtarget)
