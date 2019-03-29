@@ -45,7 +45,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
 		super()
 
-		this.scene.add(new THREE.AxesHelper())
+		// this.scene.add(new THREE.AxesHelper())
 
 		const controlopt = this.gui.addFolder("control")
 		controlopt.open()
