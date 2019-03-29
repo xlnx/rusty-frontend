@@ -66,16 +66,9 @@ export default class BasemapRoadItem<T={}> extends UserData<T> {
             roadPts[2] = roadPts[3].clone().add(roadDir)
             this._rect = new AnyRect2D(roadPts)
             //update QuadTreeItem
-            let min = minPt(roadPts)
-            let max = maxPt(roadPts)
-
-            Object.assign(this._quadTreeItem, {
-                x: min.x,
-                y: min.y,
-                width: max.x - min.x,
-                height: max.y - min.y,
-                obj: this
-            })
+            Object.assign(this._quadTreeItem, { obj: this })
+            // console.log(this._quadTreeItem.obj)
+            Object.assign(this._quadTreeItem, this._rect.treeItem())
         }
     }
 

@@ -1,13 +1,60 @@
 import * as THREE from "three"
-import { DistUnit, ObjectTag, CityLayer } from "../asset/def";
+import { DistUnit, ObjectTag, CityLayer, PointRadius } from "../asset/def";
 import BasemapRoadItem from "../model/roadItem";
 import { plain2world } from "../object/trans";
-import { Thing, Layer, TexAsset, Geometry2D, NumberVariable } from "../wasp";
+import { Thing, Layer, TexAsset, Geometry2D, NumberVariable, Variable } from "../wasp";
 import { Building } from "./building";
 import { Basemap } from "../model/basemap";
 import { Asset } from "../wasp/asset/asset";
-import { ParametricGeometry, Geometry, Vector2 } from "three";
+import { ParametricGeometry, Geometry, Vector2, Vector3, Object3D, CircleBufferGeometry } from "three";
 import Ground from "./ground";
+import { PointDetectRadius } from "../model/def";
+
+class PointIndicator extends Thing {
+	private static circleColor = new THREE.Color(1, 0, 0)
+	private static ringColor = new THREE.Color(1, 0, 0)
+	private static circleGeo = new THREE.CircleGeometry(PointRadius, 32, 0, Math.PI * 2)
+	private static ringGeo = new THREE.RingGeometry(PointRadius, PointRadius + .1, 32, 0, undefined, Math.PI * 2)
+
+
+	private readonly circleMat = new THREE.MeshBasicMaterial({
+		color: PointIndicator.circleColor,
+		side: THREE.DoubleSide,
+		opacity: 0.2,
+		transparent: true
+	})
+	private readonly ringMat = new THREE.MeshBasicMaterial({
+		color: PointIndicator.ringColor,
+		side: THREE.DoubleSide,
+		opacity: 0.96,
+		transparent: true
+	})
+
+	private cricle = new Geometry2D(PointIndicator.circleGeo, this.circleMat)
+	private ring = new Geometry2D(PointIndicator.ringGeo, this.ringMat)
+
+	constructor(
+		private readonly obj: Object3D,
+		private readonly pt: Vector2,
+		private readonly v: Variable
+	) {
+		super()
+		const Pt = plain2world(pt)
+		this.cricle.scale(DistUnit, DistUnit).translate(Pt.x, Pt.z)
+		this.ring.scale(DistUnit, DistUnit).translate(Pt.x, Pt.z)
+		// this.cricle.translate(pt.x, pt.y)
+		// this.ring.translate(pt.x, pt.y)
+		obj.add(this.cricle.mesh)
+		obj.add(this.ring.mesh)
+	}
+	checkDist() {
+		const dist = (<THREE.Vector2>this.v.value).distanceTo(this.pt)
+		if (dist > PointDetectRadius) {
+			this.obj.remove(this.cricle.mesh)
+			this.obj.remove(this.ring.mesh)
+		}
+	}
+}
 
 class RoadIndicator extends Thing {
 
@@ -17,6 +64,8 @@ class RoadIndicator extends Thing {
 	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
 
 	private static up = new THREE.Vector3(0, 1, 0)
+	private v: Variable
+	private ptIdks = new Object3D()
 
 	public readonly item
 
@@ -24,15 +73,25 @@ class RoadIndicator extends Thing {
 
 	private _valid = false
 
+	private object = new THREE.Object3D()
+
 	get valid() { return this._valid }
 	get length() { return this.l.value }
-	get to() { return this.v }
+	get to() { return this.v.value }
 	private setTo(coord: THREE.Vector2) {
-		this.v = coord
+		this.v.value = coord
 		this.item.to = coord
 		const d = this.to.clone().sub(this.from)
-		this.view.setRotationFromAxisAngle(RoadIndicator.up, d.angle())
+		this.object.setRotationFromAxisAngle(RoadIndicator.up, d.angle())
 		this.l.set(d.length() || 0.1)
+
+		//light near pts
+		for (const pt of this.basemap.getCandidatePoints(coord)) {
+			const ptIdk = new PointIndicator(this.ptIdks, pt, this.v)
+			this.v.subscribe(() => {
+				ptIdk.checkDist()
+			})
+		}
 	}
 
 	private readonly mat = new THREE.MeshBasicMaterial({
@@ -51,28 +110,31 @@ class RoadIndicator extends Thing {
 	private setValid(val: boolean) {
 		if (this._valid = val) {
 			this.mat.color.set(RoadIndicator.validColor)
-			this.mat.color.set(RoadIndicator.validColor)
+			this.matz.color.set(RoadIndicator.validColor)
 		} else {
-			this.matz.color.set(RoadIndicator.invalidColor)
+			this.mat.color.set(RoadIndicator.invalidColor)
 			this.matz.color.set(RoadIndicator.invalidColor)
 		}
 	}
 
 	adjust(coord: THREE.Vector2) {
-		this.setTo(coord)
-		this.setValid(this.basemap.alignRoad(this.item))
+		this.setTo(this.basemap.attachNearPoint(coord))
+		const val = this.basemap.alignRoad(this.item)
+		console.log(val)
+		this.setValid(val)
 	}
 
 	constructor(private readonly basemap: Basemap<Road, Building>,
 		public readonly width: number,
 		public readonly from: THREE.Vector2,
-		private v: THREE.Vector2) {
+		private pt: THREE.Vector2) {
 
 		super()
 
+		this.v = new Variable(pt)
 		const r = width / 2
 
-		this.item = new BasemapRoadItem(width, from, v)
+		this.item = new BasemapRoadItem(width, from, pt)
 
 		const yy = new THREE.RingGeometry(r, r + .1, 32, 0, undefined, Math.PI)
 		const y = new THREE.CircleGeometry(r, 32, 0, Math.PI)
@@ -99,11 +161,17 @@ class RoadIndicator extends Thing {
 		w.scale.setScalar(DistUnit)
 		w.rotateY(Math.PI / 2)
 
-		this.view.addToLayer(CityLayer.Indicator, w)
-
+		this.object.add(w)
 		const { x, y: y_, z } = plain2world(from)
-		this.view.position.set(x, y_, z)
-		this.setTo(v)
+		this.object.position.set(x, y_, z)
+
+		this.view.addToLayer(CityLayer.Indicator, this.object)
+
+		// this.ptIdks.rotateY(Math.PI / 2)
+		this.ptIdks.position.set(0, 0, 0)
+		this.view.addToLayer(CityLayer.Indicator, this.ptIdks)
+
+		this.setTo(pt)
 	}
 }
 
@@ -121,18 +189,6 @@ class Road extends Thing<ObjectTag> {
 		})
 	})()
 
-	// private static geometry = (() => {
-	// 	const geometry = new THREE.PlaneGeometry(1, 1, 1, 1)
-	// 	geometry.rotateX(-Math.PI / 2)
-	// 	geometry.translate(0.5, 0, 0)
-	// 	geometry.scale(DistUnit, DistUnit, DistUnit)
-	// 	return geometry
-	// })()
-
-	// private readonly geometry = Road.geometry.clone()
-	// private readonly uvs = this.geometry.faceVertexUvs[0]
-
-	// private readonly object = new THREE.Mesh(this.geometry, Road.material)
 	private geometry: THREE.Geometry = <any>null
 	private object: THREE.Mesh = <any>null
 
@@ -151,38 +207,36 @@ class Road extends Thing<ObjectTag> {
 		this.item.userData = this
 
 		this.boxGeometry(ground)
-			.then(geometry => {
-				// console.log(geometry)
-
+			.then(res => {
+				const { geometry, startHeight } = res
 				this.geometry = geometry
 				this.object = new THREE.Mesh(this.geometry, Road.material)
 
-				const mat = Road.material.clone()
-				mat.wireframe = true
+				this.geometry.scale(DistUnit, DistUnit, DistUnit)
 
-				const w = new THREE.Object3D()
-				w.add(
-					this.object,
-					// new THREE.Mesh(this.geometry, mat)
-				)
-				w.scale.set(DistUnit, DistUnit, DistUnit)
+				let from = plain2world(this.item.from)
+				let to = plain2world(this.item.to)
+				let dir = to.clone().sub(from)
+				let angle = Math.acos(dir.clone().normalize().dot(new THREE.Vector3(1, 0, 0))) * (dir.z > 0 ? -1 : 1)
+				this.geometry.rotateY(angle)
 
-				const { x, z } = plain2world(this.item.from)
-				w.translateX(x)
-				w.translateZ(z)
+				this.view.translateX(from.x)
+				this.view.translateZ(from.z)
+				this.view.translateY(startHeight * DistUnit)
 
-				this.view.addToLayer(CityLayer.Origin, w)
+				this.view.addToLayer(CityLayer.Origin, this.object)
 			})
 	}
 
-	async boxGeometry(ground: Ground): Promise<Geometry> {
+	async boxGeometry(ground: Ground): Promise<{ geometry: Geometry, startHeight: number, roadWidth: number }> {
 		return new Promise((resolve, reject) => {
 
 			//need height fix here
 			let origin = new THREE.Vector3(0, 0, 0)
 			let up = new THREE.Vector3(0, 1, 0)
 			let botWidth = this.item.width * 0.1
-			let midWidth = this.item.width * 3 + botWidth
+			let roadWidth = this.item.width * 3
+			let midWidth = roadWidth + botWidth
 			let upWidth = midWidth + botWidth
 
 			let from = this.item.from.clone()
@@ -191,9 +245,16 @@ class Road extends Thing<ObjectTag> {
 			let to = this.item.to.clone()
 			let To = new THREE.Vector3(to.x, 0, -to.y)
 
-			let dir = To.clone().sub(From)
-			let norm = dir.clone().normalize().cross(up).multiplyScalar(upWidth)
-			let start = origin.clone()
+			// let dir = To.clone().sub(From)
+			let dir = new THREE.Vector3(To.clone().sub(From).length(), 0, 0)
+			let norm = origin.clone().sub(
+				dir.clone()
+					.normalize()
+					.cross(up)
+					.multiplyScalar(upWidth)
+			)
+			// let start = origin.clone()
+			let start = new THREE.Vector3(0, 0, upWidth * 3 / 8)
 
 			let uSeg = Math.round(dir.length()) * 3 + 1
 			let botVPos = 1
@@ -210,40 +271,10 @@ class Road extends Thing<ObjectTag> {
 						.multiplyScalar(i / uSeg))
 				pts.push(pt)
 			}
-			// console.log(pts)
 			let heights = ground.getHeight(pts)
-			// console.log(heights)
-
-			// let vCount = 0
-			// let lastV = 0
-			// const geometry = new THREE.ParametricGeometry((u, v, w) => {
-			// 	const { x, y, z } = start.clone()
-			// 	let vPos = Math.round(vSeg * v)
-			// 	let uPos = Math.round(uSeg * u)
-
-			// 	let height = heights[uPos] / DistUnit
-			// 	if (vPos < botVPos) {
-			// 		// w.set(x, 0 - (botVPos - vPos) * botWidth, z)
-			// 		// w.set(x, ground.getHeight(axesPos) - (botVPos - vPos) * botWidth, z)
-			// 		w.set(x, height - (botVPos - vPos) * botWidth, z)
-			// 			.add(norm.clone().multiplyScalar(botVPos / vSeg - v))
-			// 	}
-			// 	else if (vPos > midVPos) {
-			// 		// w.set(x, 0 - (vPos - midVPos) * botWidth, z)
-			// 		// w.set(x, ground.getHeight(axesPos) - (vPos - midVPos) * botWidth, z)
-			// 		w.set(x, height - (vPos - midVPos) * botWidth, z)
-			// 			.sub(norm.clone().multiplyScalar(v - midVPos / vSeg))
-			// 	}
-			// 	else {
-			// 		// w.set(x, ground.getHeight(axesPos), z)
-			// 		w.set(x, height, z)
-			// 		// w.set(x, 0, z)
-			// 	}
-			// 	w.add(dir.clone().multiplyScalar(u))
-			// 		.add(norm.clone().multiplyScalar(v))
-			// 		.add(new THREE.Vector3(0, botWidth / 5, 0))
-			// 	// console.log(w)
-			// }, uSeg, vSeg)
+			let startHeight = heights[0]
+			for (let i = 0; i < uSeg; ++i)
+				heights[i] -= startHeight
 
 			const geometry = new THREE.Geometry()
 			let face = geometry.faces
@@ -295,7 +326,7 @@ class Road extends Thing<ObjectTag> {
 			geometry.elementsNeedUpdate = true
 			geometry.computeFaceNormals()
 
-			resolve(geometry)
+			resolve({ geometry, startHeight, roadWidth })
 		})
 	}
 

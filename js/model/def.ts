@@ -3,6 +3,8 @@ const mapWidth = 500
 const mapHeight = 500
 const maxBuildings = 100
 const maxRoads = 100
+const PointDetectRadius = 16
+const AttachRadius = 3
 
 import * as THREE from "three"
 import BasemapBuildingItem from "./building";
@@ -36,7 +38,7 @@ abstract class UserData<T> {
 
 export {
     QuadTreeItem,
-    mapWidth, mapHeight, maxBuildings, maxRoads,
+    mapWidth, mapHeight, maxBuildings, maxRoads, PointDetectRadius, AttachRadius,
     UserData
     // RoadLikeObject, BuildingLikeObject,
 }

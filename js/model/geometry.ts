@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { QuadTreeItem } from "./def";
+import { Vector2 } from "three";
 
 function inBox(min: Point, pts: Point[], max: Point): boolean {
     for (let pt of pts) {
@@ -144,24 +145,6 @@ class AnyRect2D {
         let thisDir = thisPts[1].clone().sub(thisPts[0])
         let thisAngle = Math.acos(thisDir.clone().normalize().x) * thisDir.y < 0 ? -1 : 1
 
-        // let thisCopy = copyPts(thisPts)
-        // let otherCopy = copyPts(otherPts)
-        // let p = otherPts[0].clone().rotateAround(origin, otherAngle)
-        // for (let pt of thisCopy)
-        //     pt.sub(otherPts[0]).rotateAround(origin, otherAngle)
-        // for (let pt of otherCopy)
-        //     pt.sub(otherPts[0]).rotateAround(origin, otherAngle)
-        // let thisPtsInOther = inBox(minPt(otherCopy), thisCopy, maxPt(otherCopy))
-
-        // thisCopy = copyPts(thisPts)
-        // otherCopy = copyPts(otherPts)
-        // p = thisPts[0].clone().rotateAround(origin, thisAngle)
-        // for (let pt of thisCopy)
-        //     pt.sub(thisPts[0]).rotateAround(origin, thisAngle)
-        // for (let pt of otherCopy)
-        //     pt.sub(thisPts[0]).rotateAround(origin, thisAngle)
-        // let otherPtsInThis = inBox(minPt(thisCopy), otherCopy, maxPt(thisCopy))
-
         let thisPtsInOther = new AnyRect2D(otherPts).containPts(thisPts)
         let otherPtsInThis = new AnyRect2D(thisPts).containPts(otherPts)
         //case 1
@@ -198,9 +181,20 @@ class AnyRect2D {
 
     }
 }
+class ParallelRect2D extends AnyRect2D {
+    constructor(pt: Point, radius: number) {
+        let rect = [
+            pt.clone().add(new Vector2(radius / 2, radius / 2)),
+            pt.clone().add(new Vector2(radius / 2, -radius / 2)),
+            pt.clone().add(new Vector2(-radius / 2, -radius / 2)),
+            pt.clone().add(new Vector2(-radius / 2, radius / 2))
+        ]
+        super(rect)
+    }
+}
 
 
 export {
     inBox, minPt, maxPt, Point, cmp,
-    Seg2D, AnyRect2D
+    Seg2D, AnyRect2D, ParallelRect2D
 }
