@@ -10,51 +10,8 @@ import { ParametricGeometry, Geometry, Vector2, Vector3, Object3D, CircleBufferG
 import Ground from "./ground";
 import { PointDetectRadius } from "../model/def";
 
-class PointIndicator extends Thing {
-	private static circleColor = new THREE.Color(1, 0, 0)
-	private static ringColor = new THREE.Color(1, 0, 0)
-	private static circleGeo = new THREE.CircleGeometry(PointRadius, 32, 0, Math.PI * 2)
-	private static ringGeo = new THREE.RingGeometry(PointRadius, PointRadius + .1, 32, 0, undefined, Math.PI * 2)
 
 
-	private readonly circleMat = new THREE.MeshBasicMaterial({
-		color: PointIndicator.circleColor,
-		side: THREE.DoubleSide,
-		opacity: 0.2,
-		transparent: true
-	})
-	private readonly ringMat = new THREE.MeshBasicMaterial({
-		color: PointIndicator.ringColor,
-		side: THREE.DoubleSide,
-		opacity: 0.96,
-		transparent: true
-	})
-
-	private cricle = new Geometry2D(PointIndicator.circleGeo, this.circleMat)
-	private ring = new Geometry2D(PointIndicator.ringGeo, this.ringMat)
-
-	constructor(
-		private readonly obj: Object3D,
-		private readonly pt: Vector2,
-		private readonly v: Variable
-	) {
-		super()
-		const Pt = plain2world(pt)
-		this.cricle.scale(DistUnit, DistUnit).translate(Pt.x, Pt.z)
-		this.ring.scale(DistUnit, DistUnit).translate(Pt.x, Pt.z)
-		// this.cricle.translate(pt.x, pt.y)
-		// this.ring.translate(pt.x, pt.y)
-		obj.add(this.cricle.mesh)
-		obj.add(this.ring.mesh)
-	}
-	checkDist() {
-		const dist = (<THREE.Vector2>this.v.value).distanceTo(this.pt)
-		if (dist > PointDetectRadius) {
-			this.obj.remove(this.cricle.mesh)
-			this.obj.remove(this.ring.mesh)
-		}
-	}
-}
 
 class RoadIndicator extends Thing {
 
@@ -64,8 +21,8 @@ class RoadIndicator extends Thing {
 	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
 
 	private static up = new THREE.Vector3(0, 1, 0)
-	private v: Variable
-	private ptIdks = new Object3D()
+	// private v: Variable
+	private v: THREE.Vector2
 
 	public readonly item
 
@@ -77,21 +34,16 @@ class RoadIndicator extends Thing {
 
 	get valid() { return this._valid }
 	get length() { return this.l.value }
-	get to() { return this.v.value }
+	get to() { return this.v }
+
 	private setTo(coord: THREE.Vector2) {
-		this.v.value = coord
+		this.v = coord
 		this.item.to = coord
 		const d = this.to.clone().sub(this.from)
 		this.object.setRotationFromAxisAngle(RoadIndicator.up, d.angle())
 		this.l.set(d.length() || 0.1)
 
-		//light near pts
-		for (const pt of this.basemap.getCandidatePoints(coord)) {
-			const ptIdk = new PointIndicator(this.ptIdks, pt, this.v)
-			this.v.subscribe(() => {
-				ptIdk.checkDist()
-			})
-		}
+		// this.addPtIdk(coord)
 	}
 
 	private readonly mat = new THREE.MeshBasicMaterial({
@@ -117,21 +69,27 @@ class RoadIndicator extends Thing {
 		}
 	}
 
-	adjust(coord: THREE.Vector2) {
+	adjustFrom(coord: THREE.Vector2) {
+		Object.assign(this.from, coord.clone())
+		const { x, y: y_, z } = plain2world(this.from)
+		this.object.position.set(x, y_, z)
+	}
+	adjustTo(coord: THREE.Vector2, aligning: boolean = false) {
 		this.setTo(this.basemap.attachNearPoint(coord))
-		const val = this.basemap.alignRoad(this.item)
-		console.log(val)
+		const val = this.basemap.alignRoad(this.item, aligning)
+		// console.log(val)
 		this.setValid(val)
 	}
 
 	constructor(private readonly basemap: Basemap<Road, Building>,
 		public readonly width: number,
-		public readonly from: THREE.Vector2,
+		public from: THREE.Vector2,
 		private pt: THREE.Vector2) {
 
 		super()
 
-		this.v = new Variable(pt)
+		this.v = pt
+		// this.v = new Variable(pt)
 		const r = width / 2
 
 		this.item = new BasemapRoadItem(width, from, pt)
@@ -162,14 +120,15 @@ class RoadIndicator extends Thing {
 		w.rotateY(Math.PI / 2)
 
 		this.object.add(w)
-		const { x, y: y_, z } = plain2world(from)
-		this.object.position.set(x, y_, z)
+		this.adjustFrom(from)
+		// const { x, y: y_, z } = plain2world(from)
+		// this.object.position.set(x, y_, z)
 
 		this.view.addToLayer(CityLayer.Indicator, this.object)
 
 		// this.ptIdks.rotateY(Math.PI / 2)
-		this.ptIdks.position.set(0, 0, 0)
-		this.view.addToLayer(CityLayer.Indicator, this.ptIdks)
+		// this.ptIdks.position.set(0, 0, 0)
+		// this.view.addToLayer(CityLayer.Indicator, this.ptIdks)
 
 		this.setTo(pt)
 	}

@@ -4,12 +4,14 @@ import { RoadIndicator, Road } from "../object/road";
 import { BuildingIndicator, Building } from "../object/building";
 import { Basemap } from "../model/basemap";
 import { BuildingManager } from "../asset/building";
-import { VRRenderer, Pipeline, RenderStage, Scene, gBuffer, PostStage } from "../wasp";
+import { VRRenderer, Pipeline, RenderStage, Scene, gBuffer, PostStage, Variable, Thing } from "../wasp";
 import { ObjectTag, CityLayer, DistUnit } from "../asset/def";
 
 import * as terrain from "./shaders/terrain.frag"
 import { VRStatefulRenderer, VRState } from "../wasp/renderer/vrstateful";
 import { SAOEffect, DepthLimitedBlurEffect, AccumulateShader, FXAAShader, SSAOEffect } from "../wasp/prefab";
+import { Vector2, Object3D } from "three";
+import { PointIndicator } from "../model/point";
 
 function updateDropdown(target, list) {
 	let innerHTMLStr = "";
@@ -285,9 +287,33 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 		})
 
 		this.addState(new class extends VRState {
-			constructor() { super("road") }
+			private aligning = false
+			private coord: Variable | undefined
+			private ptIdks = new Object3D()
+			private scene = new Thing<ObjectTag>()
+			private fromIdk
+			private toIdk
 
-			private indicator?: RoadIndicator
+			constructor() {
+				super("road")
+				this.ptIdks.position.set(0, 0, 0)
+				this.scene.view.addToLayer(CityLayer.Indicator, this.ptIdks)
+				self.scene.add(this.scene)
+			}
+
+			private indicator: RoadIndicator | undefined
+
+			addPtIdks() {
+				if (this.coord) {
+					for (const pt of self.basemap.getCandidatePoints(this.coord.value)) {
+						// console.log(pt)
+						const ptIdk = new PointIndicator(this.ptIdks, pt, this.coord)
+						this.coord.subscribe(() => {
+							ptIdk.checkDist()
+						})
+					}
+				}
+			}
 
 			OnLeave() {
 				if (this.indicator) {
@@ -296,11 +322,31 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 				}
 			}
 
+			OnMouseMove() {
+				const pt = self.ground.intersect(self.mouse, self.camera)
+				if (pt) {
+					if (!this.coord) this.coord = new Variable(pt)
+					else this.coord.value = pt
+
+					//light candidate points
+					this.addPtIdks()
+					if (this.aligning) {
+						this.indicator!.adjustTo(this.coord.value, true)
+					}
+
+					//draw mouse indicator
+
+				}
+			}
+
 			OnMouseDown() {
-				const point = self.ground.intersect(self.mouse, self.camera)
-				if (point) {
-					this.indicator = new RoadIndicator(self.basemap,
-						self.guiOptions.width, point!, point!).addTo(self.scene)
+				if (this.coord) {
+					this.aligning = true
+					if (!this.indicator) {
+						this.coord.value = self.basemap.attachNearPoint(this.coord.value)
+						this.indicator = new RoadIndicator(self.basemap,
+							self.guiOptions.width, this.coord.value, this.coord.value).addTo(self.scene)
+					}
 				}
 			}
 
@@ -322,17 +368,17 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 					this.indicator.removeFrom(self.scene)
 					this.indicator = undefined
 				}
+				this.aligning = false
 			}
 
 			OnUpdate() {
-				const coord = self.ground.intersect(self.mouse, self.camera)
-
-				if (coord) {
-					if (this.indicator) {
-						const ind: RoadIndicator = this.indicator
-						ind.adjust(coord)
-					}
-				}
+				// const coord = self.ground.intersect(self.mouse, self.camera)
+				// if (coord) {
+				// 	if (this.indicator) {
+				// 		const ind: RoadIndicator = this.indicator
+				// 		ind.adjust(coord)
+				// 	}
+				// }
 			}
 		})
 

@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { QuadTreeItem } from "./def";
 import { Vector2 } from "three";
+import { format } from "url";
 
 function inBox(min: Point, pts: Point[], max: Point): boolean {
     for (let pt of pts) {
@@ -91,7 +92,17 @@ class Seg2D {
         let ac = pt.clone().sub(this.from)
         return Math.abs((<any>ab).cross(ac)) / ab.length()
     }
-
+    ptOnLine(pt: Point): boolean {
+        let p = pt
+        let pa = this.from.clone()
+            .sub(p)
+        let pb = this.to.clone()
+            .sub(p)
+        return cmp(pa.dot(pb), 0) == 0
+    }
+    length(): number {
+        return this.from.clone().sub(this.to).length()
+    }
 }
 
 class AnyRect2D {

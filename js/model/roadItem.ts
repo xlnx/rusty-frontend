@@ -67,7 +67,6 @@ export default class BasemapRoadItem<T={}> extends UserData<T> {
             this._rect = new AnyRect2D(roadPts)
             //update QuadTreeItem
             Object.assign(this._quadTreeItem, { obj: this })
-            // console.log(this._quadTreeItem.obj)
             Object.assign(this._quadTreeItem, this._rect.treeItem())
         }
     }
