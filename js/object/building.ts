@@ -36,8 +36,17 @@ class Building extends BuildingBase {
 
 		const { object } = I.proto
 
+		const obj = object.model.clone()
+		obj.traverse(e => {
+			const m = <THREE.Mesh>e
+			if (m.isMesh) {
+				m.castShadow = true
+				m.receiveShadow = true
+			}
+		})
+
 		// console.log(object.model)
-		this.view.addToLayer(CityLayer.Origin, object.model.clone())
+		this.view.addToLayer(CityLayer.Origin, obj)
 
 		// set pos and orientation of boj
 		const { x, y, z } = I.view.position
@@ -52,12 +61,12 @@ class Building extends BuildingBase {
 
 class BuildingIndicator extends BuildingBase {
 
-	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84)
-	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
+	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(4)
+	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2).multiplyScalar(4)
 
 	private mat = new THREE.MeshPhongMaterial({
 		color: BuildingIndicator.invalidColor,
-		opacity: 0.6,
+		opacity: 0.4,
 		transparent: true,
 		polygonOffset: true,
 		polygonOffsetFactor: -1e4

@@ -134,9 +134,13 @@ export default class Ground extends Thing<ObjectTag> {
 					const m1 = mat.clone()
 					// m1.wireframe = true
 					// m1.wireframeLinewidth = 5
+
+					const model = new THREE.Mesh(g0, mat)
+					model.receiveShadow = true
+
 					lod.addLevel(new THREE.Object3D()
 						.add(
-							new THREE.Mesh(g0, mat),
+							model
 							// new THREE.Mesh(g0, m1)
 						), d)
 				})
@@ -157,6 +161,7 @@ export default class Ground extends Thing<ObjectTag> {
 			flatShading: true
 			// wireframe: true
 		}))
+		this.object.receiveShadow = true
 		this.view.addToLayer(CityLayer.Origin, this.object)
 		// this.object.visible = false
 
