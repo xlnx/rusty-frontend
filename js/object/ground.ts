@@ -6,7 +6,7 @@ import * as heightMapShader from "./heightMap.frag"
 import * as heightMapCopyShader from "./heightMapCopy.frag"
 import { LODPlane } from "./lodPlane";
 
-const grid = 300
+const grid = 100
 const resolution = 2048
 const seg = 8
 
@@ -159,12 +159,12 @@ export default class Ground extends Thing<ObjectTag> {
 			roughness: 0.9,
 			metalness: 0.2,
 			reflectivity: 0.2,
-			flatShading: true
-			// wireframe: true
+			flatShading: true,
+			wireframe: true
 		}))
 		this.object.receiveShadow = true
 		this.view.addToLayer(CityLayer.Origin, this.object)
-		this.object.visible = false
+		// this.object.visible = false
 
 		let autoClearColor = renderer.autoClearColor
 		this.pipeline = new Pipeline(renderer)
@@ -365,9 +365,9 @@ export default class Ground extends Thing<ObjectTag> {
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
 		this.raycaster.setFromCamera(coord, camera)
-		this.object.visible = true
+		// this.object.visible = true
 		const ints = this.raycaster.intersectObject(this.object)
-		this.object.visible = false
+		// this.object.visible = false
 		if (!ints.length) return undefined
 		return world2plain(ints[0].point)
 	}

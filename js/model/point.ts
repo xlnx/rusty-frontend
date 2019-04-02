@@ -57,11 +57,9 @@ class PointIndicator extends Thing {
         new Geometry2D(PointIndicator.ringGeo, PointIndicator.mouseRingMat)
     }
     else {
-      this.cricle =
-        new Geometry2D(
-          PointIndicator.circleGeo, PointIndicator.circleMat)
-      this.ring =
-        new Geometry2D(PointIndicator.ringGeo, PointIndicator.ringMat)
+      this.cricle = new Geometry2D(
+        PointIndicator.circleGeo, PointIndicator.circleMat)
+      this.ring = new Geometry2D(PointIndicator.ringGeo, PointIndicator.ringMat)
     }
 
     this.relocate(coord)
@@ -78,9 +76,8 @@ class PointIndicator extends Thing {
     const pt = plain2world(coord)
     // this.cricle.translate(pt.x, pt.z)
     // this.ring.translate(pt.x, pt.z)
-    this.cricle.scale(DistUnit, DistUnit)
-      .translate(pt.x, pt.z)
-      .translate(pt.x, pt.z)
+    this.cricle.scale(DistUnit, DistUnit).translate(pt.x, pt.z)
+    this.ring.scale(DistUnit, DistUnit).translate(pt.x, pt.z)
     // this.obj.add(this.cricle.mesh)
     // this.obj.add(this.ring.mesh)
   }
