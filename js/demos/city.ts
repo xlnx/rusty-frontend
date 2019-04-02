@@ -237,19 +237,17 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
     // 	`
     // }))
 
-    const normal =
-      beauty
-        .then(
-          new RenderStage(
-            this.scene, this.camera, new THREE.MeshNormalMaterial()),
-          normalTarget)
-        .then(new PostStage(FXAAShader))
-        .then(ssaoEffect)
-        .then(blurEffect)
-        .and(beauty)
-        .then(
-          new PostStage({
-            fragmentShader: `
+    const normal = beauty.then(
+      new RenderStage(
+        this.scene, this.camera, new THREE.MeshNormalMaterial()),
+      normalTarget)
+      .then(new PostStage(FXAAShader))
+      .then(ssaoEffect)
+      .then(blurEffect)
+      .and(beauty)
+      .then(
+        new PostStage({
+          fragmentShader: `
 					varying vec2 vUv;
 					void main() {
 						vec4 tex = texture2D(iChannel[1], vUv);
@@ -257,15 +255,15 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 						gl_FragColor = mix(tex, tex * .4, 1.-a);
 					}
 					`
-          }),
-          final)
-        .thenExec(
-          () => {
-            this.camera.layers.set(CityLayer.Indicator)
-            this.threeJsRenderer.autoClearColor = false
-          })
-        .then(new RenderStage(this.scene, this.camera), final)
-        .out()
+        }),
+        final)
+      .thenExec(
+        () => {
+          this.camera.layers.set(CityLayer.Indicator)
+          this.threeJsRenderer.autoClearColor = false
+        })
+      .then(new RenderStage(this.scene, this.camera), final)
+      .out()
   }
 
   private addStates() {
@@ -275,197 +273,191 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
     this.gui.add(obj, 'state', ['building', 'road', 'preview', 'adjust'])
       .onChange(x => this.state = x)
 
-    const self =
-      this
+    const self = this
 
-    this
-      .addState(new class extends VRState {
-        constructor() {
-          super('building')
-        }
+    this.addState(new class extends VRState {
+      constructor() {
+        super('building')
+      }
 
-        private indicator?: BuildingIndicator
+      private indicator?: BuildingIndicator
 
-        OnMsg(e: { [key: string]: any }) {
-          if (e.type = 'reload') {
-            this.indicator!.removeFrom(self.scene)
-            this.indicator = new BuildingIndicator(
-              self.manager.get(self.type)!, self.basemap)
-              .addTo(self.scene)
-          }
-        }
-
-        OnEnter() {
+      OnMsg(e: { [key: string]: any }) {
+        if (e.type = 'reload') {
+          this.indicator!.removeFrom(self.scene)
           this.indicator = new BuildingIndicator(
             self.manager.get(self.type)!, self.basemap)
             .addTo(self.scene)
         }
+      }
 
-        OnLeave() {
-          this.indicator!.removeFrom(self.scene)
+      OnEnter() {
+        this.indicator = new BuildingIndicator(
+          self.manager.get(self.type)!, self.basemap)
+          .addTo(self.scene)
+      }
+
+      OnLeave() {
+        this.indicator!.removeFrom(self.scene)
+      }
+
+      OnMouseUp() {
+        if (this.indicator && this.indicator.valid) {
+          const b = new Building(this.indicator).addTo(self.scene)
+          self.basemap.addBuilding(b.item)
         }
+      }
 
-        OnMouseUp() {
-          if (this.indicator && this.indicator.valid) {
-            const b = new Building(this.indicator).addTo(self.scene)
-            self.basemap.addBuilding(b.item)
-          }
-        }
+      OnUpdate() {
+        const coord = self.ground.intersect(self.mouse, self.camera)
 
-        OnUpdate() {
-          const coord = self.ground.intersect(self.mouse, self.camera)
-
-          if (coord) {
-            if (this.indicator) {
-              const ind: BuildingIndicator = this.indicator
-              ind.adjust(coord)
-            }
-          }
-        }
-      })
-
-    this
-      .addState(new class extends VRState {
-        private aligning: Variable =
-          new Variable(false)
-        private coord: Variable | undefined
-        private ptIdks = new Object3D()
-        private scene = new Thing<ObjectTag>()
-        private indicator: RoadIndicator | undefined
-        private mouseIdk: PointIndicator | undefined
-        private map: Map<THREE.Vector2, PointIndicator> = new Map()
-
-        constructor() {
-          super('road')
-          this.ptIdks.position.set(0, 0, 0)
-          this.scene.view
-            .addToLayer(CityLayer.Indicator, this.ptIdks)
-          self.scene.add(this.scene)
-        }
-
-        addPtIdks() {
-          if (this.coord) {
-            for (const pt of self.basemap.getCandidatePoints(
-              this.coord.value)) {
-              // console.log(pt)
-              if (!this.map.has(pt)) {
-                const ptIdk =
-                  new PointIndicator(pt)
-
-                this.ptIdks.add(ptIdk.cricle.mesh)
-                this.ptIdks.add(ptIdk.ring.mesh)
-                this.map.set(pt, ptIdk)
-                this.coord.subscribe((v) => {
-                  const dist = (<THREE.Vector2>v)
-                    .distanceTo(ptIdk.coord)
-                  if (dist > PointDetectRadius) {
-                    this.ptIdks.remove(ptIdk.cricle.mesh)
-                    this.ptIdks.remove(ptIdk.ring.mesh)
-                    this.map.delete(pt)
-                  }
-                })
-              }
-            }
-          }
-        }
-
-        OnLeave() {
+        if (coord) {
           if (this.indicator) {
-            this.indicator.removeFrom(self.scene)
-            this.indicator = undefined
+            const ind: BuildingIndicator = this.indicator
+            ind.adjust(coord)
           }
         }
+      }
+    })
 
-        OnMouseMove() {
-          let pt = self.ground.intersect(self.mouse, self.camera)
-          if (pt) {
-            pt = self.basemap.attachNearPoint(pt)
+    this.addState(new class extends VRState {
+      private aligning: Variable =
+        new Variable(false)
+      private coord: Variable | undefined
+      private ptIdks = new Object3D()
+      private scene = new Thing<ObjectTag>()
+      private indicator: RoadIndicator | undefined
+      private mouseIdk: PointIndicator | undefined
+      private map: Map<THREE.Vector2, PointIndicator> = new Map()
 
-            if (!this.coord) this.coord = new Variable(pt)
-            else this.coord.value = pt
+      constructor() {
+        super('road')
+        this.ptIdks.position.set(0, 0, 0)
+        this.scene.view.addToLayer(CityLayer.Indicator, this.ptIdks)
+        self.scene.add(this.scene)
+      }
 
-            // light candidate points
-            this.addPtIdks()
-            if (this.aligning.value) {
-              this.indicator!.adjustTo(this.coord.value, true)
-            }
-            else {
-              // draw mouse indicator
-              if (!this.mouseIdk) {
-                const mouse = new PointIndicator(pt, true)
-                this.mouseIdk = mouse
+      addPtIdks() {
+        if (this.coord) {
+          for (const pt of self.basemap.getCandidatePoints(
+            this.coord.value)) {
+            // console.log(pt)
+            if (!this.map.has(pt)) {
+              const ptIdk = new PointIndicator(pt)
 
-                this.ptIdks.add(mouse.cricle.mesh)
-                this.ptIdks.add(mouse.ring.mesh)
-                //represent or not
-                this.aligning.subscribe((val) => {
-                  const aligning = (<boolean>val)
-                  if (aligning) {
-                    this.ptIdks.remove(mouse.cricle.mesh)
-                    this.ptIdks.remove(mouse.ring.mesh)
-                  }
-                  else {
-                    this.mouseIdk!.relocate(this.coord!.value)
-                    this.ptIdks.add(mouse.cricle.mesh)
-                    this.ptIdks.add(mouse.ring.mesh)
-                  }
-                })
-                //update coord
-                this.coord.subscribe((val) => {
-                  const pt = (<THREE.Vector2>val)
-                  mouse.relocate(pt)
-                })
-              }
+              this.ptIdks.add(ptIdk.cricle.mesh)
+              this.ptIdks.add(ptIdk.ring.mesh)
+              this.map.set(pt, ptIdk)
+              this.coord.subscribe((v) => {
+                const dist = (<THREE.Vector2>v).distanceTo(ptIdk.coord)
+                if (dist > PointDetectRadius) {
+                  this.ptIdks.remove(ptIdk.cricle.mesh)
+                  this.ptIdks.remove(ptIdk.ring.mesh)
+                  this.map.delete(pt)
+                }
+              })
             }
           }
         }
+      }
 
-        OnMouseDown() {
-          if (this.coord) {
-            this.aligning.value = true
-            if (!this.indicator) {
-              // this.coord.value =
-              // self.basemap.attachNearPoint(this.coord.value)
-              this.indicator = new RoadIndicator(
-                self.basemap, self.guiOptions.width,
-                this.coord.value, this.coord.value)
-                .addTo(self.scene)
+      OnLeave() {
+        if (this.indicator) {
+          this.indicator.removeFrom(self.scene)
+          this.indicator = undefined
+        }
+      }
+
+      OnMouseMove() {
+        let pt = self.ground.intersect(self.mouse, self.camera)
+        if (pt) {
+          pt = self.basemap.attachNearPoint(pt)
+
+          if (!this.coord) this.coord = new Variable(pt)
+          else this.coord.value = pt
+
+          // light candidate points
+          this.addPtIdks()
+          if (this.aligning.value) {
+            this.indicator!.adjustTo(this.coord.value, true)
+          }
+          else {
+            // draw mouse indicator
+            if (!this.mouseIdk) {
+              const mouse = new PointIndicator(pt, true)
+              this.mouseIdk = mouse
+
+              this.ptIdks.add(mouse.cricle.mesh)
+              this.ptIdks.add(mouse.ring.mesh)
+              //represent or not
+              this.aligning.subscribe((val) => {
+                const aligning = (<boolean>val)
+                if (aligning) {
+                  this.ptIdks.remove(mouse.cricle.mesh)
+                  this.ptIdks.remove(mouse.ring.mesh)
+                }
+                else {
+                  this.mouseIdk!.relocate(this.coord!.value)
+                  this.ptIdks.add(mouse.cricle.mesh)
+                  this.ptIdks.add(mouse.ring.mesh)
+                }
+              })
+              //update coord
+              this.coord.subscribe((val) => {
+                const pt = (<THREE.Vector2>val)
+                mouse.relocate(pt)
+              })
             }
           }
         }
+      }
 
-        OnMouseUp() {
-          if (this.indicator) {
-            if (this.indicator.valid) {
-              const { width } = self.guiOptions
-              const { from, to } = this.indicator
-              const { added, removed } =
-                self.basemap.addRoad(width, from, to)
-              for (const road of added) {
-                road.userData =
-                  new Road(self.ground, width, road.from, road.to)
-                    .addTo(self.scene)
-              }
-              for (const road of removed) {
-                road.userData!.removeFrom(self.scene)
-              }
-            }
-            this.indicator.removeFrom(self.scene)
-            this.indicator = undefined
+      OnMouseDown() {
+        if (this.coord) {
+          this.aligning.value = true
+          if (!this.indicator) {
+            // this.coord.value =
+            // self.basemap.attachNearPoint(this.coord.value)
+            this.indicator = new RoadIndicator(
+              self.basemap, self.guiOptions.width,
+              this.coord.value, this.coord.value)
+              .addTo(self.scene)
           }
-          this.aligning.value = false
         }
+      }
 
-        OnUpdate() {
-          // const coord = self.ground.intersect(self.mouse, self.camera)
-          // if (coord) {
-          // 	if (this.indicator) {
-          // 		const ind: RoadIndicator = this.indicator
-          // 		ind.adjust(coord)
-          // 	}
-          // }
+      OnMouseUp() {
+        if (this.indicator) {
+          if (this.indicator.valid) {
+            const { width } = self.guiOptions
+            const { from, to } = this.indicator
+            const { added, removed } =
+              self.basemap.addRoad(width, from, to)
+            for (const road of added) {
+              road.userData =
+                new Road(self.ground, width, road.from, road.to)
+                  .addTo(self.scene)
+            }
+            for (const road of removed) {
+              road.userData!.removeFrom(self.scene)
+            }
+          }
+          this.indicator.removeFrom(self.scene)
+          this.indicator = undefined
         }
-      })
+        this.aligning.value = false
+      }
+
+      OnUpdate() {
+        // const coord = self.ground.intersect(self.mouse, self.camera)
+        // if (coord) {
+        // 	if (this.indicator) {
+        // 		const ind: RoadIndicator = this.indicator
+        // 		ind.adjust(coord)
+        // 	}
+        // }
+      }
+    })
 
     // this.addState(new class extends VRState {
     // 	private aligning = false
@@ -576,42 +568,41 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
       }
     })
 
-    this
-      .addState(new class extends VRState {
-        constructor() {
-          super('adjust')
-        }
+    this.addState(new class extends VRState {
+      constructor() {
+        super('adjust')
+      }
 
-        private enable = false
+      private enable = false
 
-        OnLeave() {
-          this.enable = false
-        }
-        OnMouseDown() {
-          this.enable = true
-        }
-        OnMouseUp() {
-          this.enable = false
-        }
+      OnLeave() {
+        this.enable = false
+      }
+      OnMouseDown() {
+        this.enable = true
+      }
+      OnMouseUp() {
+        this.enable = false
+      }
 
-        OnTimer(millis: number) {
-          if (millis % 10 == 0 && this.enable) {
-            const coord = self.ground.intersect(self.mouse, self.camera)
-            if (coord) {
-              const { x, y } = coord.clone()
-                .divideScalar(50)
-                .addScalar(.5)
-                .sub(new THREE.Vector2(0, 1))
-                .multiply(new THREE.Vector2(1, -1))
-                .multiplyScalar(512)
-                .floor()
-              // this.ground.applyDisplacementMap()
-              self.ground.adjustHeight(coord, 10)
-              // console.log(x, y)
-            }
+      OnTimer(millis: number) {
+        if (millis % 10 == 0 && this.enable) {
+          const coord = self.ground.intersect(self.mouse, self.camera)
+          if (coord) {
+            const { x, y } = coord.clone()
+              .divideScalar(50)
+              .addScalar(.5)
+              .sub(new THREE.Vector2(0, 1))
+              .multiply(new THREE.Vector2(1, -1))
+              .multiplyScalar(512)
+              .floor()
+            // this.ground.applyDisplacementMap()
+            self.ground.adjustHeight(coord, 10)
+            // console.log(x, y)
           }
         }
-      })
+      }
+    })
 
     this.state = obj.state
   }
