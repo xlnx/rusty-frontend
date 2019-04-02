@@ -173,7 +173,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
 		const ssao = {
 			kernelRadius: 3 * DistUnit,
-			minDistance: 0.01 * DistUnit,
+			minDistance: 0.04 * DistUnit,
 			maxDistance: 0.4 * DistUnit,
 		}
 		const ssaoopt = renderopt.addFolder("ssao")
