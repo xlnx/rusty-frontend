@@ -1,7 +1,8 @@
-import { AttachRadius } from "../model/def";
+import { AttachRadius, roadHeight } from "../model/def";
 
 const DistUnit = 0.1
 const PointRadius = AttachRadius * DistUnit
+const pointHeight = roadHeight + 0.05
 
 enum CityLayer {
 	Origin = 0,

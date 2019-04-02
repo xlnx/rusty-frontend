@@ -107,6 +107,7 @@ export default class Ground extends Thing<ObjectTag> {
 		const mat = new THREE.MeshPhysicalMaterial({
 			color: 0x2194ce,
 			// wireframe: true,
+			transparent: false,
 			roughness: 0.9,
 			metalness: 0.2,
 			reflectivity: 0.2,
@@ -115,7 +116,7 @@ export default class Ground extends Thing<ObjectTag> {
 			// normalMap: this.normalTarget.texture,
 			flatShading: true
 		})
-		this.view.addToLayer(CityLayer.Frame, ...new Array(seg * seg).fill(0)
+		this.view.addToLayer(CityLayer.Origin, ...new Array(seg * seg).fill(0)
 			.map((_, i) => {
 				const lod = new THREE.LOD()
 				const ix = Math.floor(i % seg)
@@ -163,7 +164,7 @@ export default class Ground extends Thing<ObjectTag> {
 		}))
 		this.object.receiveShadow = true
 		this.view.addToLayer(CityLayer.Origin, this.object)
-		// this.object.visible = false
+		this.object.visible = false
 
 		let autoClearColor = renderer.autoClearColor
 		this.pipeline = new Pipeline(renderer)
@@ -364,9 +365,9 @@ export default class Ground extends Thing<ObjectTag> {
 
 	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
 		this.raycaster.setFromCamera(coord, camera)
-		// this.object.visible = true
+		this.object.visible = true
 		const ints = this.raycaster.intersectObject(this.object)
-		// this.object.visible = false
+		this.object.visible = false
 		if (!ints.length) return undefined
 		return world2plain(ints[0].point)
 	}

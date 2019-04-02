@@ -8,7 +8,7 @@ import { Basemap } from "../model/basemap";
 import { Asset } from "../wasp/asset/asset";
 import { ParametricGeometry, Geometry, Vector2, Vector3, Object3D, CircleBufferGeometry } from "three";
 import Ground from "./ground";
-import { PointDetectRadius } from "../model/def";
+import { PointDetectRadius, roadHeight } from "../model/def";
 
 
 
@@ -76,7 +76,9 @@ class RoadIndicator extends Thing {
 	}
 	adjustTo(coord: THREE.Vector2, aligning: boolean = false) {
 		this.setTo(this.basemap.attachNearPoint(coord))
-		const val = this.basemap.alignRoad(this.item, aligning)
+
+		const lengthAssert = aligning
+		const val = this.basemap.alignRoad(this.item, lengthAssert)
 		// console.log(val)
 		this.setValid(val)
 	}
@@ -193,7 +195,8 @@ class Road extends Thing<ObjectTag> {
 			//need height fix here
 			let origin = new THREE.Vector3(0, 0, 0)
 			let up = new THREE.Vector3(0, 1, 0)
-			let botWidth = this.item.width * 0.1
+			// let botWidth = this.item.width * 0.3
+			let botWidth = roadHeight
 			let roadWidth = this.item.width * 3
 			let midWidth = roadWidth + botWidth
 			let upWidth = midWidth + botWidth
@@ -264,7 +267,7 @@ class Road extends Thing<ObjectTag> {
 					}
 					w.add(dir.clone().multiplyScalar(uPos))
 						.add(norm.clone().multiplyScalar(v / vSeg))
-						.add(new THREE.Vector3(0, botWidth / 5, 0))
+						.add(new THREE.Vector3(0, botWidth, 0))//lift up the road
 
 					geometry.vertices.push(w)
 				}

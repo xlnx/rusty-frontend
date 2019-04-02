@@ -46,6 +46,9 @@ function cmp(a: number, b: number): number {
     const val = a - b
     return Math.abs(val) < eps ? 0 : val > 0 ? 1 : -1
 }
+function cmpPt(a: Point, b: Point): boolean {
+    return (cmp(a.distanceTo(b), 0) == 0)
+}
 
 
 declare type Point = THREE.Vector2;
@@ -102,6 +105,17 @@ class Seg2D {
     }
     length(): number {
         return this.from.clone().sub(this.to).length()
+    }
+    angle(other: Seg2D): number {
+        const a = this.to.clone().sub(this.from).normalize()
+        const b = other.to.clone().sub(other.from).normalize()
+        return Math.acos(a.dot(b))
+    }
+    clone(): Seg2D {
+        return new Seg2D(this.from, this.to)
+    }
+    reverseClone(): Seg2D {
+        return new Seg2D(this.to, this.from)
     }
 }
 
@@ -206,6 +220,6 @@ class ParallelRect2D extends AnyRect2D {
 
 
 export {
-    inBox, minPt, maxPt, Point, cmp,
+    inBox, minPt, maxPt, Point, cmp, cmpPt,
     Seg2D, AnyRect2D, ParallelRect2D
 }
