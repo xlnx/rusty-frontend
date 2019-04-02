@@ -1,56 +1,89 @@
-import { Thing, Geometry2D, Variable } from "../wasp";
-import * as THREE from "three"
-import { PointRadius, DistUnit } from "../asset/def";
-import { Object3D, Vector2 } from "three";
-import { plain2world } from "../object/trans";
-import { PointDetectRadius } from "./def";
+import * as THREE from 'three'
+import { Object3D, Vector2 } from 'three';
+
+import { DistUnit, PointRadius } from '../asset/def';
+import { plain2world } from '../object/trans';
+import { Geometry2D, Thing, Variable } from '../wasp';
+
+import { PointDetectRadius } from './def';
 
 
 class PointIndicator extends Thing {
-    private static circleColor = new THREE.Color(1, 0, 0)
-    private static ringColor = new THREE.Color(1, 0, 0)
-    private static circleGeo = new THREE.CircleGeometry(PointRadius, 32, 0, Math.PI * 2)
-    private static ringGeo = new THREE.RingGeometry(PointRadius, PointRadius + .1, 32, 0, undefined, Math.PI * 2)
+  private static circleGeo = new THREE.CircleGeometry(
+    PointRadius, 32, 0, Math.PI * 2)
+  private static ringGeo =
+    new THREE.RingGeometry(
+      PointRadius, PointRadius + .1, 32, 0, undefined, Math.PI * 2)
 
-    private readonly circleMat = new THREE.MeshBasicMaterial({
-        color: PointIndicator.circleColor,
-        side: THREE.DoubleSide,
-        opacity: 0.2,
-        transparent: true
+  private static readonly circleMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(1, 0, 0),
+    side: THREE.DoubleSide,
+    opacity: 0.2,
+    transparent: true
+  })
+  private static readonly ringMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(1, 0, 0),
+    side: THREE.DoubleSide,
+    opacity: 0.96,
+    transparent: true
+  })
+  private static readonly mouseCircleMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(0, 1, 0),
+    side: THREE.DoubleSide,
+    opacity: 0.2,
+    transparent: true
+  })
+  private static readonly mouseRingMat =
+    new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0, 1, 0),
+      side: THREE.DoubleSide,
+      opacity: 0.96,
+      transparent: true
     })
-    private readonly ringMat = new THREE.MeshBasicMaterial({
-        color: PointIndicator.ringColor,
-        side: THREE.DoubleSide,
-        opacity: 0.96,
-        transparent: true
-    })
 
-    private cricle = new Geometry2D(PointIndicator.circleGeo, this.circleMat)
-    private ring = new Geometry2D(PointIndicator.ringGeo, this.ringMat)
+  public cricle: Geometry2D
+  public ring: Geometry2D
 
-    constructor(
-        private readonly obj: Object3D,
-        private readonly pt: Vector2,
-        private readonly v: Variable
-    ) {
-        super()
-        const Pt = plain2world(pt)
-        this.cricle.scale(DistUnit, DistUnit).translate(Pt.x, Pt.z)
-        this.ring.scale(DistUnit, DistUnit).translate(Pt.x, Pt.z)
-        // this.cricle.translate(pt.x, pt.y)
-        // this.ring.translate(pt.x, pt.y)
-        obj.add(this.cricle.mesh)
-        obj.add(this.ring.mesh)
+  constructor(
+    public readonly coord: Vector2,
+    private readonly mouseMode: boolean = false) {
+    super()
+
+    if (mouseMode) {
+      this.cricle = new Geometry2D(
+        PointIndicator.circleGeo,
+        PointIndicator.mouseCircleMat)
+      this.ring =
+        new Geometry2D(PointIndicator.ringGeo, PointIndicator.mouseRingMat)
     }
-    checkDist() {
-        const dist = (<THREE.Vector2>this.v.value).distanceTo(this.pt)
-        if (dist > PointDetectRadius) {
-            this.obj.remove(this.cricle.mesh)
-            this.obj.remove(this.ring.mesh)
-        }
+    else {
+      this.cricle =
+        new Geometry2D(
+          PointIndicator.circleGeo, PointIndicator.circleMat)
+      this.ring =
+        new Geometry2D(PointIndicator.ringGeo, PointIndicator.ringMat)
     }
+
+    this.relocate(coord)
+    // const pt = plain2world(coord)
+    // this.cricle.scale(DistUnit, DistUnit).translate(pt.x, pt.z)
+    // this.ring.scale(DistUnit, DistUnit).translate(pt.x, pt.z)
+    // this.cricle.translate(pt.x, pt.y)
+    // this.ring.translate(pt.x, pt.y)
+    // obj.add(this.cricle.mesh)
+    // obj.add(this.ring.mesh)
+  }
+
+  relocate(coord: Vector2) {
+    const pt = plain2world(coord)
+    // this.cricle.translate(pt.x, pt.z)
+    // this.ring.translate(pt.x, pt.z)
+    this.cricle.scale(DistUnit, DistUnit)
+      .translate(pt.x, pt.z)
+      .translate(pt.x, pt.z)
+    // this.obj.add(this.cricle.mesh)
+    // this.obj.add(this.ring.mesh)
+  }
 }
 
-export {
-    PointIndicator
-}
+export { PointIndicator }

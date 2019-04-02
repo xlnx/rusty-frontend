@@ -2,10 +2,11 @@ import * as THREE from "three"
 import { BuildingPrototype } from "../asset/building";
 import BasemapBuildingItem from "./buildingItem";
 import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem, PointDetectRadius, AttachRadius, minRoadLength } from "./def";
-import { Point, AnyRect2D, cmp, ParallelRect2D } from "./geometry";
+import { Point, AnyRect2D, cmp, ParallelRect2D, cmpPt } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
 import { Vector2 } from "three";
+import { format } from "url";
 
 
 type Restype<R> = {
@@ -142,11 +143,28 @@ class Basemap<R, B> {
     let intersectRoad = this.roadTree.colliding(road.quadTreeItem)
     for (let item of intersectRoad) {
       let r = item.obj!
-      if (r.rect.intersect(road.rect) &&
-        !r.seg.ptOnLine(road.from) &&
-        !r.seg.ptOnLine(road.to)
-      )
+      if (r.rect.intersect(road.rect)) {
+        if (r.seg.ptOnLine(road.from)) {
+          const rSeg = cmpPt(road.from, r.from) ? r.seg.clone() : r.seg.reverseClone()
+          const angle = rSeg.angle(road.seg)
+          if (cmp(angle, Math.PI * 0.25) >= 0)
+            continue
+        }
+        else if (r.seg.ptOnLine(road.to)) {
+          const rSeg = cmpPt(road.to, r.from) ? r.seg.clone() : r.seg.reverseClone()
+          const angle = rSeg.angle(road.seg.reverseClone())
+          if (cmp(angle, Math.PI * 0.25) >= 0)
+            continue
+        }
+        else {
+          const angle = road.seg.angle(r.seg)
+          if (cmp(angle, Math.PI * 0.75) >= 0 ||
+            cmp(angle, Math.PI * 0.25) <= 0
+          )
+            continue
+        }
         return false
+      }
     }
     return true
   }
