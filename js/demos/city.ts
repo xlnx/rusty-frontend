@@ -9,11 +9,11 @@ import { PointIndicator } from '../model/point';
 import { Building, BuildingIndicator } from '../object/building';
 import Ground from '../object/ground';
 import { Road, RoadIndicator } from '../object/road';
-import { gBuffer, Pipeline, PostStage, RenderStage, Scene, Thing, Variable, VRRenderer } from '../wasp';
+import { gBuffer, Pipeline, PostStage, RenderStage, Scene, Thing, Variable, VRRenderer, LayeredView } from '../wasp';
 import { AccumulateShader, DepthLimitedBlurEffect, FXAAShader, SAOEffect, SSAOEffect } from '../wasp/prefab';
 import { VRState, VRStatefulRenderer } from '../wasp/renderer/vrstateful';
 
-import * as terrain from './shaders/terrain.frag'
+import { Terrain } from '../object/terrain';
 
 function updateDropdown(target, list) {
 	let innerHTMLStr = '';
@@ -28,7 +28,8 @@ function updateDropdown(target, list) {
 
 export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
-	private ground = new Ground(this.threeJsRenderer, 600).addTo(this.scene)
+	private ground = new Terrain(this.threeJsRenderer, 20, 300, new THREE.Material)
+	// new Ground(this.threeJsRenderer, 600).addTo(this.scene)
 	// = new Ground(50, 50).addTo(this.scene)
 
 	// gui controlled variables
@@ -49,6 +50,11 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 	constructor() {
 
 		super()
+
+		const terrain = new LayeredView<ObjectTag>()
+		terrain.addToLayer(CityLayer.Origin, this.ground)
+			.scale.setScalar(DistUnit)
+		this.scene.add(terrain)
 
 		// this.scene.add(new THREE.AxesHelper())
 
@@ -200,7 +206,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 			// radius: 6,
 			// stddev: 8.5,
 			// depthCutoff: 0.1
-			radius: 3,
+			radius: 2,
 			stddev: 9.6,
 			depthCutoff: 0.04
 		}
@@ -364,6 +370,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 
 			OnUpdate() {
 				let pt = self.ground.intersect(self.mouse, self.camera)
+
 				if (pt) {
 					pt = self.basemap.attachNearPoint(pt)
 
@@ -574,16 +581,12 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 				if (millis % 10 == 0 && this.enable) {
 					const coord = self.ground.intersect(self.mouse, self.camera)
 					if (coord) {
-						const { x, y } = coord.clone()
-							.divideScalar(50)
-							.addScalar(.5)
-							.sub(new THREE.Vector2(0, 1))
-							.multiply(new THREE.Vector2(1, -1))
-							.multiplyScalar(512)
-							.floor()
-						// this.ground.applyDisplacementMap()
-						self.ground.adjustHeight(coord, 10)
-						// console.log(x, y)
+						self.ground.morph({
+							center: coord,
+							radius: 10,
+							speed: 15,
+							dt: 10
+						})
 					}
 				}
 			}
@@ -593,8 +596,7 @@ export default class CityDemoRenderer extends VRStatefulRenderer<ObjectTag> {
 	}
 
 	OnNewFrame() {
-		this.ground
-			.updateLOD(this.camera)
+		this.ground.updateLOD(this.camera)
 
 		this.pipeline.render()
 

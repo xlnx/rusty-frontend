@@ -9,6 +9,7 @@ import { Asset } from "../wasp/asset/asset";
 import { ParametricGeometry, Geometry, Vector2, Vector3, Object3D, CircleBufferGeometry } from "three";
 import Ground from "./ground";
 import { PointDetectRadius, roadHeight } from "../model/def";
+import { Terrain } from "./terrain";
 
 
 
@@ -157,7 +158,7 @@ class Road extends Thing<ObjectTag> {
 	public readonly item: BasemapRoadItem<Road>
 
 	constructor(
-		ground: Ground,
+		ground: Terrain,
 		public readonly width: number,
 		from: THREE.Vector2,
 		to: THREE.Vector2) {
@@ -189,7 +190,7 @@ class Road extends Thing<ObjectTag> {
 			})
 	}
 
-	async boxGeometry(ground: Ground): Promise<{ geometry: Geometry, startHeight: number, roadWidth: number }> {
+	async boxGeometry(ground: Terrain): Promise<{ geometry: Geometry, startHeight: number, roadWidth: number }> {
 		return new Promise((resolve, reject) => {
 
 			//need height fix here

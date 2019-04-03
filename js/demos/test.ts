@@ -2,10 +2,11 @@ import * as THREE from "three"
 import { VRRenderer } from "../wasp";
 import { ObjectTag } from "../asset/def";
 import { copy_f32_array_rs } from "../wasm/alloc";
+import { Terrain } from "../object/terrain";
 
 export default class CityDemoRenderer extends VRRenderer<ObjectTag> {
 
-	private readonly plane: THREE.Mesh
+	private readonly plane: Terrain
 
 	constructor() {
 
@@ -37,65 +38,45 @@ export default class CityDemoRenderer extends VRRenderer<ObjectTag> {
 			side: THREE.DoubleSide,
 			wireframe: true
 		})
-		this.plane = new THREE.Mesh(planeGeometry, planeMaterial)
+
+		this.plane = new Terrain(this.threeJsRenderer, 20, 100, planeMaterial)
+
+		// this.plane = new THREE.Mesh(planeGeometry, planeMaterial)
 		this.plane
-			// .rotateX(Math.PI / 2)
-			.rotateX(-Math.PI / 3)
-			.scale.setScalar(0.3)
+			.rotateX(Math.PI / 6)
+			.scale.setScalar(10)
+		// .rotateX(Math.PI / 2)
 		// .scale(new THREE.Vector3(0.3))
 		// plane.receiveShadow = true;
-		this.scene.add(this.plane);
+		this.scene.add(this.plane)
 
 		//Create a helper for the shadow camera (optional)
 		// const helper = new THREE.CameraHelper(light.shadow.camera);
 		// this.scene.add(helper);
-
-		const geo = <THREE.BufferGeometry>this.plane.geometry
-
-		const position = <THREE.BufferAttribute>geo.getAttribute("position")
-
-		const Xs = <Float32Array>position.array
-
-		const xs = Xs.filter((x, idx) => idx % 3 == 0)
-		const ys = Xs.filter((x, idx) => idx % 3 == 1)
-		const zs = Xs.filter((x, idx) => idx % 3 == 2)
-
-		// console.log(Xs, xs, ys, zs)
-
-		// config_kernel({
-
-		// })
-
-		// adjust(<Float32Array>position.array, 0.5, 0.5)
-
-		// console.log(Xs)
-
-		// push_kernel_array(Xs)
-
-		// adjust(0, 1)
-
-		// console.log(Xs)
-
-		console.log(position.array)
-
-		position.array = copy_f32_array_rs(Xs)
-
-		console.log(position.array)
-
-		position.needsUpdate = true
 	}
 
 	OnUpdate() {
 
-		const geo = <THREE.BufferGeometry>this.plane.geometry
+		const isect = this.plane.intersect(this.mouse, this.camera)
 
-		const position = <THREE.BufferAttribute>geo.getAttribute("position")
+		if (isect) {
+			this.plane.morph({
+				center: isect,
+				radius: 5,
+				speed: 1e3,
+				dt: 0.1
+			})
+		}
+
+		// const geo = <THREE.BufferGeometry>this.plane.geometry
+
+		// const position = <THREE.BufferAttribute>geo.getAttribute("position")
 
 		// console.log(position.array)
 		// adjust(<Float32Array>position.array, 0.5, 0.5)
 		// console.log(position.array)
 
-		position.needsUpdate = true
+		// position.needsUpdate = true
 	}
 
 	// OnNewFrame() {
