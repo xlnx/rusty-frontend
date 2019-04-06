@@ -1,0 +1,9 @@
+{
+	"name": "normalHouse",
+	"model": "building_04.obj",
+	"scale": 0.5,
+	"placeholder": [
+		4,
+		4
+	]
+}
