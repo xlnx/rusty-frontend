@@ -4,6 +4,7 @@ const DashboardPlugin = require("webpack-dashboard/plugin");
 const nodeEnv = process.env.NODE_ENV || "development";
 const isProd = nodeEnv === "production";
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 
 const plugins = [
   new webpack.DefinePlugin({
@@ -22,7 +23,10 @@ const plugins = [
   }),
   new HtmlWebpackPlugin({
     template: 'src/index.html'
-  })
+  }),
+  new CopyPlugin([
+    { from: 'lib', to: 'lib' }
+  ])
 ];
 
 if (!isProd) {
