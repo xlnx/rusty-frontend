@@ -58,13 +58,13 @@ var config = {
       {
         enforce: "pre",
         test: /\.ts?$/,
-        exclude: ["node_modules"],
+        exclude: /\/node_modules\//,
         use: ["awesome-typescript-loader", "source-map-loader"]
       },
       {
         test: /\.(js|ts)$/,
         loader: "babel-loader",
-        exclude: [/\/node_modules\//]
+        exclude: /\/node_modules\//
       },
       {
         test: /\.html$/,
