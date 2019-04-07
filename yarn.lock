@@ -90,16 +90,6 @@ acorn@^5.0.0, acorn@^5.2.1, acorn@^5.5.0:
   resolved "http://registry.npm.taobao.org/acorn/download/acorn-5.7.3.tgz#67aa231bf8812974b85235a96771eb6bd07ea279"
   integrity sha1-Z6ojG/iBKXS4UjWpZ3Hra9B+onk=
 
-aframe-billboard-component@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/aframe-billboard-component/-/aframe-billboard-component-2.0.0.tgz#eb7e2135a3413c4f1196d79c90ba894e29d6e013"
-  integrity sha512-kmtPo1wFWmsJc7RMgl4XgZyBGSgWH+q2qbYGWTHwnOforcDrVFgAY0K4xVpNc14Buvo6JK1Lzk3NiAsGleV1JA==
-
-aframe-effects@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/aframe-effects/-/aframe-effects-0.8.0.tgz#be9c546270314f5b4264303302d1759c103fd45e"
-  integrity sha512-S744mNmX4CP9xcfRenC6ZQHjXjB2U3969daCp0+/xHV5kKpKQSFt+1AjBDzTKI6sGSEif7WLFXmh5fMHtogHVg==
-
 aframe-typescript-toolkit@0.0.16:
   version "0.0.16"
   resolved "http://registry.npm.taobao.org/aframe-typescript-toolkit/download/aframe-typescript-toolkit-0.0.16.tgz#819653280f8c4b431e58985821dc39f19c4bad3f"
