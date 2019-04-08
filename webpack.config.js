@@ -78,7 +78,7 @@ var config = {
   devServer: {
     contentBase: path.join(__dirname, '/src'),
     compress: true,
-    port: 8082,
+    port: 3000,
     host: "localhost",
     hot: true,
     disableHostCheck: true,
