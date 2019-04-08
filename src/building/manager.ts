@@ -1,5 +1,3 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
-// import { DistUnit } from "./def";
 import { JsonAsset, ModelAsset } from "../wasp";
 
 interface TransformStep {
@@ -72,7 +70,7 @@ export class BuildingPrototype {
 		flatShading: true		// hard edges
 	})
 
-	private static async doLoadProto(path: string): Promise<BuildingPrototype> {
+	static async load(path: string): Promise<BuildingPrototype> {
 
 		return new Promise((resolve, reject) => {
 			new JsonAsset(path).load().then(json => {
@@ -121,60 +119,48 @@ export class BuildingPrototype {
 			})
 		})
 	}
-
-	static async load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
-		const paths = typeof path == "string" ? [path] : path
-		return new Promise((resolve, reject) => {
-			let jobs = paths.length
-			const buildings: (BuildingPrototype | undefined)[] = []
-			const res = (e: BuildingPrototype, idx: number) => {
-				buildings[idx] = e;
-				(--jobs == 0) && resolve(buildings)
-			}
-			const rej = (e: any, idx: number) => {
-				buildings[idx] = undefined;
-				(--jobs == 0) && resolve(buildings)
-			}
-			paths.forEach((path: string, idx: number) =>
-				BuildingPrototype.doLoadProto(path.match(/\/index.json$/i) ?
-					path : path + "/index.json")
-					.then(e => res(e, idx), e => rej(e, idx)))
-		})
-	}
 }
 
-interface BuildingManagerComponentSchema {
-	readonly assets: string[]
-}
+export class BuildingManager {
 
-export class BuildingManagerComponent extends ComponentWrapper<BuildingManagerComponentSchema> {
+	private readonly createdTime = new Date().getTime()
 
-	constructor() {
-		super("building-manager", {
-			assets: {
-				type: "array",
-				default: []
-			}
-		})
-	}
-
-	init() {
-		this.load(this.data.assets)
+	constructor(assets: string[] = []) {
+		console.log("%cnew BuildingManager()", "background: #000; color: #ffffff")
+		console.log(this)
+		this.load(assets)
 	}
 
 	private readonly resources = new Map<string, BuildingPrototype>()
 	private _ready: boolean = false
 
+	private _requests: number = 0
+	private _finishedRequests: number = 0
+
 	get ready() { return this._ready }
+
+	get requests() { return this._requests }
+	get finishedRequests() { return this._finishedRequests }
 
 	private clear() {
 		this.resources.clear()
 	}
 
-	private load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
+	load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
+
+		console.log("%cload", "background: #00cc00; color: #fff")
+		console.log(path)
+
+		const paths = (typeof path == "string") ? [path] : path
+		this._requests = paths.length
+		this._finishedRequests = 0
+
 		this._ready = false
+
 		return new Promise((resolve, reject) => {
-			BuildingPrototype.load(path).then((protos: (BuildingPrototype | undefined)[]) => {
+
+			const RES = (protos: (BuildingPrototype | undefined)[]) => {
+
 				for (let proto of protos) {
 					if (proto) {
 						if (this.resources.has(proto.name)) {
@@ -185,8 +171,27 @@ export class BuildingManagerComponent extends ComponentWrapper<BuildingManagerCo
 					}
 				}
 				this._ready = true
+
 				resolve(protos)
-			})
+			}
+
+			let jobs = paths.length
+			const buildings: (BuildingPrototype | undefined)[] = []
+			const res = (e: BuildingPrototype, idx: number) => {
+				this._finishedRequests++
+				buildings[idx] = e;
+				(--jobs == 0) && RES(buildings)
+			}
+			const rej = (e: any, idx: number) => {
+				this._finishedRequests++
+				buildings[idx] = undefined;
+				(--jobs == 0) && RES(buildings)
+			}
+			paths.forEach((path: string, idx: number) =>
+				BuildingPrototype.load(path.match(/\/index.json$/i) ?
+					path : path + "/index.json")
+					.then(e => res(e, idx), e => rej(e, idx)))
+
 		})
 	}
 

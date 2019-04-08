@@ -3,8 +3,8 @@
 <head>
     <script src="https://aframe.io/releases/0.8.0/aframe.min.js"></script>
 
-    <script
-        src="https://rawgit.com/blairmacintyre/aframe-look-at-billboard-component/master/dist/aframe-look-at-billboard-component.min.js"></script>
+    <script src="lib/aframe-look-at-billboard-component.min.js"></script>
+    <script src="lib/aframe-animation-component.min.js"></script>
 
     <!-- <script
         src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.min.js"></script> -->
@@ -14,32 +14,30 @@
 </head>
 
 <body style="margin: 0">
+
     <a-scene embedded antialias="true" shadow="type: pcfsoft">
-        <!-- <a-entity environment="preset: forest; shadow: true"></a-entity> -->
 
-        <!-- <a-assets>
-            <a-asset-item id="building-obj" src="/assets/export/Building_Bar/Building_Bar.obj"></a-asset-item>
-            <a-asset-item id="building-mtl" src="/assets/export/Building_Bar/Building_Bar.mtl"></a-asset-item>
-        </a-assets> -->
+        <a-entity main>
+            <a-entity building-manager></a-entity>
+        </a-entity>
 
-        <!-- <a-entity daydream-controls="hand: right"></a-entity> -->
-        <!-- <a-sphere color="red" position="-1 2 -5" color-component></a-sphere> -->
-        <a-box position="2 3 -10" color-component billboard></a-box>
-        <!-- <a-box id="box-holder" color="green"></a-box> -->
-        <a-sky color="#ECECEC"></a-sky>
-        <a-light position="0 10 0" color="white" type="point"></a-light>
+        <a-entity id="city_editor" room>
 
-        <a-box position="-2 3 -10" color="blue" billboard></a-box>
+            <a-light position="0 10 0" color="white" type="point"></a-light>
+            <a-box position="2 3 -10" billboard></a-box>
+            <a-sky color="#ECECEC"></a-sky>
+            <a-box position="-2 3 -10" color="blue"></a-box>
 
-        <!-- <a-entity scale="0.002 0.002 0.002" position="0 0 -3" shadow obj-model="obj: #building-obj; mtl: #building-mtl">
-        </a-entity> -->
+            <a-entity position="2 2 -10" button="text: Building_Bar" billboard></a-entity>
 
-        <!-- <a-entity position="0 2 -3" building-component></a-entity> -->
-        <!-- <a-entity position="0 0 -3" building="name: Building_Bar"></a-entity> -->
+        </a-entity>
 
-        <a-entity position="2 2 -10" button="text: Building_Bar" billboard></a-entity>
+        <a-camera>
+            <a-entity id="splash_main" splash="dst: #city_editor"></a-entity>
+        </a-camera>
 
     </a-scene>
+
 </body>
 
 </html>
