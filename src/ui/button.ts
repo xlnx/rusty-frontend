@@ -2,76 +2,113 @@ declare const THREE: typeof import("three")
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
 
 interface ButtonComponentSchema {
-	readonly text: string
+	text: string
+	width: number | undefined
+	height: number | undefined
+	position: string
+	readonly buttonDown: string | undefined
+	readonly buttonUp: string | undefined
+	readonly billboard: boolean
 }
 
 export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
-
-	private textEntity: EntityBuilder
-	private buttonEntity: EntityBuilder
+	private static numOfButton = 0
+	private buttonId: number = ButtonComponent.numOfButton++
+	private backEntity: EntityBuilder
 	private planeEntity: EntityBuilder
+	private buttonEntity: EntityBuilder
 
-	constructor(
-		public position: THREE.Vector3,
-		public text: string,
-		public width: number | undefined = undefined,
-		public height: number | undefined = undefined,
-		public billboard: boolean = true
-	) {
+	constructor() {
 		super("button", {
 			text: {
 				type: "string",
 				default: "btn"
+			},
+			width: {
+				type: "number",
+				default: undefined
+			},
+			height: {
+				type: "number",
+				default: undefined
+			},
+			position: {
+				type: "string",
+				default: "0 0 0"
+			},
+			buttonDown: {
+				type: "string",
+				default: undefined
+			},
+			buttonUp: {
+				type: "string",
+				default: undefined
+			},
+			billboard: {
+				type: "boolean",
+				default: true
 			}
 		})
+	}
 
-		// this.textEntity = EntityBuilder.create("a-text", {
-		// 	value: this.text,
-		// 	color: "black",
-		// 	position: `0 0 0 `
-		// })
-		// // .attachTo(this.buttonEntity)
-		// this.planeEntity = EntityBuilder.create("a-entity", {
-		// 	geometry: { primitive: "box" },
-		// 	position: `0 0 -1e-1`,
-		// 	scale: `${width} ${height} 1e-9`
-		// })
-
-		// this.buttonEntity = EntityBuilder.create("a-entity", {
-		// 	position: `${this.position.x} ${this.position.y} ${this.position.z}`
-		// }, [this.planeEntity, this.textEntity])
-		// 	.attachTo(this.el)
+	init() {
+		const data = this.data
 
 		const wrapCount = 40
-		const totalWidth = text.length * (width / wrapCount)
+		const totalWidth = data.text.length * (data.width / wrapCount)
+
 
 		this.planeEntity = EntityBuilder.create("a-entity", {
 			geometry: {
-				primitive: "box",
+				primitive: "plane",
 				width: 'auto',
 				height: 'auto'
 			},
 			position: `0 0 1e-1`,
 			text: {
-				value: this.text,
-				width: width ? totalWidth : 'auto',
-				height: height || 'auto',
+				value: data.text,
+				width: data.width ? totalWidth : 'auto',
+				height: data.height || 'auto',
 				align: 'center'
 			}
 		})
+		const plane = this.planeEntity.toEntity()
+
+		this.backEntity = EntityBuilder.create("a-entity", {
+			geometry: {
+				primitive: "plane",
+				width: plane.attributes['text']['width'],
+				height: 'auto'
+			}
+		})
+
 		this.buttonEntity = EntityBuilder.create("a-entity", {
-			position: `${this.position.x} ${this.position.y} ${this.position.z}`
+			position: data.position
 		}, [this.planeEntity])
 			.attachTo(this.el)
 
-		if (billboard) {
+		if (data.billboard) {
 			this.el.setAttribute('billboard', {})
 		}
-	}
 
-	init() {
-		const entityText = this.el.getAttribute("text")
+		if (data.buttonUp) {
+			//need animation
+			this.el.addEventListener(`_button_${this.buttonId}_up`, () => {
+				this.el.emit(data.buttonUp)
+			})
+		}
+		if (data.buttonDown) {
+			//need animation
+			this.el.addEventListener(`_button_${this.buttonId}_down`, () => {
+				this.el.emit(data.buttonDown)
+			})
+		}
+
 	}
 }
+// EntityBuilder.create("a-entity", {
+// 	button: new ButtonComponent(new THREE.Vector3(0, 0, 0), "hello\n the world!", 10)
+// })
 
-new ButtonComponent(new THREE.Vector3(0, 0, 0), "hello\n the world!", 10).register()
+new ButtonComponent().register()
+

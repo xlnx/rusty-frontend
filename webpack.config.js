@@ -1,10 +1,10 @@
 const webpack = require("webpack");
 const path = require("path");
-const DashboardPlugin = require("webpack-dashboard/plugin");
 const nodeEnv = process.env.NODE_ENV || "development";
 const isProd = nodeEnv === "production";
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const WriteFilePlugin = require('write-file-webpack-plugin')
 
 const plugins = [
   new webpack.DefinePlugin({
@@ -22,16 +22,15 @@ const plugins = [
     }
   }),
   new HtmlWebpackPlugin({
-    template: 'src/index.html'
+    template: 'src/index.html',
+    inject: false
   }),
+  new WriteFilePlugin(),
   new CopyPlugin([
-    { from: 'lib', to: 'lib' }
+    { from: 'lib', to: 'lib' },
+    { from: 'assets', to: 'assets' }
   ])
 ];
-
-if (!isProd) {
-  plugins.push(new DashboardPlugin());
-}
 
 var config = {
   devtool: isProd ? "hidden-source-map" : "source-map",
@@ -76,10 +75,10 @@ var config = {
   },
   plugins: plugins,
   devServer: {
-    contentBase: path.join(__dirname, '/src'),
+    contentBase: path.join(__dirname, '/dist'),
     compress: true,
     port: 3000,
-    host: "localhost",
+    host: "0.0.0.0",
     hot: true,
     disableHostCheck: true,
     watchContentBase: true,

@@ -8,11 +8,12 @@
     "test": "karma start",
     "start": "npm run server:dev",
     "server": "npm run server:dev",
-    "server:dev": "webpack-dev-server --config ./webpack.config.js --hot --inline --progress --watch --open"
+    "server:dev": "webpack-dev-server --config ./webpack.config.js --inline --progress --watch --open"
   },
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^11.13.0",
+    "aframe-mouse-cursor-component": "^0.5.3",
     "awesome-typescript-loader": "^5.2.1",
     "copy-webpack-plugin": "^5.0.2",
     "cross-env": "^5.0.1",
@@ -27,8 +28,8 @@
     "typescript": "^3.4.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
-    "webpack-dashboard": "^3.0.2",
-    "webpack-dev-server": "^3.2.1"
+    "webpack-dev-server": "^3.2.1",
+    "write-file-webpack-plugin": "^4.5.0"
   },
   "dependencies": {
     "@types/aframe": "^0.7.2",
