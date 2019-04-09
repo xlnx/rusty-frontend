@@ -15,7 +15,7 @@
 
 <body style="margin: 0">
 
-    <a-scene embedded antialias="true" shadow="type: pcfsoft">
+    <a-scene embedded antialias="true" shadow="type: pcfsoft" auto-enter-vr>
 
         <a-entity main>
             <a-entity building-manager></a-entity>
@@ -32,7 +32,7 @@
 
         </a-entity>
 
-        <a-camera>
+        <a-camera position="0 1 0">
             <a-entity id="splash_main" splash="dst: #city_editor"></a-entity>
         </a-camera>
 

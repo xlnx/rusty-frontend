@@ -1,4 +1,4 @@
-import { Pipeline, PostStage, PipelineNode, Shader } from "../../wasp";
+import { Pipeline, PostStage, PipelineNode, Shader, async_foreach } from "../../wasp";
 
 interface TerrainMorphOptions {
 	center: THREE.Vector2,
@@ -83,9 +83,9 @@ export class Terrain extends THREE.Object3D {
 		const g = new THREE.PlaneBufferGeometry(1, 1, Seg, Seg)
 			.rotateX(-Math.PI / 2)
 		this.processGeometry(g)
-		const gs = new Array(5).fill(0)
+		const gs = new Array(4).fill(0)
 			.map((_, i) => {
-				const geo = new THREE.PlaneBufferGeometry(1, 1, 1 << (6 - i), 1 << (6 - i))
+				const geo = new THREE.PlaneBufferGeometry(1, 1, 1 << (5 - i), 1 << (5 - i))
 					.rotateX(-Math.PI / 2)
 				this.processGeometry(geo)
 				return geo
@@ -103,12 +103,16 @@ export class Terrain extends THREE.Object3D {
 
 		// new TerrianGenerator(renderer).generate()
 
-		for (let y = 0; y < blockCnt; ++y) {
+		async_foreach(Array(blockCnt).fill(0).map((_, i) => i), (y: number) => {
+			// for (let y = 0; y < blockCnt; ++y) {
+
+			// async_foreach(Array(blockCnt).fill(0).map((_, i) => i), (x: number) => {
 			for (let x = 0; x < blockCnt; ++x) {
 
 				// const fact = worldWidth / blockCnt
 				const s = worldWidth / blockCnt
 				const scl = (1 + 1e-4) * s
+				// const scl = (0.92) * s
 				// object.scale.setScalar((1 + 1e-4) * s)
 				const adjust = (object: THREE.Object3D) => {
 					object.translateX((x + 0.5) * s)
@@ -137,7 +141,7 @@ export class Terrain extends THREE.Object3D {
 					// })
 					new THREE.MeshPhysicalMaterial({
 						color: 0x2194ce,
-						// wireframe: true,
+						wireframe: true,
 						transparent: false,
 						roughness: 0.9,
 						metalness: 0.2,
@@ -148,13 +152,15 @@ export class Terrain extends THREE.Object3D {
 						flatShading: true
 					})
 				gs.forEach((cg, j) => {
-					const d = j * worldWidth / 200
+					const d = j * worldWidth / 20
 					// console.log(j, d)
 					// const d = j * 10
-					const mesh = new THREE.Mesh(cg.clone().scale(s, s, s), mat)
-					mesh.receiveShadow = true
-					mesh.userData = lod
-					lod.addLevel(new THREE.Object3D().add(mesh), d)
+					const mesh = new THREE.Object3D()
+						.add(new THREE.Mesh(cg, mat))
+					mesh.scale.setScalar(scl)
+					// const mesh = new THREE.Mesh(cg.clone().scale(scl, scl, scl), mat)
+					// mesh.receiveShadow = true
+					lod.addLevel(mesh, d)
 				})
 				adjust(lod)
 				this.container.add(lod)
@@ -179,7 +185,10 @@ export class Terrain extends THREE.Object3D {
 					target: target
 				})
 			}
-		}
+		})
+		// for (let y = 0; y < blockCnt; ++y) {
+
+		// }
 
 		this.container
 			.translateX(-0.5 * this.worldWidth)

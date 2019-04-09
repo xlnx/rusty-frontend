@@ -1,5 +1,5 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
-import "./object"
+import "./obj"
 import "./ui"
 
 export class MainComponent extends ComponentWrapper<{}> {
@@ -66,6 +66,14 @@ export class MainComponent extends ComponentWrapper<{}> {
             this.firstFinish = false
 
             const city = <AFrame.Entity>this.el.sceneEl.querySelector("#city_editor")
+
+            EntityBuilder.create("a-entity", {
+                terrain: {
+                    blockCnt: 8,
+                    worldWidth: 20
+                }
+            })
+                .attachTo(city)
 
             EntityBuilder.create("a-entity", {
                 // scale: "1e-1 1e-1 1e-1",
