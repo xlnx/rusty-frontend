@@ -65,8 +65,22 @@ var config = {
         exclude: /\/node_modules\//
       },
       {
+        test: /\.(glsl|vs|fs|vert|frag)$/, exclude: /node_modules/,
+        use: [
+          "raw-loader",
+          "glslify-loader"
+        ]
+      },
+      {
         test: /\.html$/,
-        loader: "raw-loader" // loaders: ['raw-loader'] is also perfectly acceptable.
+        include: path.join(__dirname, 'src/views'),
+        // loader: "raw-loader" // loaders: ['raw-loader'] is also perfectly acceptable.
+        use: {
+          loader: 'html-loader',
+          options: {
+            interpolate: true
+          }
+        }
       }
     ]
   },

@@ -1,4 +1,4 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
+import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
 import { BuildingManager } from "./manager";
 
 interface BuildingManagerComponentSchema {
@@ -69,7 +69,8 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 		if (proto) {
 			const model = proto.object.model.clone()
 			model.scale.multiplyScalar(0.1)
-			this.el.setObject3D("mesh", new AFRAME.THREE.Object3D().add(model))
+
+			this.el.setObject3D("mesh", model)
 		} else {
 			console.error(`invalid building type: ${this.data.name}`)
 		}
