@@ -1,4 +1,15 @@
 <a-scene embedded antialias="true">
 	<a-box material="color: red" position="0 2 -5" billboard></a-box>
 	<a-camera></a-camera>
+
+	<a-entity router="active: c">
+		<a-entity router-item="name: a" logger="what: a"></a-entity>
+		<a-entity router-item="name: b" logger="what: b"></a-entity>
+		<a-entity router-item="name: c" logger="what: c" router="active: a">
+			<a-entity router-item="name: a" logger="what: a"></a-entity>
+			<a-entity router-item="name: b" logger="what: b"></a-entity>
+			<a-entity router-item="name: c" logger="what: c"></a-entity>
+		</a-entity>
+		<a-entity router-item="name: d" logger="what: d"></a-entity>
+	</a-entity>
 </a-scene>
