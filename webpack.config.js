@@ -73,7 +73,14 @@ var config = {
       },
       {
         test: /\.html$/,
-        loader: "raw-loader" // loaders: ['raw-loader'] is also perfectly acceptable.
+        include: path.join(__dirname, 'src/views'),
+        // loader: "raw-loader" // loaders: ['raw-loader'] is also perfectly acceptable.
+        use: {
+          loader: 'html-loader',
+          options: {
+            interpolate: true
+          }
+        }
       }
     ]
   },

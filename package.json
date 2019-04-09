@@ -39,6 +39,7 @@
     "glslify": "^7.0.0",
     "glslify-import": "^3.1.0",
     "glslify-loader": "^2.0.0",
+    "html-loader": "^0.5.5",
     "raw-loader": "^0.5.1",
     "three-fbxloader-offical": "^1.0.0",
     "three-obj-mtl-loader": "^1.0.3"
