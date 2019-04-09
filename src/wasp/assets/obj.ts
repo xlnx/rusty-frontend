@@ -1,5 +1,8 @@
-import { MTLLoader, OBJLoader } from "three-obj-mtl-loader"
-import { Asset, PromiselifyLoader } from "./asset";
+// import { MTLLoader, OBJLoader } from "three-obj-mtl-loader"
+import { Asset, PromiselifyLoader } from "./asset"
+import { MTLLoader } from "three-obj-mtl-loader"
+const OBJLoader = require("three-obj-loader")
+OBJLoader(THREE)
 
 export class ObjAsset extends Asset<THREE.Object3D> {
 
@@ -11,7 +14,7 @@ export class ObjAsset extends Asset<THREE.Object3D> {
 			mtlLoader.load(this.shortName.replace(/\.obj$/i, ".mtl"))
 				.then(materials => {
 					materials.preload()
-					const objLoader = new PromiselifyLoader(new OBJLoader())
+					const objLoader = new PromiselifyLoader(new THREE.OBJLoader())
 					objLoader.wrapped.setPath(this.prefix)
 					objLoader.wrapped.setMaterials(materials)
 					objLoader.load(this.shortName)

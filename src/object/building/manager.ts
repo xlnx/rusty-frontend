@@ -1,4 +1,4 @@
-import { JsonAsset, ModelAsset } from "../wasp";
+import { JsonAsset, ModelAsset } from "../../wasp";
 
 interface TransformStep {
 	rotate?: number[],

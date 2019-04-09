@@ -1,5 +1,5 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
-import "./building"
+import "./object"
 import "./ui"
 
 export class MainComponent extends ComponentWrapper<{}> {
