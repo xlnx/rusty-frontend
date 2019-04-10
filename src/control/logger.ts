@@ -1,10 +1,25 @@
 import { ComponentWrapper } from "aframe-typescript-toolkit";
 
-export class LoggerComponent extends ComponentWrapper<{ readonly what: string }> {
+interface LoggerComponentSchema {
+	readonly events: string[]
+}
 
-	constructor() { super("logger", { what: { type: "string" } }) }
+export class LoggerComponent extends ComponentWrapper<LoggerComponentSchema> {
 
-	tick() { console.log(this.data.what) }
+	constructor() {
+		super("logger", {
+			events: {
+				type: "array",
+				default: []
+			}
+		})
+	}
+
+	init() {
+		for (const evt of this.data.events) {
+			this.el.addEventListener(evt, () => console.log(evt))
+		}
+	}
 }
 
 new LoggerComponent().register()
