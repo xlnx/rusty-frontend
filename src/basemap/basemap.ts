@@ -5,12 +5,12 @@ import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
 
 type Restype<R> = {
-	road: BasemapRoadItem<R>,
-	offset: number,
+	road: BasemapRoadItem<R> | undefined,
+	offset: number | undefined,
 	center: THREE.Vector2,
 	angle: number,
 	valid: boolean
-} | undefined
+}
 
 class Basemap<R, B> {
 	roadID = new Map<BasemapRoadItem<R>, number>()
@@ -166,14 +166,26 @@ class Basemap<R, B> {
 
 	alignBuilding(pt: Point, placeholder: THREE.Vector2): Restype<R> {
 
+		const nullval: Restype<R> = {
+			road: undefined,
+			offset: undefined,
+			center: pt,
+			angle: 0,
+			valid: false
+		}
 		const road = this.getNearRoad(pt)
 		if (road) {
-			if (road.seg.distance(pt) > placeholder.height) return
+
+			if (road.seg.distance(pt) > placeholder.height) {
+				return nullval
+			}
 
 			let AB = pt.clone().sub(road.from)
 			let AC = road.to.clone().sub(road.from)
 			let roadLength = AC.length()
-			if (roadLength < placeholder.width) return
+			if (roadLength < placeholder.width) {
+				return nullval
+			}
 			roadLength -= placeholder.width
 			AC.normalize()
 
@@ -239,6 +251,8 @@ class Basemap<R, B> {
 			}
 			return res
 		}
+
+		return nullval
 	}
 
 	// selectBuilding(pt: Point): Building | null

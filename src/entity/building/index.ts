@@ -1,23 +1,23 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
-import { BuildingManager } from "./manager";
+import { BuildingManager, BuildingPrototype } from "./manager";
 
 export class BuildingManagerComponent extends ComponentWrapper<{}> {
 
 	public readonly manager = new BuildingManager()
 
-	public finish = true
-	public ratio = 0
+	public readonly finish = true
+	public readonly ratio = 0
 
 	constructor() { super("building-manager", {}) }
 
 	load(...path: string[]) {
-		this.finish = false
+		; (<any>this).finish = false
 		this.manager.load(path)
-			.then(() => { this.finish = true })
+			.then(() => { ; (<any>this).finish = true })
 	}
 
 	tick() {
-		this.ratio = this.manager.finishedRequests / this.manager.requests
+		; (<any>this).ratio = this.manager.finishedRequests / this.manager.requests
 	}
 }
 
@@ -38,18 +38,16 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 		})
 	}
 
-	private model!: THREE.Object3D
-	private located!: boolean
+	public readonly proto: BuildingPrototype
+	public readonly located!: boolean
 
 	init() {
 
 		const manager: BuildingManagerComponent = window["building-manager"]
-		this.located = false
+			; (<any>this).located = false
+			; (<any>this).proto = manager.manager.get(this.data.name)
 
-		const proto = manager.manager.get(this.data.name)
-		if (proto) {
-
-			this.model = proto.object.model.clone()
+		if (this.proto) {
 
 			const mat =
 				new THREE.MeshPhongMaterial({
@@ -60,7 +58,7 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 					polygonOffsetFactor: -1e4
 				})
 			// new THREE.MeshBasicMaterial({ color: 0xff0000 })
-			const ind = this.model.clone()
+			const ind = this.proto.object.model.clone()
 			ind.traverse(e => {
 				const f = <THREE.Mesh>e
 				if (f.isMesh) {
@@ -71,7 +69,8 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 
 			const handlers = {
 				"locate-building": () => {
-					this.el.setObject3D("mesh", this.model)
+					this.el.setObject3D("mesh", this.proto.object.model.clone())
+						; (<any>this).located = true
 					for (const name in handlers) {
 						this.el.removeEventListener(name, handlers[name])
 					}

@@ -11,7 +11,7 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 
 	private readonly renderer = new THREE.WebGLRenderer()
 
-	public terrain!: Terrain
+	public readonly terrain!: Terrain
 
 	constructor() {
 
@@ -30,7 +30,7 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 	init() {
 
 		// large terrain take time to init
-		this.terrain = new Terrain(this.el, this.renderer,
+		; (<any>this).terrain = new Terrain(this.el, this.renderer,
 			this.data.blockCnt, this.data.worldWidth,
 			new THREE.MeshStandardMaterial({
 				color: 0x777777,

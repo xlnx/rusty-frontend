@@ -5,8 +5,6 @@ import { Terrain } from "../terrain/terrain";
 import { TexAsset } from "../../wasp";
 
 
-
-
 // export class RoadIndicator {
 
 // 	// frameColor: { value: new THREE.Vector4(0.38, 0.65, 0.76, 0.7) },
@@ -148,19 +146,15 @@ export class Road extends THREE.Object3D {
 	private geometry: THREE.Geometry = <any>null
 	private object: THREE.Mesh = <any>null
 
-	public readonly item: BasemapRoadItem<Road>
-
 	constructor(
 		ground: Terrain,
 		public readonly width: number,
-		from: THREE.Vector2,
-		to: THREE.Vector2) {
+		public readonly item: BasemapRoadItem<Road>) {
 
 		super()
 
 		this.add(this.view)
 
-		this.item = new BasemapRoadItem<Road>(width, from, to)
 		this.item.userData = this
 
 		const { geometry, startHeight } = this.boxGeometry(ground)
