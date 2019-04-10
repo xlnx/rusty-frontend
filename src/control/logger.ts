@@ -1,23 +1,25 @@
 import { ComponentWrapper } from "aframe-typescript-toolkit";
+import * as MobileDetect from "mobile-detect"
 
-interface LoggerComponentSchema {
-	readonly events: string[]
-}
+export class LoggerComponent extends ComponentWrapper<string[]> {
 
-export class LoggerComponent extends ComponentWrapper<LoggerComponentSchema> {
+	private mobile!: MobileDetect
 
 	constructor() {
 		super("logger", {
-			events: {
-				type: "array",
-				default: []
-			}
+			type: "array",
+			default: []
 		})
 	}
 
 	init() {
-		for (const evt of this.data.events) {
-			this.el.addEventListener(evt, evt => console.log(evt))
+
+		this.mobile = new MobileDetect(window.navigator.userAgent)
+
+		if (!this.mobile.mobile()) {
+			for (const evt of this.data) {
+				this.el.addEventListener(evt, evt => console.log(evt))
+			}
 		}
 	}
 }

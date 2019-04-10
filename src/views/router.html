@@ -2,7 +2,7 @@
 	<!-- <a-box material="color: red" position="0 2 -5" billboard></a-box> -->
 	<a-camera>
 		<a-cursor export="raycaster" s-preview color="blue" raycaster="objects: .collidable" logger="
-			events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+			raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
 		"></a-cursor>
 		<!-- <a-entity s-preview raycaster="objects: .collidable; showLine: true"></a-entity> -->
 	</a-camera>
@@ -18,7 +18,7 @@
 
 	<!-- </a-entity> -->
 	<a-entity class="collidable" logger="
-		events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+		raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
 	">
 		<a-entity geometry="primitive: box" position="1 0 0"></a-entity>
 	</a-entity>

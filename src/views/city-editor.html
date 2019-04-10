@@ -7,15 +7,13 @@
 	<a-entity id="city-editor" room export="city-editor=[el]">
 
 		<a-light position="0 10 0" color="white" type="point"></a-light>
-		<a-box position="2 3 -10" billboard></a-box>
+		<!-- <a-box position="2 3 -10" billboard></a-box> -->
 		<a-sky color="#ECECEC"></a-sky>
-		<a-box position="-2 3 -10" color="blue"></a-box>
+		<!-- <a-box position="-2 3 -10" color="blue"></a-box> -->
 
-		<a-entity position="2 2 -10" button="text: Building_Bar" billboard></a-entity>
+		<!-- <a-entity position="2 2 -10" button="text: Building_Bar" billboard></a-entity> -->
 
-		<a-entity class="ground" terrain="blockCnt: 8; worldWidth: 20" logger="
-		events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
-	"></a-entity>
+		<a-entity class="ground" terrain="blockCnt: 8; worldWidth: 200" export="terrain"></a-entity>
 
 	</a-entity>
 
@@ -24,10 +22,14 @@
 		<a-entity id="splash_main" splash="dst: #city-editor" export="splash=[el]"></a-entity>
 
 		<a-cursor color="blue"></a-cursor>
-		<a-entity s-preview raycaster="showLine: true" logger="
-			events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
-		"></a-entity>
+		<a-entity s-preview raycaster="objects: .ground; showLine: true" export="terrain-raycaster=raycaster">
+		</a-entity>
 
 	</a-camera>
+
+	<!-- state machine -->
+	<a-entity router="active: building">
+		<a-entity router-item="building" building-state></a-entity>
+	</a-entity>
 
 </a-scene>

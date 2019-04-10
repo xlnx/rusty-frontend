@@ -1,6 +1,6 @@
 import "./control"
 import "./entity"
 import "./ui"
-import "./state"
+import "./states"
 import "./main"
 

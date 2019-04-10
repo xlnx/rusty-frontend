@@ -59,7 +59,9 @@ export class Terrain extends THREE.Object3D {
 	private readonly rigidContainer = new THREE.Object3D
 	private readonly container = new THREE.Object3D
 
-	constructor(private readonly renderer: THREE.WebGLRenderer,
+	constructor(
+		private readonly el: AFrame.Entity,
+		private readonly renderer: THREE.WebGLRenderer,
 		private readonly blockCnt: number,
 		private readonly worldWidth: number,
 		material: THREE.Material) {
@@ -117,10 +119,6 @@ export class Terrain extends THREE.Object3D {
 				const adjust = (object: THREE.Object3D) => {
 					object.translateX((x + 0.5) * s)
 					object.translateZ((-y - 0.5) * s)
-					// .scale(1 + 1e-4, 1 + 1e-4, 1 + 1e-4)
-					// .scale(.95, .95, .95)
-					// .translate(x + 0.5, 0, -y - 0.5)
-					// .scale(fact, fact, fact)
 				}
 
 				// position.array = copy_f32_array_rs(<Float32Array>position.array)
@@ -152,14 +150,12 @@ export class Terrain extends THREE.Object3D {
 						flatShading: true
 					})
 				gs.forEach((cg, j) => {
-					const d = j * worldWidth / 20
+					const d = j * worldWidth / 200
 					// console.log(j, d)
 					// const d = j * 10
-					const mesh = new THREE.Object3D()
-						.add(new THREE.Mesh(cg, mat))
+					const mesh = new THREE.Mesh(cg, mat)
+					mesh["el"] = this.el
 					mesh.scale.setScalar(scl)
-					// const mesh = new THREE.Mesh(cg.clone().scale(scl, scl, scl), mat)
-					// mesh.receiveShadow = true
 					lod.addLevel(mesh, d)
 				})
 				adjust(lod)
@@ -167,6 +163,7 @@ export class Terrain extends THREE.Object3D {
 
 				const geo = g.clone().scale(s, s, s)
 				const meshWire = new THREE.Mesh(geo, matWire)
+				meshWire["el"] = this.el
 				adjust(meshWire)
 				this.rigidContainer.add(meshWire)
 
@@ -333,22 +330,18 @@ export class Terrain extends THREE.Object3D {
 		return res
 	}
 
-	// intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
-
-	// this.raycaster.setFromCamera(coord, camera)
-	// if (!ints.length) return undefined
-	// // console.log(ints[0])
-	// const { object, point } = ints[0]
-	// const { x, y, z } = point
-	// const { x: x1, y: y1, z: z1 } = new THREE.Vector4(x, y, z, 1)
-	// 	.applyMatrix4(new THREE.Matrix4().getInverse(this.container.matrixWorld))
-	// return new THREE.Vector2(x1, -z1).subScalar(this.worldWidth / 2)
-	// }
-
 	raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]): void {
 		this.rigidContainer.visible = true
 		intersects.push(...raycaster.intersectObject(this.rigidContainer, true))
 		this.rigidContainer.visible = false
+	}
+
+	coordCast(isect: THREE.Intersection): THREE.Vector2 {
+		const { object, point } = isect
+		const { x, y, z } = point
+		const { x: x1, y: y1, z: z1 } = new THREE.Vector4(x, y, z, 1)
+			.applyMatrix4(new THREE.Matrix4().getInverse(this.container.matrixWorld))
+		return new THREE.Vector2(x1, -z1).subScalar(this.worldWidth / 2)
 	}
 
 	private updateWireframe(rect: THREE.Box2) {

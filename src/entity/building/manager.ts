@@ -1,4 +1,5 @@
 import { JsonAsset, ModelAsset } from "../../wasp";
+import { DistUnit } from "../../legacy";
 
 interface TransformStep {
 	rotate?: number[],
@@ -51,7 +52,7 @@ export class BuildingPrototype {
 	private static adjustObject(obj: THREE.Object3D, def: BuildingDefination) {
 		!def.transform || BuildingPrototype.transformObject(obj, def.transform)
 		!def.scale || BuildingPrototype.scaleObject(obj, def.scale)
-		// obj.scale.multiplyScalar(DistUnit)
+		obj.scale.multiplyScalar(DistUnit)
 		obj.translateY(-new THREE.Box3().setFromObject(obj).min.y)
 	}
 

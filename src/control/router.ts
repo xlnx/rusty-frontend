@@ -1,8 +1,8 @@
 import { ComponentWrapper } from "aframe-typescript-toolkit";
 
-export class RouterItemComponent extends ComponentWrapper<{ readonly name: string }> {
+export class RouterItemComponent extends ComponentWrapper<string> {
 
-	constructor() { super("router-item", { name: { type: "string" } }) }
+	constructor() { super("router-item", { type: "string" }) }
 }
 
 new RouterItemComponent().register()
@@ -33,7 +33,7 @@ export class RouterComponent extends ComponentWrapper<RouterComponentSchema> {
 			const el = <AFrame.Entity>this.el.children[i]
 			const com = el.components["router-item"]
 			if (!!com) {
-				if (com.data.name == this.data.active) {
+				if (com.data == this.data.active) {
 					el.play()
 				} else {
 					el.pause()

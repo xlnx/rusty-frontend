@@ -38,23 +38,54 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 		})
 	}
 
+	private model!: THREE.Object3D
+	private located!: boolean
+
 	init() {
 
 		const manager: BuildingManagerComponent = window["building-manager"]
+		this.located = false
 
 		const proto = manager.manager.get(this.data.name)
 		if (proto) {
-			const model = proto.object.model.clone()
-			model.scale.multiplyScalar(0.1)
 
-			this.el.setObject3D("mesh", model)
+			this.model = proto.object.model.clone()
+
+			const mat =
+				new THREE.MeshPhongMaterial({
+					color: new THREE.Color(1, 0, 0),
+					opacity: 0.4,
+					transparent: true,
+					polygonOffset: true,
+					polygonOffsetFactor: -1e4
+				})
+			// new THREE.MeshBasicMaterial({ color: 0xff0000 })
+			const ind = this.model.clone()
+			ind.traverse(e => {
+				const f = <THREE.Mesh>e
+				if (f.isMesh) {
+					f.material = mat
+				}
+			})
+			this.el.setObject3D("mesh", ind)
+
+			const handlers = {
+				"locate-building": () => {
+					this.el.setObject3D("mesh", this.model)
+					for (const name in handlers) {
+						this.el.removeEventListener(name, handlers[name])
+					}
+				}
+			}
+			for (const name in handlers) {
+				this.el.addEventListener(name, handlers[name])
+			}
+
 		} else {
+
 			console.error(`invalid building type: ${this.data.name}`)
+
 		}
-	}
-
-	tick() {
-
 	}
 }
 

@@ -1,5 +1,6 @@
 import { ComponentWrapper } from "aframe-typescript-toolkit";
 import { Terrain } from "./terrain";
+import { DistUnit } from "../../legacy";
 
 interface TerrainComponentSchema {
 	readonly blockCnt: number,
@@ -10,7 +11,7 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 
 	private readonly renderer = new THREE.WebGLRenderer()
 
-	private terrain!: Terrain
+	public terrain!: Terrain
 
 	constructor() {
 
@@ -29,14 +30,17 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 	init() {
 
 		// large terrain take time to init
-		this.terrain = new Terrain(this.renderer,
+		this.terrain = new Terrain(this.el, this.renderer,
 			this.data.blockCnt, this.data.worldWidth,
 			new THREE.MeshStandardMaterial({
 				color: 0x777777,
 				wireframe: true
 			}))
 
-		this.el.setObject3D("mesh", new THREE.Object3D().add(this.terrain))
+		const view = new THREE.Object3D()
+		view.add(this.terrain)
+		view.scale.setScalar(DistUnit)
+		this.el.setObject3D("mesh", view)
 	}
 
 	tick() {

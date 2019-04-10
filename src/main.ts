@@ -89,6 +89,14 @@ export class MainComponent extends ComponentWrapper<{}> {
 				}
 			})
 				.attachTo(city)
+
+			EntityBuilder.create("a-entity", {
+				road: {
+					from: { x: 5, y: 5 },
+					to: { x: 10, y: 10 }
+				}
+			})
+				.attachTo(city)
 		}
 	}
 }
