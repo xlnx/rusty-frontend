@@ -92,7 +92,7 @@ var config = {
     contentBase: path.join(__dirname, '/dist'),
     compress: true,
     port: 3000,
-    host: "0.0.0.0",
+    host: "localhost",
     hot: true,
     disableHostCheck: true,
     watchContentBase: true,

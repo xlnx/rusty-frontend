@@ -2,12 +2,11 @@ declare const THREE: typeof import("three")
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
 
 interface ButtonComponentSchema {
-	text: string
-	width: number | undefined
-	height: number | undefined
-	position: string
-	readonly buttonDown: string | undefined
-	readonly buttonUp: string | undefined
+	readonly text: string
+	readonly width: number
+	readonly fontSize: number
+	readonly buttonDown: string
+	readonly buttonUp: string
 	readonly billboard: boolean
 }
 
@@ -26,23 +25,19 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			},
 			width: {
 				type: "number",
-				default: undefined
+				default: 1
 			},
-			height: {
+			fontSize: {
 				type: "number",
-				default: undefined
-			},
-			position: {
-				type: "string",
-				default: "0 0 0"
+				default: 0.1
 			},
 			buttonDown: {
 				type: "string",
-				default: undefined
+				default: ""
 			},
 			buttonUp: {
 				type: "string",
-				default: undefined
+				default: ""
 			},
 			billboard: {
 				type: "boolean",
@@ -54,61 +49,104 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 	init() {
 		const data = this.data
 
-		const wrapCount = 40
-		const totalWidth = data.text.length * (data.width / wrapCount)
-
+		const fontWidth = 1
+		const fontHeight = 3
+		const wrapCount = data.width / data.fontSize / fontWidth
+		const totalWidth = data.width + 2
+		const lines = Math.floor(data.text.length / wrapCount)
+		const boxDepth = .1
 
 		this.planeEntity = EntityBuilder.create("a-entity", {
 			geometry: {
-				primitive: "plane",
-				width: 'auto',
-				height: 'auto'
+				primitive: "box",
+				width: totalWidth,
+				height: 'auto',
+				depth: boxDepth
 			},
-			position: `0 0 1e-1`,
+			// scale: '1 1 .1',
+			position: `0 0 0`,
 			text: {
 				value: data.text,
-				width: data.width ? totalWidth : 'auto',
-				height: data.height || 'auto',
-				align: 'center'
-			}
+				wrapCount: wrapCount,
+				align: 'center',
+				zOffset: boxDepth
+			},
 		})
+
 		const plane = this.planeEntity.toEntity()
 
 		this.backEntity = EntityBuilder.create("a-entity", {
-			geometry: {
-				primitive: "plane",
-				width: plane.attributes['text']['width'],
-				height: 'auto'
-			}
+			// geometry: {
+			// 	primitive: "box",
+			// 	width: totalWidth * 1.05,
+			// 	height: 'auto',
+			// 	// depth: boxDepth
+			// },
+			// scale: '1 1 .1',
+			// position: `0 0 -.2`,
+			// text: {
+			// 	value: " ".repeat(data.text.length) + "\n ",
+			// 	wrapCount: wrapCount,
+			// 	align: 'center'
+			// }
 		})
+		const back = this.backEntity.toEntity()
+		// this.backEntity = EntityBuilder.create("a-entity", {
+		// 	geometry: {
+		// 		primitive: "plane",
+		// 		width: totalWidth + 1,
+		// 		height: plane.attributes['geometry']['height']
+		// 	},
+		// 	position: `0 0 -1`
+		// })
 
 		this.buttonEntity = EntityBuilder.create("a-entity", {
-			position: data.position
-		}, [this.planeEntity])
+			id: `_button_${this.buttonId}`,
+		}, [this.backEntity, this.planeEntity,])
 			.attachTo(this.el)
 
 		if (data.billboard) {
 			this.el.setAttribute('billboard', {})
 		}
 
-		if (data.buttonUp) {
-			//need animation
-			this.el.addEventListener(`_button_${this.buttonId}_up`, () => {
-				this.el.emit(data.buttonUp)
+		plane.addEventListener('mousedown', (evt) => {
+			console.log('mousedown')
+			this.el.emit(`_button_${this.buttonId}_down`)
+		})
+		plane.addEventListener('mouseup', (evt) => {
+			console.log('mouseup')
+			this.el.emit(`_button_${this.buttonId}_up`)
+		})
+
+
+		this.el.addEventListener(`_button_${this.buttonId}_up`, () => {
+			plane.setAttribute("animation", {
+				property: "position",
+				dir: "normal",
+				dur: 250,
+				easing: "easeInSine",
+				loop: false,
+				from: '0 0 -.1',
+				to: '0 0 0'
 			})
-		}
-		if (data.buttonDown) {
-			//need animation
-			this.el.addEventListener(`_button_${this.buttonId}_down`, () => {
-				this.el.emit(data.buttonDown)
+			if (data.buttonUp != "") this.el.emit(data.buttonUp)
+		})
+
+		this.el.addEventListener(`_button_${this.buttonId}_down`, () => {
+			plane.setAttribute("animation", {
+				property: "position",
+				dir: "normal",
+				dur: 250,
+				easing: "easeInSine",
+				loop: false,
+				from: '0 0 0',
+				to: '0 0 -.1'
 			})
-		}
+			if (data.buttonDown != "") this.el.emit(data.buttonDown)
+		})
+
 
 	}
 }
-// EntityBuilder.create("a-entity", {
-// 	button: new ButtonComponent(new THREE.Vector3(0, 0, 0), "hello\n the world!", 10)
-// })
 
 new ButtonComponent().register()
-
