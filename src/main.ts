@@ -1,5 +1,20 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
 
+export class TestButtonComponent extends ComponentWrapper<{}> {
+
+	constructor() {
+		super("test-button")
+	}
+
+	init() {
+		this.el.addEventListener("button-click", () => console.log("click"))
+		this.el.addEventListener("button-up", () => console.log("up"))
+		this.el.addEventListener("button-down", () => console.log("down"))
+	}
+}
+
+new TestButtonComponent().register()
+
 export class MainComponent extends ComponentWrapper<{}> {
 
 	private buildingManager!: AFrame.Entity
