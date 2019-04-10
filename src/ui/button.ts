@@ -165,35 +165,36 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 		const rotateAngle = 10
 		const rotateTime = 1000
 		this.el.addEventListener(data.buttonSelected, () => {
-			plane.setAttribute("animation", {
-				property: "rotation",
-				dir: "normal",
-				dur: rotateTime * .25,
-				easing: "easeInOutSine",
-				loop: false,
-				from: '0 0 0',
-				to: `0 0 ${rotateAngle}`,
-			})
-			plane.setAttribute("animation__2", {
-				property: "rotation",
-				dir: "normal",
-				delay: rotateTime * .26,
-				dur: rotateTime * .5,
-				easing: "easeInOutSine",
-				loop: false,
-				from: `0 0 ${rotateAngle}`,
-				to: `0 0 -${rotateAngle}*2`,
-			})
-			plane.setAttribute("animation__3", {
-				property: "rotation",
-				dir: "normal",
-				delay: rotateTime * .77,
-				dur: rotateTime * .25,
-				easing: "easeInOutSine",
-				loop: false,
-				from: `0 0 -${rotateAngle}*2`,
-				to: `0 0 0`,
-			})
+
+			// plane.setAttribute("animation", {
+			// 	property: "rotation",
+			// 	dir: "normal",
+			// 	dur: rotateTime * .25,
+			// 	easing: "easeInOutSine",
+			// 	loop: false,
+			// 	from: '0 0 0',
+			// 	to: `0 0 ${rotateAngle}`,
+			// })
+			// plane.setAttribute("animation__2", {
+			// 	property: "rotation",
+			// 	dir: "normal",
+			// 	delay: rotateTime * .26,
+			// 	dur: rotateTime * .5,
+			// 	easing: "easeInOutSine",
+			// 	loop: false,
+			// 	from: `0 0 ${rotateAngle}`,
+			// 	to: `0 0 -${rotateAngle}*2`,
+			// })
+			// plane.setAttribute("animation__3", {
+			// 	property: "rotation",
+			// 	dir: "normal",
+			// 	delay: rotateTime * .77,
+			// 	dur: rotateTime * .25,
+			// 	easing: "easeInOutSine",
+			// 	loop: false,
+			// 	from: `0 0 -${rotateAngle}*2`,
+			// 	to: `0 0 0`,
+			// })
 		})
 	}
 }
