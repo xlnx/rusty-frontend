@@ -1,4 +1,4 @@
-import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
+import { EntityBuilder, ComponentWrapper } from "aframe-typescript-toolkit";
 import { TerrainComponent, BasemapComponent, BuildingComponent } from "../entity";
 import { plain2world } from "../legacy";
 
