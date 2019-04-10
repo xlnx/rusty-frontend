@@ -110,7 +110,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 		// 		align: 'center'
 		// 	}
 		// })
-		const back = this.backEntity.toEntity()
+		// const back = this.backEntity.toEntity()
 
 		this.buttonEntity = EntityBuilder.create("a-entity", {
 			id: `_button_${this.buttonId}`,
@@ -162,8 +162,8 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			})
 		})
 
-		const rotateAngle = 15
-		const rotateTime = 400
+		const rotateAngle = 10
+		const rotateTime = 1000
 		this.el.addEventListener(data.buttonSelected, () => {
 			plane.setAttribute("animation", {
 				property: "rotation",
@@ -177,8 +177,9 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			plane.setAttribute("animation__2", {
 				property: "rotation",
 				dir: "normal",
+				delay: rotateTime * .26,
 				dur: rotateTime * .5,
-				easing: "linear",
+				easing: "easeInOutSine",
 				loop: false,
 				from: `0 0 ${rotateAngle}`,
 				to: `0 0 -${rotateAngle}*2`,
@@ -186,10 +187,11 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			plane.setAttribute("animation__3", {
 				property: "rotation",
 				dir: "normal",
+				delay: rotateTime * .77,
 				dur: rotateTime * .25,
 				easing: "easeInOutSine",
 				loop: false,
-				from: `0 0 -${rotateAngle}`,
+				from: `0 0 -${rotateAngle}*2`,
 				to: `0 0 0`,
 			})
 		})
