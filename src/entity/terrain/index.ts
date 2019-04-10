@@ -36,7 +36,7 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 				wireframe: true
 			}))
 
-		this.el.setObject3D("mesh", this.terrain)
+		this.el.setObject3D("mesh", new THREE.Object3D().add(this.terrain))
 	}
 
 	tick() {

@@ -1,8 +1,9 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
+import { BuildingManagerComponent } from "./entity";
 
 export class MainComponent extends ComponentWrapper<{}> {
 
-	private buildingManager!: AFrame.Entity
+	private buildingManager!: BuildingManagerComponent
 	private splash!: AFrame.Entity
 
 	private firstFinish = true
@@ -11,12 +12,12 @@ export class MainComponent extends ComponentWrapper<{}> {
 
 	init() {
 
-		this.buildingManager = this.el.querySelector("[building-manager]")
-		this.splash = <AFrame.Entity>this.el.sceneEl.querySelector("#splash_main")
+		this.buildingManager = window["building-manager"]
+		this.splash = window["splash"]
 
 		console.log(this.buildingManager)
 
-		this.buildingManager.emit("load", [
+		this.buildingManager.load(
 			"export/Building_Auto Service",
 			"export/Building_Bakery",
 			"export/Building_Bar",
@@ -43,35 +44,23 @@ export class MainComponent extends ComponentWrapper<{}> {
 			"export/Building Sky_small_color01",
 			"export/Building_Stadium",
 			"export/Building_Super Market"
-		])
+		)
 
 		this.splash.emit("enter")
-	}
-
-	update() {
-
 	}
 
 	tick() {
 
 		this.splash.setAttribute("splash", {
-			ratio: this.buildingManager.components["building-manager"].data.ratio
+			ratio: this.buildingManager.ratio
 		})
 
-		if (this.buildingManager.components["building-manager"].data.finish &&
+		if (this.buildingManager.finish &&
 			this.firstFinish) {
 
 			this.firstFinish = false
 
-			const city = <AFrame.Entity>this.el.sceneEl.querySelector("#city_editor")
-
-			EntityBuilder.create("a-entity", {
-				terrain: {
-					blockCnt: 8,
-					worldWidth: 20
-				}
-			})
-				.attachTo(city)
+			const city: AFrame.Entity = window["city-editor"]
 
 			EntityBuilder.create("a-entity", {
 				// scale: "1e-1 1e-1 1e-1",

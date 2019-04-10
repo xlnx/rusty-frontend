@@ -1,10 +1,10 @@
 <a-scene embedded antialias="true" shadow="type: pcfsoft">
 
 	<a-entity main>
-		<a-entity building-manager></a-entity>
+		<a-entity building-manager export="building-manager"></a-entity>
 	</a-entity>
 
-	<a-entity id="city_editor" room>
+	<a-entity id="city-editor" room export="city-editor=[el]">
 
 		<a-light position="0 10 0" color="white" type="point"></a-light>
 		<a-box position="2 3 -10" billboard></a-box>
@@ -13,10 +13,21 @@
 
 		<a-entity position="2 2 -10" button="text: Building_Bar" billboard></a-entity>
 
+		<a-entity class="ground" terrain="blockCnt: 8; worldWidth: 20" logger="
+		events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+	"></a-entity>
+
 	</a-entity>
 
 	<a-camera position="0 1 0">
-		<a-entity id="splash_main" splash="dst: #city_editor"></a-entity>
+
+		<a-entity id="splash_main" splash="dst: #city-editor" export="splash=[el]"></a-entity>
+
+		<a-cursor color="blue"></a-cursor>
+		<a-entity s-preview raycaster="showLine: true" logger="
+			events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+		"></a-entity>
+
 	</a-camera>
 
 </a-scene>

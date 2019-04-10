@@ -333,19 +333,22 @@ export class Terrain extends THREE.Object3D {
 		return res
 	}
 
-	intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
+	// intersect(coord: { x: number, y: number }, camera: THREE.Camera): THREE.Vector2 | undefined {
 
-		this.raycaster.setFromCamera(coord, camera)
+	// this.raycaster.setFromCamera(coord, camera)
+	// if (!ints.length) return undefined
+	// // console.log(ints[0])
+	// const { object, point } = ints[0]
+	// const { x, y, z } = point
+	// const { x: x1, y: y1, z: z1 } = new THREE.Vector4(x, y, z, 1)
+	// 	.applyMatrix4(new THREE.Matrix4().getInverse(this.container.matrixWorld))
+	// return new THREE.Vector2(x1, -z1).subScalar(this.worldWidth / 2)
+	// }
+
+	raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]): void {
 		this.rigidContainer.visible = true
-		const ints = this.raycaster.intersectObject(this.rigidContainer, true)
+		intersects.push(...raycaster.intersectObject(this.rigidContainer, true))
 		this.rigidContainer.visible = false
-		if (!ints.length) return undefined
-		// console.log(ints[0])
-		const { object, point } = ints[0]
-		const { x, y, z } = point
-		const { x: x1, y: y1, z: z1 } = new THREE.Vector4(x, y, z, 1)
-			.applyMatrix4(new THREE.Matrix4().getInverse(this.container.matrixWorld))
-		return new THREE.Vector2(x1, -z1).subScalar(this.worldWidth / 2)
 	}
 
 	private updateWireframe(rect: THREE.Box2) {

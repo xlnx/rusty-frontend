@@ -1,9 +1,25 @@
-<a-scene embedded antialias="true" cursor="rayOrigin: mouse">
+<a-scene embedded antialias="true">
 	<!-- <a-box material="color: red" position="0 2 -5" billboard></a-box> -->
 	<a-camera>
-		<a-cursor color="blue"></a-cursor>
+		<a-cursor export="raycaster" s-preview color="blue" raycaster="objects: .collidable" logger="
+			events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+		"></a-cursor>
+		<!-- <a-entity s-preview raycaster="objects: .collidable; showLine: true"></a-entity> -->
 	</a-camera>
-	<a-box position="0 2 -5" material="color: red" logger="
+
+	<!-- <a-box position="0 2 -5" material="color: red" logger="
 		events: mousedown, mousemove, mouseup, mouseclick
-	"></a-box>
+	"></a-box> -->
+
+	<!-- <a-entity id="player" collider-check> -->
+	<!-- <a-entity logger="
+		events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+	"> -->
+
+	<!-- </a-entity> -->
+	<a-entity class="collidable" logger="
+		events: raycaster-intersection, raycaster-intersected, raycaster-intersected-cleared, raycaster-intersection-cleared
+	">
+		<a-entity geometry="primitive: box" position="1 0 0"></a-entity>
+	</a-entity>
 </a-scene>

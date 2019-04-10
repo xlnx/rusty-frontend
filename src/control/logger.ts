@@ -17,7 +17,7 @@ export class LoggerComponent extends ComponentWrapper<LoggerComponentSchema> {
 
 	init() {
 		for (const evt of this.data.events) {
-			this.el.addEventListener(evt, () => console.log(evt))
+			this.el.addEventListener(evt, evt => console.log(evt))
 		}
 	}
 }

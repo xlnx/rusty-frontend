@@ -1,45 +1,23 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
 import { BuildingManager } from "./manager";
 
-interface BuildingManagerComponentSchema {
-	readonly finish: boolean
-	readonly ratio: number
-}
-
-export class BuildingManagerComponent extends ComponentWrapper<BuildingManagerComponentSchema> {
+export class BuildingManagerComponent extends ComponentWrapper<{}> {
 
 	public readonly manager = new BuildingManager()
 
-	constructor() {
+	public finish = true
+	public ratio = 0
 
-		super("building-manager", {
-			ratio: {
-				type: "number",
-				default: 0
-			},
-			finish: {
-				type: "boolean",
-				default: true
-			}
-		})
-	}
+	constructor() { super("building-manager", {}) }
 
-	init() {
-
-		this.el.addEventListener("load", (evt: any) => {
-
-			this.el.setAttribute("building-manager", { finish: false })
-			this.manager.load(evt.detail)
-				.then(() => {
-					this.el.setAttribute("building-manager", { finish: true })
-				})
-		})
+	load(...path: string[]) {
+		this.finish = false
+		this.manager.load(path)
+			.then(() => { this.finish = true })
 	}
 
 	tick() {
-		this.el.setAttribute("building-manager", {
-			ratio: this.manager.finishedRequests / this.manager.requests
-		})
+		this.ratio = this.manager.finishedRequests / this.manager.requests
 	}
 }
 
@@ -62,10 +40,9 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 
 	init() {
 
-		const manager = <AFrame.Entity>this.el.sceneEl.querySelector("[building-manager]")
+		const manager: BuildingManagerComponent = window["building-manager"]
 
-		const proto = (<BuildingManagerComponent>manager.components["building-manager"])
-			.manager.get(this.data.name)
+		const proto = manager.manager.get(this.data.name)
 		if (proto) {
 			const model = proto.object.model.clone()
 			model.scale.multiplyScalar(0.1)
