@@ -1,4 +1,9 @@
 import { QuadTreeItem } from "./def";
+import * as THREE from "three";
+
+function cross2D(a: THREE.Vector2, b: THREE.Vector2): number {
+    return a.x * b.y - a.y * b.x
+}
 
 function inBox(min: Point, pts: Point[], max: Point): boolean {
     for (let pt of pts) {
@@ -79,18 +84,18 @@ class Seg2D {
             let cb = b.clone().sub(c)
             //2.cross standing experiment
             if (flag) {
-                return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) <= 0 &&
-                    cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) <= 0
+                return cmp(cross2D(ac, ab) * cross2D(ad, ab), 0) <= 0 &&
+                    cmp(cross2D(ca, cd) * cross2D(cb, cd), 0) <= 0
             }
-            else return cmp((<any>ac).cross(ab) * (<any>ad).cross(ab), 0) < 0 &&
-                cmp((<any>ca).cross(cd) * (<any>cb).cross(cd), 0) < 0
+            else return cmp(cross2D(ac, ab) * cross2D(ad, ab), 0) < 0 &&
+                cmp(cross2D(ca, cd) * cross2D(cb, cd), 0) < 0
         }
         return false
     }
     distance(pt: Point): number {
         let ab = this.to.clone().sub(this.from)
         let ac = pt.clone().sub(this.from)
-        return Math.abs((<any>ab).cross(ac)) / ab.length()
+        return Math.abs(cross2D(ab, ac)) / ab.length()
     }
     ptOnLine(pt: Point): boolean {
         let p = pt
@@ -134,22 +139,22 @@ class AnyRect2D {
         let product: number[] = []
         let AB = pts[1].clone().sub(pts[0])
         let AP = pt.clone().sub(pts[0])
-        product.push((<any>AB).cross(AP))
+        product.push(cross2D(AB, AP))
 
         let BC = pts[2].clone().sub(pts[1])
         let BP = pt.clone().sub(pts[1])
-        product.push((<any>BC).cross(BP))
+        product.push(cross2D(BC, BP))
         if (cmp(product[0] * product[1], 0) <= 0) return false
 
         let CD = pts[3].clone().sub(pts[2])
         let CP = pt.clone().sub(pts[2])
 
-        product.push((<any>CD).cross(CP))
+        product.push(cross2D(CD, CP))
         if (cmp(product[1] * product[2], 0) <= 0) return false
 
         let DA = pts[0].clone().sub(pts[3])
         let DP = pt.clone().sub(pts[3])
-        product.push((<any>DA).cross(DP))
+        product.push(cross2D(DA, DP))
         return cmp(product[2] * product[3], 0) <= 0 ? false : true
 
     }
@@ -218,5 +223,6 @@ class ParallelRect2D extends AnyRect2D {
 
 export {
     inBox, minPt, maxPt, Point, cmp, cmpPt,
+    cross2D,
     Seg2D, AnyRect2D, ParallelRect2D
 }
