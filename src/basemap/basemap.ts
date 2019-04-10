@@ -1,6 +1,6 @@
 import BasemapBuildingItem from "./buildingItem";
 import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem, PointDetectRadius, AttachRadius, minRoadLength } from "./def";
-import { Point, AnyRect2D, cmp, ParallelRect2D, cmpPt } from "./geometry";
+import { Point, AnyRect2D, cmp, ParallelRect2D, cmpPt, cross2D } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
 
@@ -17,18 +17,16 @@ class Basemap<R, B> {
 	IDroad = new Map<number, BasemapRoadItem<R>>()
 	static count = 0
 	private readonly edge = new Map<Point, BasemapRoadItem<R>[]>()
-	private readonly buildingTree:
-		QuadTree<QuadTreeItem<BasemapBuildingItem<B>>> = new QuadTree({
-			width: mapWidth,
-			height: mapHeight,
-			maxElements: maxBuildings
-		})
-	private readonly roadTree:
-		QuadTree<QuadTreeItem<BasemapRoadItem<R>>> = new QuadTree({
-			width: mapWidth,
-			height: mapHeight,
-			maxElements: maxRoads
-		})
+	private readonly buildingTree: QuadTree<QuadTreeItem<BasemapBuildingItem<B>>> = new QuadTree({
+		width: mapWidth,
+		height: mapHeight,
+		maxElements: maxBuildings
+	})
+	private readonly roadTree: QuadTree<QuadTreeItem<BasemapRoadItem<R>>> = new QuadTree({
+		width: mapWidth,
+		height: mapHeight,
+		maxElements: maxRoads
+	})
 
 
 	addRoad(width: number, from: Point, to: Point): { added: BasemapRoadItem<R>[], removed: BasemapRoadItem<R>[] } {
@@ -193,7 +191,7 @@ class Basemap<R, B> {
 			let faceDir = new THREE.Vector2(0, -1)
 
 			//1: left, -1:right
-			let offsetSign = (<any>AC.clone()).cross(AB) > 0 ? 1 : -1
+			let offsetSign = cross2D(AC.clone(), (AB)) > 0 ? 1 : -1
 			let offset = Math.round(AC.dot(AB) - placeholder.width / 2) + 1
 			offset = cmp(offset, 1) < 0 ? 1 : cmp(offset, roadLength + 1) > 0 ? roadLength + 1 : offset
 
@@ -201,7 +199,7 @@ class Basemap<R, B> {
 			let negNormDir = origin.clone().sub(normDir)
 
 			// let angle = Math.acos(faceDir.clone().dot(negNormDir)) * -offsetSign
-			let angleSign = cmp((<any>negNormDir.clone()).cross(faceDir), 0) > 0 ? -1 : 1
+			let angleSign = cmp(cross2D(negNormDir.clone(), (faceDir)), 0) > 0 ? -1 : 1
 			let angle = Math.acos(negNormDir.clone().dot(faceDir)) * angleSign
 			let center = road.from.clone()
 				.add(AC.clone().multiplyScalar(offset - 1 + placeholder.width / 2))
@@ -295,7 +293,7 @@ class Basemap<R, B> {
 	getNearRoad(pt: Point): BasemapRoadItem<R> | undefined {
 		let res: BasemapRoadItem<R> | undefined
 		let minDist = Infinity
-		this.roadTree.each((item) => {
+		this.roadTree.each((item: any) => {
 			let road = item.obj!
 			if (road.seg.distance(pt) < minDist) {
 				const ap = pt.clone().sub(road.seg.from)
