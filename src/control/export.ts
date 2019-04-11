@@ -1,17 +1,19 @@
 import { ComponentWrapper } from "aframe-typescript-toolkit";
 
-export class ExportComponent extends ComponentWrapper<string[]> {
+export class ExportComponent extends ComponentWrapper<{ readonly export: string[] }> {
 
 	constructor() {
 		super("export", {
-			type: "array",
-			default: []
+			export: {
+				type: "array",
+				default: []
+			}
 		})
 	}
 
 	update() {
 		const wnd = <any>window
-		for (const com of this.data) {
+		for (const com of this.data.export) {
 			const a = com.split("=", 2)
 			if (a.length == 1) a.push(a[0])
 			const [dst, src] = a
