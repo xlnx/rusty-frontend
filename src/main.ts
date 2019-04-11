@@ -21,6 +21,7 @@ export class MainComponent extends ComponentWrapper<{}> {
 	private buildingManager!: BuildingManagerComponent
 	private splash!: AFrame.Entity
 
+	private current!: AFrame.Entity
 	private firstFinish = true
 
 	constructor() { super("main", {}) }
@@ -68,33 +69,32 @@ export class MainComponent extends ComponentWrapper<{}> {
 
 		this.splash.emit("enter")
 
-		let current!: AFrame.Entity
+		let xy = terrain.point
 
 		this.el.addEventListener("-click", (evt: any) => {
 
-			const isects = raycaster.intersections
+			if (xy && !this.current) {
 
-			if (isects.length) {
+				this.current = EntityBuilder.create("a-entity", {
+					"road-indicator": {
+						from: xy,
+						to: xy
+					}
+				})
+					.attachTo(city)
+					.toEntity()
 
-				const xy = terrain.terrain.coordCast(isects[0])
-
-				if (!current) {
-
-					current = EntityBuilder.create("a-entity", {
-						"road-indicator": {
-							from: xy,
-							to: xy
-						}
-					})
-						.attachTo(city)
-						.toEntity()
-
-					console.log(current)
-
-				} else {
-					current.emit("indicator-set-to", xy)
-				}
 			}
+		})
+
+		terrain.el.addEventListener("terrain-intersection-update", (evt: any) => {
+
+			if (!!this.current) {
+				this.current.setAttribute("road-indicator", {
+					to: xy
+				})
+			}
+
 		})
 	}
 

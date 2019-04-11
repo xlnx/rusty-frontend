@@ -160,10 +160,11 @@ export class SplashComponent extends ComponentWrapper<SplashComponentSchema> {
 				material: {
 					color: "black"
 				},
+				rotation: "-90 0 0",
 				position: "4 0 0",
 				scale: SCALE_BEGIN,
 			})
-				.set("billboard")
+				// .set("billboard")
 				.attachTo(arm)
 				.toEntity()
 
