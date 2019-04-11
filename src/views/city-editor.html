@@ -12,7 +12,8 @@
 
 		<!-- <a-entity position="2 2 -10" button="text: Building_Bar" billboard></a-entity> -->
 
-		<a-entity class="ground" terrain="blockCnt: 8; worldWidth: 200" export="terrain"></a-entity>
+		<a-entity class="ground" terrain="blockCnt: 8; worldWidth: 200; raycaster: #terrain-raycaster" export="terrain">
+		</a-entity>
 
 	</a-entity>
 
@@ -27,7 +28,7 @@
 			<a-entity id="splash_main" splash="dst: #city-editor" export="splash=[el]"></a-entity>
 
 			<a-cursor color="blue" cursor="rayOrigin: mouse"></a-cursor>
-			<a-entity s-preview raycaster="objects: .ground" export="terrain-raycaster=raycaster">
+			<a-entity id="terrain-raycaster" raycaster="objects: .ground" export="terrain-raycaster=raycaster">
 			</a-entity>
 
 			<a-entity menu>

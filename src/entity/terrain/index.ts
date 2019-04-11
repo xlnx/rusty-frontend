@@ -4,7 +4,8 @@ import { DistUnit } from "../../legacy";
 
 interface TerrainComponentSchema {
 	readonly blockCnt: number,
-	readonly worldWidth: number
+	readonly worldWidth: number,
+	readonly raycaster?: AFrame.Entity,
 }
 
 export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
@@ -12,6 +13,8 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 	private readonly renderer = new THREE.WebGLRenderer()
 
 	public readonly terrain!: Terrain
+
+	public readonly point = new THREE.Vector2()
 
 	constructor() {
 
@@ -23,6 +26,9 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 			worldWidth: {
 				type: "number",
 				default: 200
+			},
+			raycaster: {
+				type: "selector"
 			}
 		})
 	}
@@ -44,8 +50,30 @@ export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
 	}
 
 	tick() {
+
 		this.terrain.updateLOD(this.el.sceneEl.camera)
+
+		if (this.data.raycaster) {
+
+			const raycaster: any = this.data.raycaster.components.raycaster
+
+			if (raycaster) {
+
+				const isects = raycaster.intersections
+
+				if (isects.length) {
+
+					const xy = this.terrain.coordCast(isects[0])
+
+					this.point.set(xy.x, xy.y)
+
+					this.el.emit("terrain-intersection-update", xy)
+
+				}
+			}
+		}
 	}
+
 }
 
 new TerrainComponent().register()

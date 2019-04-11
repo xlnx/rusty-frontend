@@ -38,11 +38,10 @@ export class RoadIndicatorComponent extends ComponentWrapper<RoadIndicatorCompon
 		const { from, width, to } = this.data
 			; (<any>this).indicator = new RoadIndicator(basemap.basemap, width, from, to)
 		this.el.setObject3D("mesh", new THREE.Object3D().add(this.indicator))
+	}
 
-		this.el.addEventListener("indicator-set-to", (evt: any) => {
-			const to = evt.detail
-			this.indicator.adjustTo(to, true)
-		})
+	tick() {
+		this.indicator.adjustTo(this.data.to, true)
 	}
 }
 
