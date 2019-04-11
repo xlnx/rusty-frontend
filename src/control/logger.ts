@@ -18,7 +18,7 @@ export class LoggerComponent extends ComponentWrapper<string[]> {
 
 		if (!this.mobile.mobile()) {
 			for (const evt of this.data) {
-				this.el.addEventListener(evt, evt => console.log(evt))
+				this.el.addEventListener(evt, arg => console.log(arg))
 			}
 		}
 	}

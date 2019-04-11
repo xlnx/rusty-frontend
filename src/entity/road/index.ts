@@ -1,7 +1,52 @@
 import { ComponentWrapper } from "aframe-typescript-toolkit";
-import { Road } from "./road";
+import { Road, RoadIndicator } from "./road";
 import { TerrainComponent } from "../terrain";
 import { BasemapComponent } from "../basemap";
+
+interface RoadIndicatorComponentSchema {
+	readonly width: number,
+	readonly from: THREE.Vector2,
+	readonly to: THREE.Vector2
+}
+
+export class RoadIndicatorComponent extends ComponentWrapper<RoadIndicatorComponentSchema> {
+
+	public readonly indicator!: RoadIndicator
+
+	constructor() {
+
+		super("road-indicator", {
+			width: {
+				type: "number",
+				default: 1
+			},
+			from: {
+				type: "vec2",
+				default: new THREE.Vector2()
+			},
+			to: {
+				type: "vec2",
+				default: new THREE.Vector2()
+			}
+		})
+	}
+
+	init() {
+
+		const basemap: BasemapComponent = window["basemap"]
+
+		const { from, width, to } = this.data
+			; (<any>this).indicator = new RoadIndicator(basemap.basemap, width, from, to)
+		this.el.setObject3D("mesh", new THREE.Object3D().add(this.indicator))
+
+		this.el.addEventListener("indicator-set-to", (evt: any) => {
+			const to = evt.detail
+			this.indicator.adjustTo(to, true)
+		})
+	}
+}
+
+new RoadIndicatorComponent().register()
 
 interface RoadComponentSchema {
 	readonly from: { x: number, y: number },
@@ -28,15 +73,31 @@ export class RoadComponent extends ComponentWrapper<RoadComponentSchema> {
 		const terrain: TerrainComponent = window["terrain"]
 		const basemap: BasemapComponent = window["basemap"]
 
-		const { added, removed } = basemap.basemap.addRoad(1,
-			new THREE.Vector2(this.data.from.x, this.data.from.y),
-			new THREE.Vector2(this.data.to.x, this.data.to.y))
+		const from = new THREE.Vector2(this.data.from.x, this.data.from.y)
+		const to = new THREE.Vector2(this.data.to.x, this.data.to.y)
+
+		const { added, removed } = basemap.basemap.addRoad(1, from, to)
 
 			; (<any>this).road = new Road(terrain.terrain, 1, added[0])
 
-		console.log(this.road)
+		this.el.setObject3D("mesh", this.road)
 
-		this.el.setObject3D("mesh", new THREE.Object3D().add(this.road))
+		// const ind = new RoadIndicator(basemap.basemap, 1, from, to)
+		// // console.log(this.road)
+		// this.el.setObject3D("mesh", new THREE.Object3D().add(ind))
+
+		// const handlers = {
+		// 	"validate-road": (evt: any) => {
+
+		// 	},
+		// 	"locate-road": (evt: any) => {
+
+		// 	}
+		// }
+
+		// for (const name in handlers) {
+		// 	this.el.addEventListener(name, handlers[name])
+		// }
 	}
 }
 

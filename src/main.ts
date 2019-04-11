@@ -1,5 +1,5 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
-import { BuildingManagerComponent } from "./entity";
+import { BuildingManagerComponent, BasemapComponent, TerrainComponent } from "./entity";
 
 export class TestButtonComponent extends ComponentWrapper<{}> {
 
@@ -29,6 +29,11 @@ export class MainComponent extends ComponentWrapper<{}> {
 
 		this.buildingManager = window["building-manager"]
 		this.splash = window["splash"]
+
+		const city: AFrame.Entity = window["city-editor"]
+		const basemap: BasemapComponent = window["basemap"]
+		const terrain: TerrainComponent = window["terrain"]
+		const raycaster: any = window["terrain-raycaster"]
 
 		console.log(this.buildingManager)
 
@@ -62,6 +67,35 @@ export class MainComponent extends ComponentWrapper<{}> {
 		)
 
 		this.splash.emit("enter")
+
+		let current!: AFrame.Entity
+
+		this.el.addEventListener("-click", (evt: any) => {
+
+			const isects = raycaster.intersections
+
+			if (isects.length) {
+
+				const xy = terrain.terrain.coordCast(isects[0])
+
+				if (!current) {
+
+					current = EntityBuilder.create("a-entity", {
+						"road-indicator": {
+							from: xy,
+							to: xy
+						}
+					})
+						.attachTo(city)
+						.toEntity()
+
+					console.log(current)
+
+				} else {
+					current.emit("indicator-set-to", xy)
+				}
+			}
+		})
 	}
 
 	tick() {

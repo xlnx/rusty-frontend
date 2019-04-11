@@ -38,7 +38,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			},
 			fontSize: {
 				type: "number",
-				default: 0.1
+				default: 1
 			},
 			buttonClick: {
 				type: "string",
@@ -69,13 +69,13 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 
 	init() {
 		const data = this.data
-
+		const fontSize = data.fontSize / 10
 		const fontWidth = 1
 		const fontHeight = 3
-		const wrapCount = data.width / data.fontSize / fontWidth
+		const wrapCount = data.width / fontSize / fontWidth
 		const totalWidth = data.width + 2
 		const lines = Math.floor(data.text.length / wrapCount)
-		const boxDepth = .1
+		const boxDepth = .08
 
 		this.planeEntity = EntityBuilder.create("a-entity", {
 			geometry: {

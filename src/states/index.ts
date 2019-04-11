@@ -50,6 +50,8 @@ class BuildingStateComponent extends ComponentWrapper<{}> {
 				this.current.el.object3D.position.set(x, y, z)
 				this.current.el.object3D.rotation.y = angle
 
+				this.current.el.emit("validate-building", valid)
+
 			}
 			// console.log(x, y)
 
@@ -58,3 +60,13 @@ class BuildingStateComponent extends ComponentWrapper<{}> {
 }
 
 new BuildingStateComponent().register()
+
+export class RoadStateComponent extends ComponentWrapper<{}> {
+
+	constructor() {
+		super("road-state", {})
+	}
+
+	init() {
+	}
+}

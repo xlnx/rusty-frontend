@@ -1,13 +1,11 @@
-<a-scene embedded antialias="true" shadow="type: pcfsoft">
-
-	<a-entity main>
-		<a-entity building-manager export="building-manager"></a-entity>
-		<a-entity basemap export="basemap"></a-entity>
-	</a-entity>
+<a-scene embedded antialias="true" shadow="type: pcfsoft" light="defaultLightsEnabled: false">
 
 	<a-entity id="city-editor" room export="city-editor=[el]">
 
-		<a-light position="0 10 0" color="white" type="point"></a-light>
+		<a-entity light="type: ambient; color: #BBB; intensity: 0.2"></a-entity>
+		<a-entity light="type: directional; color: #FFF; intensity: 0.4" position="-0.5 1 1"></a-entity>
+
+		<!-- <a-light position="0 10 0" color="white" type="point"></a-light> -->
 		<!-- <a-box position="2 3 -10" billboard></a-box> -->
 		<a-sky color="#ECECEC"></a-sky>
 		<!-- <a-box position="-2 3 -10" color="blue"></a-box> -->
@@ -18,19 +16,32 @@
 
 	</a-entity>
 
-	<a-camera position="0 1 0">
+	<a-entity main mouse-controls keyboard-controls daydream-controls="hand: right" logger="
+			trackpadchanged, trackpaddown, trackpadup, trackpadtouchstart, trackpadtouchend
+		">
+		<a-entity building-manager export="building-manager"></a-entity>
+		<a-entity basemap export="basemap"></a-entity>
 
-		<a-entity id="splash_main" splash="dst: #city-editor" export="splash=[el]"></a-entity>
+		<a-camera position="0 1 0">
 
-		<a-cursor color="blue"></a-cursor>
-		<a-entity s-preview raycaster="objects: .ground; showLine: true" export="terrain-raycaster=raycaster">
+			<a-entity id="splash_main" splash="dst: #city-editor" export="splash=[el]"></a-entity>
+
+			<a-cursor color="blue" cursor="rayOrigin: mouse"></a-cursor>
+			<a-entity s-preview raycaster="objects: .ground" export="terrain-raycaster=raycaster">
+			</a-entity>
+
+			<a-entity menu>
+				<a-entity button="text: building; width: 1; fontSize: 3" position="2 2 -10">
+
+				</a-entity>
+			</a-entity>
+
+		</a-camera>
+
+		<!-- state machine -->
+		<a-entity router="active: building">
+			<a-entity router-item="building" building-state></a-entity>
 		</a-entity>
-
-	</a-camera>
-
-	<!-- state machine -->
-	<a-entity router="active: building">
-		<a-entity router-item="building" building-state></a-entity>
 	</a-entity>
 
 </a-scene>
