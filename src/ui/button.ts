@@ -72,8 +72,8 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 		const fontSize = data.fontSize / 10
 		const fontWidth = 1
 		const fontHeight = 3
-		const wrapCount = data.width / fontSize / fontWidth
-		const totalWidth = data.width + 2
+		const wrapCount = data.width / fontSize
+		const totalWidth = data.width
 		const lines = Math.floor(data.text.length / wrapCount)
 		const boxDepth = .08
 
@@ -135,7 +135,6 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			}
 		})
 		plane.addEventListener('int-enter', (evt) => {
-			console.log("enter")
 			this.el.emit('button_selected')
 		})
 
