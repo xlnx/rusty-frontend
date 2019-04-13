@@ -1,5 +1,6 @@
 import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
 import { BuildingManagerComponent, BasemapComponent, TerrainComponent } from "./entity";
+import { RouterComponent } from "./control";
 
 export class TestButtonComponent extends ComponentWrapper<{}> {
 
@@ -131,6 +132,11 @@ export class MainComponent extends ComponentWrapper<{}> {
 				}
 			})
 				.attachTo(city)
+
+			const router: RouterComponent = window["router"]
+			router.el.setAttribute("router", {
+				active: "building"
+			})
 		}
 	}
 }

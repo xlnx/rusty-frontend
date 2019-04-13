@@ -27,9 +27,12 @@ export class WebSocketComponent extends ComponentWrapper<WebSocketComponentSchem
 
 	init() {
 
-		; (<any>this).socket = new WebSocket(
-			`ws://${this.data.host}:${this.data.port}`,
-			...this.data.protocols)
+		const conn = `ws://${this.data.host}:${this.data.port}/ws`
+
+		console.log(`connecting: ${conn}`)
+		console.log("websocket protocols:", this.data.protocols)
+
+			; (<any>this).socket = new WebSocket(conn, ...this.data.protocols)
 
 	}
 }

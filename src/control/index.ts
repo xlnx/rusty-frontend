@@ -5,3 +5,4 @@ export * from "./websocket"
 
 export * from "./mouse-controls"
 export * from "./keyboard-controls"
+export * from "./intergrated-controls"
