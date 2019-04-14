@@ -16,6 +16,14 @@
 			export="export: terrain">
 		</a-entity>
 
+		<a-entity menu>
+			<a-entity button="text: building; width: 3; fontSize: 3" position="2 2 -10">
+
+			</a-entity>
+		</a-entity>
+
+		<a-entity cursor="rayOrigin: mouse"></a-entity>
+
 	</a-entity>
 
 	<a-entity building-manager export="export: building-manager"></a-entity>
@@ -25,27 +33,20 @@
 
 		<a-entity id="splash_main" splash="dst: #city-editor" export="export: splash=[el]"></a-entity>
 
-		<a-cursor color="blue" cursor="rayOrigin: mouse"></a-cursor>
-		<a-entity id="terrain-raycaster" raycaster="objects: .ground" export="export: terrain-raycaster=raycaster">
+		<!-- state machine -->
+		<a-entity router="active: preview" export="export: router">
+			<a-entity router-item="building" building-state></a-entity>
 		</a-entity>
-
-		<!-- <a-entity menu>
-			<a-entity button="text: building; width: 1; fontSize: 3" position="2 2 -10">
-
-			</a-entity>
-		</a-entity> -->
 
 	</a-camera>
 
-	<!-- state machine -->
-	<a-entity router="active: building">
-		<a-entity router-item="building" building-state></a-entity>
+	<a-entity main id="terrain-raycaster" intergrated-controls="hand: right; objects: .ground"
+		export="export: terrain-raycaster=raycaster">
 	</a-entity>
 
+	<a-entity intergrated-controls="hand: right"></a-entity>
 
-	<a-entity main mouse-controls keyboard-controls daydream-controls="hand: right" logger="
-				trackpadchanged, trackpaddown, trackpadup, trackpadtouchstart, trackpadtouchend
-			">
-	</a-entity>
+	<!-- <a-entity main intergrated-controls="hand: right" raycaster>
+	</a-entity> -->
 
 </a-scene>

@@ -91,6 +91,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 				align: 'center',
 				zOffset: boxDepth
 			},
+			"ray-castable": {}
 		})
 
 		const plane = this.planeEntity.toEntity()
@@ -122,18 +123,18 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 		}
 
 		let hasBeenDown = false
-		plane.addEventListener('mousedown', (evt) => {
+		plane.addEventListener('int-down', (evt) => {
 			this.el.emit(data.buttonDown)
 			hasBeenDown = true
 		})
-		plane.addEventListener('mouseup', (evt) => {
+		plane.addEventListener('int-up', (evt) => {
 			if (hasBeenDown) {
 				hasBeenDown = false
 				this.el.emit(data.buttonClick)
 				this.el.emit(data.buttonUp)
 			}
 		})
-		plane.addEventListener('mouseenter', (evt) => {
+		plane.addEventListener('int-enter', (evt) => {
 			this.el.emit('button_selected')
 		})
 
