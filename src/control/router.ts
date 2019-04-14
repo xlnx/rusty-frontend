@@ -1,8 +1,12 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
+import { Component } from "../wasp";
 
-export class RouterItemComponent extends ComponentWrapper<string> {
+export class RouterItemComponent extends Component<string> {
 
 	constructor() { super("router-item", { type: "string" }) }
+
+	init() {
+		this.el.pause()
+	}
 }
 
 new RouterItemComponent().register()
@@ -12,7 +16,7 @@ interface RouterComponentSchema {
 	readonly shared: { [key: string]: any }
 }
 
-export class RouterComponent extends ComponentWrapper<RouterComponentSchema> {
+export class RouterComponent extends Component<RouterComponentSchema> {
 
 	constructor() {
 
@@ -34,9 +38,15 @@ export class RouterComponent extends ComponentWrapper<RouterComponentSchema> {
 			const com = el.components["router-item"]
 			if (!!com) {
 				if (com.data == this.data.active) {
-					el.play()
+					if (!el.isPlaying) {
+						el.play()
+						el.emit("router-enter")
+					}
 				} else {
-					el.pause()
+					if (el.isPlaying) {
+						el.emit("router-leave")
+						el.pause()
+					}
 				}
 			}
 		}
@@ -52,3 +62,36 @@ export class RouterComponent extends ComponentWrapper<RouterComponentSchema> {
 }
 
 new RouterComponent().register()
+
+interface RouterSwitchComponentSchema {
+	readonly router: AFrame.Entity,
+	readonly value: string,
+	readonly event: string
+}
+
+export class RouterSwitchComponent extends Component<RouterSwitchComponentSchema> {
+
+	constructor() {
+		super("router-switch", {
+			router: {
+				type: "selector"
+			},
+			value: {
+				type: "string"
+			},
+			event: {
+				type: "string"
+			}
+		})
+	}
+
+	init() {
+		this.listen(this.data.event, () => {
+			this.data.router.setAttribute("router", {
+				active: this.data.value
+			})
+		})
+	}
+}
+
+new RouterSwitchComponent().register()

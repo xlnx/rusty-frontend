@@ -1,7 +1,7 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import * as MobileDetect from "mobile-detect"
+import { Component } from "../wasp";
 
-export class KeyboardControlsComponent extends ComponentWrapper<{ enable: boolean }>{
+export class KeyboardControlsComponent extends Component<{ enable: boolean }>{
 
 	private mobile!: MobileDetect
 

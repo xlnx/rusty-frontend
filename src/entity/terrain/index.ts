@@ -1,6 +1,6 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import { Terrain } from "./terrain";
 import { DistUnit } from "../../legacy";
+import { Component } from "../../wasp";
 
 interface TerrainComponentSchema {
 	readonly blockCnt: number,
@@ -8,13 +8,13 @@ interface TerrainComponentSchema {
 	readonly raycaster?: AFrame.Entity,
 }
 
-export class TerrainComponent extends ComponentWrapper<TerrainComponentSchema> {
+export class TerrainComponent extends Component<TerrainComponentSchema> {
 
 	private readonly renderer = new THREE.WebGLRenderer()
 
 	public readonly terrain!: Terrain
 
-	public readonly point = new THREE.Vector2()
+	private readonly point = new THREE.Vector2()
 
 	constructor() {
 

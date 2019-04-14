@@ -1,26 +1,25 @@
-import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
 import * as MobileDetect from "mobile-detect"
+import { Component } from "../wasp";
 
 interface IntergratedControlsComponentSchema {
-	readonly objects: string
+	readonly hand: string
 }
 
 export interface IntergratedMouseEvent {
+	readonly sender: AFrame.Entity,
 	readonly el: AFrame.Entity,
 	readonly isect: THREE.Intersection
 }
 
-export class IntergratedControlsComponent extends ComponentWrapper<IntergratedControlsComponentSchema> {
+export class IntergratedControlsComponent extends Component<IntergratedControlsComponentSchema> {
 
 	private mobile!: MobileDetect
-	private isects: THREE.Intersection[] = []
-	private selected!: AFrame.Entity
 
 	constructor() {
 		super("intergrated-controls", {
-			objects: {
+			hand: {
 				type: "string",
-				default: "[ray-castable]"
+				default: "right"
 			}
 		})
 	}
@@ -34,13 +33,9 @@ export class IntergratedControlsComponent extends ComponentWrapper<IntergratedCo
 		this.el.setAttribute("keyboard-controls", {})
 
 		this.el.setAttribute("laser-controls", {
-			hand: "right"
+			hand: this.data.hand
 		})
 
-		this.el.setAttribute("line", {
-			color: "white",
-			opacity: 0.75
-		})
 
 		if (!this.mobile.mobile()) {
 			this.el.setAttribute("cursor", {
@@ -48,14 +43,66 @@ export class IntergratedControlsComponent extends ComponentWrapper<IntergratedCo
 				rayOrigin: "mouse"
 			})
 		}
+
+		const click = (evt: any) => {
+			this.el.emit("raw-click", evt)
+		}
+		const mousedown = (evt: any) => this.el.emit("raw-down", evt)
+		const mouseup = (evt: any) => this.el.emit("raw-up", evt)
+
+		this.listen("trackpaddown", click)
+		this.listen("-click", click)
+
+		this.listen("trackpaddown", mousedown)
+		this.listen("-mousedown", mousedown)
+
+		this.listen("trackpadup", mouseup)
+		this.listen("-mouseup", mouseup)
+		// daydream.addEventListener("")
+	}
+}
+
+new IntergratedControlsComponent().register()
+
+interface IntergratedRaycasterSchema {
+	readonly objects: string
+}
+
+export class IntergratedRaycaster extends Component<IntergratedRaycasterSchema> {
+
+	private isects: THREE.Intersection[] = []
+	private selected!: AFrame.Entity
+
+	constructor() {
+		super("intergrated-raycaster", {
+			objects: {
+				type: "string",
+				default: "[ray-castable]"
+			}
+		})
+	}
+
+	init() {
+
+		this.el.setAttribute("intergrated-controls", {})
+
+		this.el.setAttribute("line", {
+			color: "white",
+			opacity: 0.75
+		})
 		this.el.setAttribute("raycaster", {
 			objects: this.data.objects
 		})
+
+		const raycaster: any = this.el.components.raycaster
+
+		this.isects = raycaster.intersections
 
 		const click = () => {
 			this.updateSelection()
 			if (this.selected) {
 				const ievt: IntergratedMouseEvent = {
+					sender: this.el,
 					el: this.selected,
 					isect: this.isects[0]
 				}
@@ -67,6 +114,7 @@ export class IntergratedControlsComponent extends ComponentWrapper<IntergratedCo
 			this.updateSelection()
 			if (this.selected) {
 				const ievt: IntergratedMouseEvent = {
+					sender: this.el,
 					el: this.selected,
 					isect: this.isects[0]
 				}
@@ -78,6 +126,7 @@ export class IntergratedControlsComponent extends ComponentWrapper<IntergratedCo
 			this.updateSelection()
 			if (this.selected) {
 				const ievt: IntergratedMouseEvent = {
+					sender: this.el,
 					el: this.selected,
 					isect: this.isects[0]
 				}
@@ -86,19 +135,10 @@ export class IntergratedControlsComponent extends ComponentWrapper<IntergratedCo
 			}
 		}
 
-		this.el.addEventListener("trackpaddown", click)
-		this.el.addEventListener("-click", click)
+		this.listen("raw-click", click)
+		this.listen("raw-down", mousedown)
+		this.listen("raw-up", mouseup)
 
-		this.el.addEventListener("trackpaddown", mousedown)
-		this.el.addEventListener("-mousedown", mousedown)
-
-		this.el.addEventListener("trackpadup", mouseup)
-		this.el.addEventListener("-mouseup", mouseup)
-		// daydream.addEventListener("")
-
-		const raycaster: any = this.el.components.raycaster
-
-		this.isects = raycaster.intersections
 	}
 
 	private updateSelection() {
@@ -137,4 +177,4 @@ export class IntergratedControlsComponent extends ComponentWrapper<IntergratedCo
 	}
 }
 
-new IntergratedControlsComponent().register()
+new IntergratedRaycaster().register()

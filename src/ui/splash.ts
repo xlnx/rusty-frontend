@@ -1,4 +1,5 @@
-import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
+import { EntityBuilder } from "aframe-typescript-toolkit";
+import { Component } from "../wasp";
 
 interface SplashComponentSchema {
 	readonly ratio: number,
@@ -14,7 +15,7 @@ const SCALE_END = "1e-3 1e-3 1e-3"
 const SCALE_WORLD = "1e-2 1e-2 1e-2"
 // const SCALE_WORLD = "1 1 1"
 
-export class SplashComponent extends ComponentWrapper<SplashComponentSchema> {
+export class SplashComponent extends Component<SplashComponentSchema> {
 
 	private readonly balls: AFrame.Entity[] = []
 	private readonly doors: AFrame.Entity[] = []
@@ -53,7 +54,7 @@ export class SplashComponent extends ComponentWrapper<SplashComponentSchema> {
 
 	init() {
 
-		this.el.addEventListener("enter", () => {
+		this.listen("enter", () => {
 			if (this.finished) {
 
 				this.finished = false
@@ -66,7 +67,7 @@ export class SplashComponent extends ComponentWrapper<SplashComponentSchema> {
 			}
 		})
 
-		this.el.addEventListener("anim-exit-room", (evt: any) => {
+		this.listen("anim-exit-room", (evt: any) => {
 			const confirm = evt.detail
 			for (const door of this.doors) {
 				door.emit("anim-open")

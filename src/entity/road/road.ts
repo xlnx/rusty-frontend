@@ -82,11 +82,11 @@ export class RoadIndicator extends THREE.Object3D {
 
 		super()
 
-		this.v = pt
+		this.v = pt.clone()
 		// this.v = new Variable(pt)
 		const r = width / 2
 
-		this.item = new BasemapRoadItem(width, from, pt)
+		this.item = new BasemapRoadItem(width, from, pt.clone())
 
 		const yy = new THREE.RingGeometry(r, r + .1, 32, 0, undefined, Math.PI)
 		const y = new THREE.CircleGeometry(r, 32, 0, Math.PI)
@@ -124,7 +124,7 @@ export class RoadIndicator extends THREE.Object3D {
 		// this.ptIdks.position.set(0, 0, 0)
 		// this.view.addToLayer(CityLayer.Indicator, this.ptIdks)
 
-		this.setTo(pt)
+		this.setTo(pt.clone())
 	}
 }
 
@@ -158,6 +158,7 @@ export class Road extends THREE.Object3D {
 		this.item.userData = this
 
 		const { geometry, startHeight } = this.boxGeometry(ground)
+
 		this.geometry = geometry
 		this.object = new THREE.Mesh(this.geometry, Road.material)
 

@@ -3,10 +3,10 @@ import "./entity"
 import "./ui"
 import "./states"
 import "./main"
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import { WebSocketComponent } from "./control";
+import { Component } from "./wasp";
 
-class TestComponent extends ComponentWrapper<{}> {
+class TestComponent extends Component<{}> {
 
 	constructor() { super("test", {}) }
 
@@ -19,7 +19,7 @@ class TestComponent extends ComponentWrapper<{}> {
 
 		const websocket: WebSocketComponent = window["web-socket"]
 
-		this.el.addEventListener("int-click", (evt: any) => {
+		this.listen("int-click", (evt: any) => {
 
 			websocket.socket.send("hello world")
 
@@ -32,22 +32,22 @@ class TestComponent extends ComponentWrapper<{}> {
 				})
 			}, 2000)
 		})
-		// this.el.addEventListener("trackpaddown", (evt: any) => {
+		// this.listen("trackpaddown", (evt: any) => {
 		// 	box.setAttribute("material", {
 		// 		color: "green"
 		// 	})
 		// })
-		// this.el.addEventListener("trackpadup", (evt: any) => {
+		// this.listen("trackpadup", (evt: any) => {
 		// 	box.setAttribute("material", {
 		// 		color: "blue"
 		// 	})
 		// })
-		// this.el.addEventListener("trackpadtouchstart", (evt: any) => {
+		// this.listen("trackpadtouchstart", (evt: any) => {
 		// 	box.setAttribute("material", {
 		// 		color: "black"
 		// 	})
 		// })
-		// this.el.addEventListener("trackpadtouchend", (evt: any) => {
+		// this.listen("trackpadtouchend", (evt: any) => {
 		// 	box.setAttribute("material", {
 		// 		color: "yellow"
 		// 	})

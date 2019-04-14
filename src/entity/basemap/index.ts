@@ -1,8 +1,8 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import { Basemap } from "../../basemap/basemap";
 import { Road } from "../road/road";
+import { Component } from "../../wasp";
 
-export class BasemapComponent extends ComponentWrapper<{}> {
+export class BasemapComponent extends Component<{}> {
 
 	public readonly basemap: Basemap<Road, {}> = new Basemap()
 

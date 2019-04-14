@@ -1,7 +1,9 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import { Road, RoadIndicator } from "./road";
 import { TerrainComponent } from "../terrain";
 import { BasemapComponent } from "../basemap";
+import { Component } from "../../wasp";
+import { EntityBuilder } from "aframe-typescript-toolkit";
+import BasemapRoadItem from "../../basemap/roadItem";
 
 interface RoadIndicatorComponentSchema {
 	readonly width: number,
@@ -9,7 +11,7 @@ interface RoadIndicatorComponentSchema {
 	readonly to: THREE.Vector2
 }
 
-export class RoadIndicatorComponent extends ComponentWrapper<RoadIndicatorComponentSchema> {
+export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSchema> {
 
 	public readonly indicator!: RoadIndicator
 
@@ -35,68 +37,73 @@ export class RoadIndicatorComponent extends ComponentWrapper<RoadIndicatorCompon
 
 		const basemap: BasemapComponent = window["basemap"]
 
-		const { from, width, to } = this.data
-			; (<any>this).indicator = new RoadIndicator(basemap.basemap, width, from, to)
+		const { width } = this.data
+
+			; (<any>this).indicator = new RoadIndicator(basemap.basemap, width,
+				this.data.from, this.data.to)
+
 		this.el.setObject3D("mesh", new THREE.Object3D().add(this.indicator))
+
+		this.listen("locate-road", (evt: any) => {
+
+			const city: AFrame.Entity = window["city-editor"]
+			const basemap: BasemapComponent = window["basemap"]
+
+			const { from, to } = this.indicator
+
+			const { added, removed } = basemap.basemap.addRoad(1, from, to)
+
+			for (const road of added) {
+
+				const r = EntityBuilder.create("a-entity", {
+					road: {}
+				})
+					.attachTo(city)
+					.toEntity()
+
+					; (<any>r).___my_private_fucking_data = road
+
+			}
+
+		})
 	}
 
 	tick() {
+
 		this.indicator.adjustTo(this.data.to, true)
+
 	}
 }
 
 new RoadIndicatorComponent().register()
 
-interface RoadComponentSchema {
-	readonly from: { x: number, y: number },
-	readonly to: { x: number, y: number }
-}
-
-export class RoadComponent extends ComponentWrapper<RoadComponentSchema> {
+export class RoadComponent extends Component<{ readonly item: any }> {
 
 	public readonly road!: Road
 
 	constructor() {
 		super("road", {
-			from: {
-				type: "vec2"
-			},
-			to: {
-				type: "vec2"
+			item: {
+				type: "array"
 			}
 		})
 	}
 
 	init() {
 
+		const item = (<any>this.el).___my_private_fucking_data
+			; (<any>this.el).___my_private_fucking_data = undefined
+
+		console.log(item)
+
 		const terrain: TerrainComponent = window["terrain"]
-		const basemap: BasemapComponent = window["basemap"]
 
-		const from = new THREE.Vector2(this.data.from.x, this.data.from.y)
-		const to = new THREE.Vector2(this.data.to.x, this.data.to.y)
-
-		const { added, removed } = basemap.basemap.addRoad(1, from, to)
-
-			; (<any>this).road = new Road(terrain.terrain, 1, added[0])
+			; (<any>this).road = new Road(terrain.terrain, 1, item)
 
 		this.el.setObject3D("mesh", this.road)
 
-		// const ind = new RoadIndicator(basemap.basemap, 1, from, to)
-		// // console.log(this.road)
-		// this.el.setObject3D("mesh", new THREE.Object3D().add(ind))
+		// })
 
-		// const handlers = {
-		// 	"validate-road": (evt: any) => {
-
-		// 	},
-		// 	"locate-road": (evt: any) => {
-
-		// 	}
-		// }
-
-		// for (const name in handlers) {
-		// 	this.el.addEventListener(name, handlers[name])
-		// }
 	}
 }
 
