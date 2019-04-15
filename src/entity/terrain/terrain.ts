@@ -303,7 +303,7 @@ export class Terrain extends THREE.Object3D {
 			this.morphPipeline.render()
 		})
 
-		this.updateWireframe(rect)
+		// this.updateWireframe(rect)
 	}
 
 	getHeight(pt: THREE.Vector2[]) {

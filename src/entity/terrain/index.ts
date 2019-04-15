@@ -43,6 +43,7 @@ export class TerrainComponent extends Component<TerrainComponentSchema> {
 				subc.cancel()
 			})
 		}
+		// ; (<any>this).renderer = new THREE.WebGLRenderer
 
 		// large terrain take time to init
 		; (<any>this).terrain = new Terrain(this.el, this.renderer,

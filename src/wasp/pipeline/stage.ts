@@ -87,9 +87,15 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 		const { overrideMaterial } = this.scene
 		this.scene.overrideMaterial = this._material ? this._material : null
 
+		// console.log((<any>this.camera).near, (<any>this.camera).far)
+		const enabled = renderer.vr.enabled
+		renderer.vr.enabled = false
+
 		renderer.setRenderTarget(source.target)
 		renderer.render(this.scene, this.camera)
 		renderer.setRenderTarget(null)
+
+		renderer.vr.enabled = enabled
 
 		this.scene.overrideMaterial = overrideMaterial
 	}

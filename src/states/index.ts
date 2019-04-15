@@ -185,12 +185,16 @@ export class MorphStateComponent extends Component<{}> {
 
 		if (this.isMorphing) {
 			if (!!this.xy) {
-				terrain.terrain.morph({
-					center: this.xy,
-					radius: 10,
-					speed: 1e-1,
-					dt: timeDelta
-				})
+				try {
+					terrain.terrain.morph({
+						center: this.xy,
+						radius: 10,
+						speed: 1e-1,
+						dt: timeDelta
+					})
+				} catch (error) {
+					console.error(error)
+				}
 			}
 		}
 	}
