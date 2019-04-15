@@ -79,13 +79,18 @@ export class RenderStage<T = any> extends Stage<T> implements Renderable<T> {
 		for (const u in source.uniforms) {
 			if (this.props[u]) this.props[u].value = source.uniforms[u]
 		}
+
 		const { width, height } = source.target ? source.target : renderer.getSize()
 		this.props.iResolution.value.set(width, height)
 		this.props.iTime.value = window.performance.now() * 1e-3
 
 		const { overrideMaterial } = this.scene
 		this.scene.overrideMaterial = this._material ? this._material : null
-		renderer.render(this.scene, this.camera, source.target)
+
+		renderer.setRenderTarget(source.target)
+		renderer.render(this.scene, this.camera)
+		renderer.setRenderTarget(null)
+
 		this.scene.overrideMaterial = overrideMaterial
 	}
 

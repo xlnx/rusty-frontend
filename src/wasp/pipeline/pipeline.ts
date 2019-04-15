@@ -168,6 +168,7 @@ export class PipelineNode<T = any> extends PipelineNodeAsable<T> {
 		}
 		const x = Object.assign({ uniforms: {} }, source, opt)
 		Object.assign(x.uniforms, this.uniforms)
+		// console.log(x.iChannel[0], this._target.texture)
 		this.node.render(x, renderer)
 		super.render(source, renderer)
 	}

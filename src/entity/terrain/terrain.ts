@@ -44,16 +44,18 @@ export class Terrain extends THREE.Object3D {
 	private readonly morphPipeline: Pipeline
 	private readonly morphOutput: PipelineNode
 
-	private readonly morphUniforms = {
+	private readonly morphCopyUniforms = {
 		barrierScale: { type: "f", value: 0 },
 		worldWidth: { type: "f", value: 0 },
-		prev: { type: "t", value: <THREE.Texture><any>null },
 		radius: { type: "f", value: 1 },
 		scale: { type: "f", value: 1 },
 		center: { type: "v2", value: new THREE.Vector2() },
 		blockId: { type: "v2", value: new THREE.Vector2() },
 		blockDim: { type: "v2", value: new THREE.Vector2() }
 	}
+	private readonly morphUniforms = Object.assign({
+		prev: { type: "t", value: <THREE.Texture><any>null },
+	}, this.morphCopyUniforms)
 
 	private readonly buffer = new Float32Array(4 * Resolution * Resolution)
 	private readonly rigidContainer = new THREE.Object3D
@@ -212,7 +214,7 @@ export class Terrain extends THREE.Object3D {
 				fragmentShader: require("./shaders/morph.frag")
 			}))
 			.then(new PostStage({
-				uniforms: this.morphUniforms,
+				uniforms: this.morphCopyUniforms,
 				fragmentShader: require("./shaders/morph-copy.frag")
 			}))
 			.thenExec(() => {
@@ -297,6 +299,7 @@ export class Terrain extends THREE.Object3D {
 			this.morphUniforms.blockId.value = block.blockId
 
 			this.morphOutput.target = block.target
+			// console.log(this.morphUniforms.prev.value, block.target.texture)
 			this.morphPipeline.render()
 		})
 
