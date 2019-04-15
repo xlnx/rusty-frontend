@@ -1,29 +1,25 @@
-import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit"
-import { BuildingManagerComponent, BasemapComponent, TerrainComponent } from "./entity";
-import { RouterComponent } from "./control";
+import { BuildingManagerComponent } from "./entity";
+import { Component } from "./wasp";
 
-export class TestButtonComponent extends ComponentWrapper<{}> {
+export class TestButtonComponent extends Component<{}> {
 
 	constructor() {
 		super("test-button")
 	}
 
 	init() {
-		this.el.addEventListener("button-click", () => console.log("click"))
-		this.el.addEventListener("button-up", () => console.log("up"))
-		this.el.addEventListener("button-down", () => console.log("down"))
+		this.listen("button-click", () => console.log("click"))
+		this.listen("button-up", () => console.log("up"))
+		this.listen("button-down", () => console.log("down"))
 	}
 }
 
 new TestButtonComponent().register()
 
-export class MainComponent extends ComponentWrapper<{}> {
+export class MainComponent extends Component<{}> {
 
 	private buildingManager!: BuildingManagerComponent
 	private splash!: AFrame.Entity
-
-	private current!: AFrame.Entity
-	private firstFinish = true
 
 	constructor() { super("main", {}) }
 
@@ -31,11 +27,6 @@ export class MainComponent extends ComponentWrapper<{}> {
 
 		this.buildingManager = window["building-manager"]
 		this.splash = window["splash"]
-
-		const city: AFrame.Entity = window["city-editor"]
-		const basemap: BasemapComponent = window["basemap"]
-		const terrain: TerrainComponent = window["terrain"]
-		const raycaster: any = window["terrain-raycaster"]
 
 		console.log(this.buildingManager)
 
@@ -69,34 +60,6 @@ export class MainComponent extends ComponentWrapper<{}> {
 		)
 
 		this.splash.emit("enter")
-
-		let xy = terrain.point
-
-		this.el.addEventListener("-click", (evt: any) => {
-
-			if (xy && !this.current) {
-
-				this.current = EntityBuilder.create("a-entity", {
-					"road-indicator": {
-						from: xy,
-						to: xy
-					}
-				})
-					.attachTo(city)
-					.toEntity()
-
-			}
-		})
-
-		terrain.el.addEventListener("terrain-intersection-update", (evt: any) => {
-
-			if (!!this.current) {
-				this.current.setAttribute("road-indicator", {
-					to: xy
-				})
-			}
-
-		})
 	}
 
 	tick() {
@@ -105,39 +68,6 @@ export class MainComponent extends ComponentWrapper<{}> {
 			ratio: this.buildingManager.ratio
 		})
 
-		if (this.buildingManager.finish &&
-			this.firstFinish) {
-
-			this.firstFinish = false
-
-			const city: AFrame.Entity = window["city-editor"]
-
-			EntityBuilder.create("a-entity", {
-				// scale: "1e-1 1e-1 1e-1",
-				position: "0 0 -4",
-				building: {
-					name: "Building_Bar"
-				},
-				shadow: {
-					cast: true,
-					receive: true
-				}
-			})
-				.attachTo(city)
-
-			EntityBuilder.create("a-entity", {
-				road: {
-					from: { x: 5, y: 5 },
-					to: { x: 10, y: 10 }
-				}
-			})
-				.attachTo(city)
-
-			const router: RouterComponent = window["router"]
-			router.el.setAttribute("router", {
-				active: "building"
-			})
-		}
 	}
 }
 

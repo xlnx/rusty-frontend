@@ -1,14 +1,10 @@
-// import { MTLLoader, OBJLoader } from "three-obj-mtl-loader"
 import { Asset, PromiselifyLoader } from "./asset"
-import { MTLLoader } from "three-obj-mtl-loader"
-const OBJLoader = require("three-obj-loader")
-OBJLoader(THREE)
 
 export class ObjAsset extends Asset<THREE.Object3D> {
 
 	async load(): Promise<THREE.Object3D> {
 		return new Promise((resolve, reject) => {
-			const mtlLoader = new PromiselifyLoader(new MTLLoader())
+			const mtlLoader = new PromiselifyLoader(new THREE.MTLLoader())
 			mtlLoader.wrapped.setPath(this.prefix)
 			mtlLoader.wrapped.setMaterialOptions({ side: THREE.DoubleSide })
 			mtlLoader.load(this.shortName.replace(/\.obj$/i, ".mtl"))

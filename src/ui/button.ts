@@ -1,6 +1,6 @@
 declare const THREE: typeof import("three")
-import { ComponentWrapper, EntityBuilder } from "aframe-typescript-toolkit";
-import { isFunction } from "util";
+import { EntityBuilder } from "aframe-typescript-toolkit";
+import { Component } from "../wasp";
 
 interface ButtonComponentSchema {
 	readonly text: string
@@ -15,7 +15,7 @@ interface ButtonComponentSchema {
 	readonly billboard: boolean
 }
 
-export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
+export class ButtonComponent extends Component<ButtonComponentSchema> {
 	private static numOfButton = 0
 	private buttonId: number = ButtonComponent.numOfButton++
 	private backEntity: EntityBuilder
@@ -139,7 +139,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 		})
 
 
-		this.el.addEventListener(data.buttonUp, () => {
+		this.listen(data.buttonUp, () => {
 			plane.setAttribute("animation", {
 				property: "position",
 				dir: "normal",
@@ -151,7 +151,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 			})
 		})
 
-		this.el.addEventListener(data.buttonDown, () => {
+		this.listen(data.buttonDown, () => {
 			plane.setAttribute("animation", {
 				property: "position",
 				dir: "normal",
@@ -165,7 +165,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 
 		const rotateAngle = 10
 		const rotateTime = 1000
-		this.el.addEventListener(data.buttonSelected, () => {
+		this.listen(data.buttonSelected, () => {
 
 			//  plane.setAttribute("animation", {
 			// 	property: "rotation",

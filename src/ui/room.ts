@@ -1,4 +1,4 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
+import { Component } from "../wasp";
 
 interface RoomComponentSchema {
 	readonly enterEvent: string,
@@ -6,7 +6,7 @@ interface RoomComponentSchema {
 	readonly current: boolean
 }
 
-export class RoomComponent extends ComponentWrapper<RoomComponentSchema> {
+export class RoomComponent extends Component<RoomComponentSchema> {
 
 	private static room: RoomComponent
 
@@ -30,7 +30,7 @@ export class RoomComponent extends ComponentWrapper<RoomComponentSchema> {
 
 	init() {
 
-		this.el.addEventListener("enter", () => {
+		this.listen("enter", () => {
 			const oldRoom = RoomComponent.room
 			if (oldRoom) {
 				const cb = () => {

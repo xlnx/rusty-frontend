@@ -45,9 +45,7 @@
     "html-loader": "^0.5.5",
     "mobile-detect": "^1.4.3",
     "quadtree-lib": "^1.0.9",
-    "raw-loader": "^0.5.1",
-    "three-fbxloader-offical": "^1.0.0",
-    "three-obj-mtl-loader": "^1.0.3"
+    "raw-loader": "^0.5.1"
   },
   "glslify": {
     "transform": [

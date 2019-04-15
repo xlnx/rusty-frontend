@@ -1,7 +1,7 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import * as MobileDetect from "mobile-detect"
+import { Component } from "../wasp";
 
-export class MouseControlsComponent extends ComponentWrapper<{ enable: boolean }> {
+export class MouseControlsComponent extends Component<{ enable: boolean }> {
 
 	private mobile!: MobileDetect
 
@@ -15,13 +15,19 @@ export class MouseControlsComponent extends ComponentWrapper<{ enable: boolean }
 
 		if (!this.mobile.mobile()) {
 			document.addEventListener("click", evt => {
-				if (this.data.enable) this.el.emit("-click")
+				if (this.data.enable && evt instanceof MouseEvent) {
+					this.el.emit("-click", evt)
+				}
 			})
 			document.addEventListener("mousedown", evt => {
-				if (this.data.enable) this.el.emit("-mousedown", evt)
+				if (this.data.enable && evt instanceof MouseEvent) {
+					this.el.emit("-mousedown", evt)
+				}
 			})
 			document.addEventListener("mouseup", evt => {
-				if (this.data.enable) this.el.emit("-mouseup", evt)
+				if (this.data.enable && evt instanceof MouseEvent) {
+					this.el.emit("-mouseup", evt)
+				}
 			})
 		}
 	}

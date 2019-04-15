@@ -1,4 +1,4 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
+import { Component } from "../wasp";
 
 interface WebSocketComponentSchema {
 	readonly host: string,
@@ -6,7 +6,7 @@ interface WebSocketComponentSchema {
 	readonly protocols: string[],
 }
 
-export class WebSocketComponent extends ComponentWrapper<WebSocketComponentSchema> {
+export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 
 	public readonly socket!: WebSocket
 

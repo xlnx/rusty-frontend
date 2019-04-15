@@ -1,14 +1,18 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
 import { BuildingManager, BuildingPrototype } from "./manager";
+import { Component, EventController } from "../../wasp";
 
-export class BuildingManagerComponent extends ComponentWrapper<{}> {
+export class BuildingManagerComponent extends Component<{}> {
 
-	public readonly manager = new BuildingManager()
+	public readonly manager!: BuildingManager
 
 	public readonly finish = true
 	public readonly ratio = 0
 
 	constructor() { super("building-manager", {}) }
+
+	init() {
+		; (<any>this).manager = new BuildingManager()
+	}
 
 	load(...path: string[]) {
 		; (<any>this).finish = false
@@ -27,7 +31,7 @@ interface BuildingComponentSchema {
 	readonly name: string
 }
 
-export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema> {
+export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 	constructor() {
 		super("building", {
@@ -38,8 +42,8 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 		})
 	}
 
-	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(4)
-	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2).multiplyScalar(4)
+	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(2)
+	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2).multiplyScalar(2)
 
 	public readonly proto: BuildingPrototype
 	public readonly located!: boolean
@@ -70,23 +74,22 @@ export class BuildingComponent extends ComponentWrapper<BuildingComponentSchema>
 			this.el.setObject3D("mesh", ind)
 			this.el.classList.add("indicator")
 
-			const handlers = {
-				"validate-building": (evt: any) => {
-					mat.color.set(evt.detail ? BuildingComponent.validColor
-						: BuildingComponent.invalidColor)
-				},
-				"locate-building": () => {
-					this.el.setObject3D("mesh", this.proto.object.model.clone())
-						; (<any>this).located = true
-					this.el.classList.remove("indicator")
-					for (const name in handlers) {
-						this.el.removeEventListener(name, handlers[name])
-					}
+			const handlers: EventController[] = []
+
+			handlers.push(this.listen("validate-building", (evt: any) => {
+				mat.color.set(evt.detail ? BuildingComponent.validColor
+					: BuildingComponent.invalidColor)
+			}))
+
+			handlers.push(this.listen("locate-building", () => {
+				this.el.setObject3D("mesh", this.proto.object.model.clone())
+					; (<any>this).located = true
+				this.el.classList.remove("indicator")
+
+				for (const handler of handlers) {
+					handler.cancel()
 				}
-			}
-			for (const name in handlers) {
-				this.el.addEventListener(name, handlers[name])
-			}
+			}))
 
 		} else {
 

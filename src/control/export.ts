@@ -1,6 +1,6 @@
-import { ComponentWrapper } from "aframe-typescript-toolkit";
+import { Component } from "../wasp";
 
-export class ExportComponent extends ComponentWrapper<{ readonly export: string[] }> {
+export class ExportComponent extends Component<{ readonly export: string[] }> {
 
 	constructor() {
 		super("export", {
