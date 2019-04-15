@@ -10,7 +10,7 @@ interface TerrainComponentSchema {
 
 export class TerrainComponent extends Component<TerrainComponentSchema> {
 
-	private readonly renderer = new THREE.WebGLRenderer()
+	private readonly renderer!: THREE.WebGLRenderer
 
 	public readonly terrain!: Terrain
 
@@ -34,6 +34,15 @@ export class TerrainComponent extends Component<TerrainComponentSchema> {
 	}
 
 	init() {
+
+		if (!!this.el.sceneEl.renderer) {
+			; (<any>this).renderer = this.el.sceneEl.renderer
+		} else {
+			const subc = this.subscribe(this.el.sceneEl, "render-target-loaded", () => {
+				; (<any>this).renderer = this.el.sceneEl.renderer
+				subc.cancel()
+			})
+		}
 
 		// large terrain take time to init
 		; (<any>this).terrain = new Terrain(this.el, this.renderer,

@@ -1,5 +1,5 @@
 import { EntityBuilder } from "aframe-typescript-toolkit";
-import { BasemapComponent, BuildingComponent, RoadIndicatorComponent } from "../entity";
+import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent } from "../entity";
 import { plain2world } from "../legacy";
 import { Component } from "../wasp";
 
@@ -143,8 +143,57 @@ export class RoadStateComponent extends Component<{}> {
 
 new RoadStateComponent().register()
 
-export class PreviewState extends Component<{}> {
+export class PreviewStateComponent extends Component<{}> {
 	constructor() { super("preview-state", {}) }
 }
 
-new PreviewState().register()
+new PreviewStateComponent().register()
+
+export class MorphStateComponent extends Component<{}> {
+
+	private isMorphing: boolean = false
+	private xy!: THREE.Vector2
+
+	constructor() { super("morph-state", {}) }
+
+	init() {
+
+		const terrain: TerrainComponent = window["terrain"]
+
+		this.listen("router-enter", () => {
+			this.isMorphing = false
+		})
+		this.listen("router-exit", () => {
+			this.isMorphing = false
+		})
+
+		this.subscribe(terrain.el, "terrain-intersection-update", (evt: any) => {
+			this.xy = evt.detail
+		})
+
+		this.subscribe(terrain.el, "int-down", (evt: any) => {
+			this.isMorphing = true
+		})
+		this.subscribe(terrain.el, "int-up", (evt: any) => {
+			this.isMorphing = false
+		})
+	}
+
+	tick(time: number, timeDelta: number) {
+
+		const terrain: TerrainComponent = window["terrain"]
+
+		if (this.isMorphing) {
+			if (!!this.xy) {
+				terrain.terrain.morph({
+					center: this.xy,
+					radius: 10,
+					speed: 1e-1,
+					dt: timeDelta
+				})
+			}
+		}
+	}
+}
+
+new MorphStateComponent().register()
