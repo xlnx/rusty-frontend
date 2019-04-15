@@ -167,7 +167,7 @@ export class ButtonComponent extends ComponentWrapper<ButtonComponentSchema> {
 		const rotateTime = 1000
 		this.el.addEventListener(data.buttonSelected, () => {
 
-			// plane.setAttribute("animation", {
+			//  plane.setAttribute("animation", {
 			// 	property: "rotation",
 			// 	dir: "normal",
 			// 	dur: rotateTime * .25,
