@@ -2,6 +2,7 @@ import { EntityBuilder } from "aframe-typescript-toolkit";
 import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent } from "../entity";
 import { plain2world } from "../legacy";
 import { Component } from "../wasp";
+import BasemapBuildingItem from "../basemap/buildingItem";
 
 export class BuildingStateComponent extends Component<{}> {
 
@@ -55,8 +56,11 @@ export class BuildingStateComponent extends Component<{}> {
 			} else {
 
 				const basemap: BasemapComponent = window["basemap"]
-				const { road, offset, center, angle, valid } =
-					basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
+				const para = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
+				const { road, offset, center, angle, valid } = para
+
+
+				this.current.para = para
 
 				const { x, y, z } = plain2world(center)
 
@@ -68,8 +72,8 @@ export class BuildingStateComponent extends Component<{}> {
 				this.valid = valid
 
 			}
-
 		})
+
 
 	}
 }
@@ -133,7 +137,6 @@ export class RoadStateComponent extends Component<{}> {
 					this.current.emit("locate-road")
 					this.current.parentNode.removeChild(this.current)
 					this.current = undefined
-
 				}
 			}
 

@@ -1,4 +1,5 @@
 import { Component } from "../wasp";
+import { mapHeight } from "../basemap/def";
 
 interface InteractionalSchema {
     readonly up: string
@@ -8,9 +9,24 @@ interface InteractionalSchema {
     readonly leave: string
 }
 
+class InteractionManager extends Component<{}>{
+    private map = new Map<AFrame.Entity, InteractionalComponent>()
+    constructor() {
+        super("interaction-manager", {})
+    }
+    add(entity: AFrame.Entity, interaction: InteractionalComponent) {
+        this.map.set(entity, interaction)
+        // entity.addEventListener("pause", ()=>{
+        //     this.map.delete(entity)
+        // })
+        // entity.addEventListener("play", ()=>{
+        //     this.map.set(entity, interaction)
+        // })
+    }
+}
+
 export class InteractionalComponent extends Component<InteractionalSchema>{
-    static interactionalNumber = 0
-    readonly ID = InteractionalComponent.interactionalNumber++
+    static manager = new InteractionManager()
     constructor() {
         super("interactional", {
             up: {
@@ -39,6 +55,8 @@ export class InteractionalComponent extends Component<InteractionalSchema>{
     init() {
         const data = this.data
         const entity = this.el
+        const manager = InteractionalComponent.manager
+        data['eid'] = entity.id
 
         this.subscribe(entity, "int-up", (evt) => {
             entity.emit(data.up, evt)

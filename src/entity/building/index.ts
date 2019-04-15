@@ -1,5 +1,6 @@
 import { BuildingManager, BuildingPrototype } from "./manager";
 import { Component, EventController } from "../../wasp";
+import BasemapBuildingItem from "../../basemap/buildingItem";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -47,6 +48,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 	public readonly proto: BuildingPrototype
 	public readonly located!: boolean
+	public para: any
 
 	init() {
 
@@ -88,6 +90,13 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 				for (const handler of handlers) {
 					handler.cancel()
+				}
+
+				const para = this.para
+				if (para && para.valid) {
+					console.log(para)
+					const item = new BasemapBuildingItem(this.proto.placeholder, para.angle, para.road, para.offset)
+					window['basemap'].basemap.addBuilding(item)
 				}
 			}))
 

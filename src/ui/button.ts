@@ -18,7 +18,6 @@ interface ButtonComponentSchema {
 export class ButtonComponent extends Component<ButtonComponentSchema> {
 	private static numOfButton = 0
 	private buttonId: number = ButtonComponent.numOfButton++
-	private backEntity: EntityBuilder
 	private planeEntity: EntityBuilder
 	private buttonEntity: EntityBuilder
 
@@ -96,23 +95,6 @@ export class ButtonComponent extends Component<ButtonComponentSchema> {
 
 		const plane = this.planeEntity.toEntity()
 
-		// this.backEntity = EntityBuilder.create("a-entity", {
-		// 	geometry: {
-		// 		primitive: "box",
-		// 		width: totalWidth * 1.05,
-		// 		height: 'auto',
-		// 		// depth: boxDepth
-		// 	},
-		// 	scale: '1 1 .1',
-		// 	position: `0 0 -.2`,
-		// 	text: {
-		// 		value: " ".repeat(data.text.length) + "\n ",
-		// 		wrapCount: wrapCount,
-		// 		align: 'center'
-		// 	}
-		// })
-		// const back = this.backEntity.toEntity()
-
 		this.buttonEntity = EntityBuilder.create("a-entity", {
 			id: `_button_${this.buttonId}`,
 		}, [, this.planeEntity,])
@@ -163,40 +145,6 @@ export class ButtonComponent extends Component<ButtonComponentSchema> {
 			})
 		})
 
-		const rotateAngle = 10
-		const rotateTime = 1000
-		this.listen(data.buttonSelected, () => {
-
-			//  plane.setAttribute("animation", {
-			// 	property: "rotation",
-			// 	dir: "normal",
-			// 	dur: rotateTime * .25,
-			// 	easing: "easeInOutSine",
-			// 	loop: false,
-			// 	from: '0 0 0',
-			// 	to: `0 0 ${rotateAngle}`,
-			// })
-			// plane.setAttribute("animation__2", {
-			// 	property: "rotation",
-			// 	dir: "normal",
-			// 	delay: rotateTime * .26,
-			// 	dur: rotateTime * .5,
-			// 	easing: "easeInOutSine",
-			// 	loop: false,
-			// 	from: `0 0 ${rotateAngle}`,
-			// 	to: `0 0 -${rotateAngle}*2`,
-			// })
-			// plane.setAttribute("animation__3", {
-			// 	property: "rotation",
-			// 	dir: "normal",
-			// 	delay: rotateTime * .77,
-			// 	dur: rotateTime * .25,
-			// 	easing: "easeInOutSine",
-			// 	loop: false,
-			// 	from: `0 0 -${rotateAngle}*2`,
-			// 	to: `0 0 0`,
-			// })
-		})
 	}
 }
 
