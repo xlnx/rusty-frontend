@@ -115,7 +115,9 @@ export class BasemapComponent extends Component<{}> {
 
 				entity.object3D.position.set(x, y, z)
 				entity.object3D.rotation.y = angle
-				entity.emit("locate-building")
+				component.init()
+				component.locateBuilding()
+				// entity.emit("locate-building")
 				entity.emit("validate-building", valid)
 			})
 		}
