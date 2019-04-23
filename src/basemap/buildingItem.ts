@@ -1,21 +1,25 @@
 import { QuadTreeItem, UserData } from "./def";
 import { AnyRect2D, minPt, maxPt, cmp } from "./geometry";
 import BasemapRoadItem from "./roadItem";
+import { BuildingPrototype } from "../entity/building/manager";
 
 export default class BasemapBuildingItem<T = {}> extends UserData<T> {
 
 	private _rect: AnyRect2D = <any>null
 	private _quadTreeItem: QuadTreeItem<BasemapBuildingItem<T>> = <any>{}
 	private shouldUpdate: boolean = true
+	private readonly placeholder: THREE.Vector2
 
-	constructor(private readonly placeholder: THREE.Vector2,
+	constructor(
+		public readonly proto: BuildingPrototype,
+		// private readonly placeholder: THREE.Vector2,
 		// readonly bbox2d: THREE.Box2,
-		readonly angle: number,
-		readonly road: BasemapRoadItem,
-		readonly offset: number//positive: leftside of the road
+		public readonly angle: number,
+		public readonly road: BasemapRoadItem,
+		public readonly offset: number//positive: leftside of the road
 	) {
 		super()
-
+		this.placeholder = this.proto.placeholder
 		this.checkUpdate()
 	}
 

@@ -28,7 +28,6 @@ class Basemap<R, B> {
 		maxElements: maxRoads
 	})
 
-
 	addRoad(width: number, from: Point, to: Point): { added: BasemapRoadItem<R>[], removed: BasemapRoadItem<R>[] } {
 		let res = {
 			added: <BasemapRoadItem<R>[]>[],
@@ -115,6 +114,19 @@ class Basemap<R, B> {
 		this.roadID.set(road, Basemap.count)
 		this.IDroad.set(Basemap.count, road)
 		Basemap.count++
+	}
+
+	getAllRoads(): BasemapRoadItem[] {
+		let res: BasemapRoadItem[] = []
+		const items = this.roadTree.find(elm => true)
+		items.forEach(item => res.push(item.obj))
+		return res
+	}
+	getAllBuildings(): BasemapBuildingItem[] {
+		let res: BasemapBuildingItem[] = []
+		const items = this.buildingTree.find(elm => true)
+		items.forEach(item => res.push(item.obj))
+		return res
 	}
 
 	addBuilding(building: BasemapBuildingItem<B>) {

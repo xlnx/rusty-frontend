@@ -54,7 +54,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 	public readonly proto: BuildingPrototype
 	public readonly located!: boolean
-	public para: any
+	public modelInfo: any
 
 	init() {
 
@@ -98,15 +98,15 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 					handler.cancel()
 				}
 
-				const para = this.para
-				if (para && para.valid) {
+				const modelInfo = this.modelInfo
+				if (modelInfo && modelInfo.valid) {
 					// console.log(para)
-					const item = new BasemapBuildingItem(this.proto.placeholder, para.angle, para.road, para.offset)
+					const item = new BasemapBuildingItem(this.proto, modelInfo.angle, modelInfo.road, modelInfo.offset)
 					window['basemap'].basemap.addBuilding(item)
 				}
 
 				let terrain: TerrainComponent = window['terrain']
-				terrain.terrain.mark(world2plain(this.el.object3D.position), para.angle, this.proto.placeholder)
+				terrain.terrain.mark(world2plain(this.el.object3D.position), modelInfo.angle, this.proto.placeholder)
 			}))
 
 		} else {

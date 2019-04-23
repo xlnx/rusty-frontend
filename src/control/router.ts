@@ -55,7 +55,7 @@ export class RouterComponent extends Component<RouterComponentSchema> {
 	}
 
 	update() {
-		console.log(`%c[Router]activate: ${this.data.active}`, "background: #00cc00; color: #fff")
+		console.log(`%c[Router] Activate: ${this.data.active}`, "background: #00cc00; color: #fff")
 	}
 
 	tick() {

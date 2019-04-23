@@ -149,7 +149,7 @@ export class BuildingManager {
 
 	load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
 
-		console.log("%c[Building Manager]loading buildings...", "background: #00cc00; color: #fff")
+		console.log("%c[Building Manager] Loading buildings...", "background: #00cc00; color: #fff")
 		// console.log(path)
 
 		const paths = (typeof path == "string") ? [path] : path
@@ -193,7 +193,7 @@ export class BuildingManager {
 					path : path + "/index.json")
 					.then(e => res(e, idx), e => rej(e, idx)))
 
-			console.log("%c[Building Manager]buildings all loaded.", "background: #00cc00; color: #fff")
+			console.log("%c[Building Manager] Buildings all loaded.", "background: #00cc00; color: #fff")
 		})
 	}
 
