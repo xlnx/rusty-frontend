@@ -302,7 +302,7 @@ export class MorphStateComponent extends Component<{}> {
 				try {
 					terrain.terrain.morph({
 						center: this.xy,
-						radius: 10,
+						radius: 6,
 						speed: 1e-1,
 						dt: timeDelta
 					})

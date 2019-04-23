@@ -42,11 +42,11 @@ export class LoginComponent extends Component<{}>{
 
     tick() {
         let ratio = this.buildingManager.ratio
-        if ((!this.connectionEstablished
-            || !this.serverSynchronized
-            || !this.localSynchronized
-        )
-            && ratio > 0.1) ratio -= 0.1
+        // if ((!this.connectionEstablished
+        //     || !this.serverSynchronized
+        //     || !this.localSynchronized
+        // )
+        //     && ratio > 0.1) ratio -= 0.1
         this.splash.setAttribute("splash", {
             ratio: ratio
         })

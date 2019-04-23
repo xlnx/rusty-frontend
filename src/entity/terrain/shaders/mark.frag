@@ -2,10 +2,10 @@
 
 varying vec2 vUv;
 
-const float radius = 4.0;
-const float scale = 8.0;
+const float sigmoid_scale = 4.0;
 
 uniform sampler2D prev;
+uniform float radius;
 uniform vec2 center;
 uniform vec4 axes;
 uniform vec2 placeholder;
@@ -26,8 +26,8 @@ void main() {
 	} else {
 		vec4 texel = texture2D(prev, vUv);
 		float x = 1.0 - texel.x;
-		x *= max( sigmoid( (dxy.x - 0.5) * scale ),
-			sigmoid( (dxy.y - 0.5) * scale ) );
+		x *= max( sigmoid( (dxy.x - 0.5) * 2.0 * sigmoid_scale ),
+			sigmoid( (dxy.y - 0.5) * 2.0 * sigmoid_scale ) );
 		gl_FragColor = vec4(1.0 - x, texel.y + 1.0, 0, 0);
 	}
 }
