@@ -230,6 +230,9 @@ export class RoadStateComponent extends Component<{}> {
 					}
 
 					this.current = undefined
+				} else {
+					this.current.parentNode.removeChild(this.current)
+					this.current = undefined
 				}
 			}
 		})
