@@ -1,6 +1,8 @@
 import { BuildingManager, BuildingPrototype } from "./manager";
 import { Component, EventController } from "../../wasp";
 import BasemapBuildingItem from "../../basemap/buildingItem";
+import { TerrainComponent } from "../terrain";
+import { world2plain } from "../../legacy";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -94,10 +96,13 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 				const para = this.para
 				if (para && para.valid) {
-					console.log(para)
+					// console.log(para)
 					const item = new BasemapBuildingItem(this.proto.placeholder, para.angle, para.road, para.offset)
 					window['basemap'].basemap.addBuilding(item)
 				}
+
+				let terrain: TerrainComponent = window['terrain']
+				terrain.terrain.mark(world2plain(this.el.object3D.position), para.angle, this.proto.placeholder)
 			}))
 
 		} else {

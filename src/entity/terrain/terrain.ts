@@ -15,6 +15,7 @@ interface Block {
 	mesh: THREE.Mesh,
 	geometry: THREE.BufferGeometry,
 	target: THREE.WebGLRenderTarget,
+	mask: THREE.WebGLRenderTarget,
 }
 
 const Seg = 20
@@ -37,25 +38,40 @@ function getRelative(rect: THREE.Box2, orig: THREE.Vector2) {
 
 export class Terrain extends THREE.Object3D {
 
-	private readonly raycaster = new THREE.Raycaster()
-
 	private readonly blocks: Block[] = []
 
 	private readonly morphPipeline: Pipeline
 	private readonly morphOutput: PipelineNode
 
-	private readonly morphCopyUniforms = {
+	private readonly commonUniforms = {
 		barrierScale: { type: "f", value: 0 },
 		worldWidth: { type: "f", value: 0 },
-		radius: { type: "f", value: 1 },
-		scale: { type: "f", value: 1 },
-		center: { type: "v2", value: new THREE.Vector2() },
 		blockId: { type: "v2", value: new THREE.Vector2() },
 		blockDim: { type: "v2", value: new THREE.Vector2() }
 	}
+
+	private readonly morphCopyUniforms = Object.assign({
+		radius: { type: "f", value: 1 },
+		scale: { type: "f", value: 1 },
+		center: { type: "v2", value: new THREE.Vector2() },
+		mask: { type: "t", value: <THREE.Texture><any>null },
+	}, this.commonUniforms)
 	private readonly morphUniforms = Object.assign({
 		prev: { type: "t", value: <THREE.Texture><any>null },
 	}, this.morphCopyUniforms)
+
+
+	private readonly markPipeline: Pipeline
+	private readonly markOutput: PipelineNode
+
+	private readonly markCopyUniforms = Object.assign({
+		center: { type: "v2", value: new THREE.Vector2() },
+		axes: { type: "v4", value: new THREE.Vector4() },
+		placeholder: { type: "v2", value: new THREE.Vector2() },
+	}, this.commonUniforms)
+	private readonly markUniforms = Object.assign({
+		prev: { type: "t", value: <THREE.Texture><any>null },
+	}, this.markCopyUniforms)
 
 	private readonly buffer = new Float32Array(4 * Resolution * Resolution)
 	private readonly rigidContainer = new THREE.Object3D
@@ -69,8 +85,6 @@ export class Terrain extends THREE.Object3D {
 		material: THREE.Material) {
 
 		super()
-
-		this.morphPipeline = new Pipeline(renderer)
 
 		blockCnt = Math.floor(blockCnt)
 
@@ -89,7 +103,7 @@ export class Terrain extends THREE.Object3D {
 		this.processGeometry(g)
 		const gs = new Array(4).fill(0)
 			.map((_, i) => {
-				const geo = new THREE.PlaneBufferGeometry(1, 1, 1 << (5 - i), 1 << (5 - i))
+				const geo = new THREE.PlaneBufferGeometry(1, 1, 1 << (7 - i), 1 << (7 - i))
 					.rotateX(-Math.PI / 2)
 				this.processGeometry(geo)
 				return geo
@@ -125,6 +139,7 @@ export class Terrain extends THREE.Object3D {
 
 				// position.array = copy_f32_array_rs(<Float32Array>position.array)
 				const target = t.clone()
+				const mask = t.clone()
 				const lod = new THREE.LOD()
 				const mat = // new THREE.ShaderMaterial({
 					// 	uniforms: { heightMap: { value: target.texture } },
@@ -181,7 +196,8 @@ export class Terrain extends THREE.Object3D {
 					blockId: bid,
 					mesh: meshWire,
 					geometry: geo,
-					target: target
+					target: target,
+					mask: mask
 				})
 			}
 		})
@@ -200,10 +216,11 @@ export class Terrain extends THREE.Object3D {
 
 		let autoClearColor = renderer.autoClearColor
 
-		this.morphUniforms.blockDim.value = new THREE.Vector2(blockCnt, blockCnt)
-		this.morphUniforms.worldWidth.value = worldWidth
-		this.morphUniforms.barrierScale.value = BarrierScale
+		this.commonUniforms.blockDim.value = new THREE.Vector2(blockCnt, blockCnt)
+		this.commonUniforms.worldWidth.value = worldWidth
+		this.commonUniforms.barrierScale.value = BarrierScale
 
+		this.morphPipeline = new Pipeline(renderer)
 		this.morphOutput = this.morphPipeline.begin
 			.thenExec(() => {
 				autoClearColor = renderer.autoClearColor
@@ -216,6 +233,24 @@ export class Terrain extends THREE.Object3D {
 			.then(new PostStage({
 				uniforms: this.morphCopyUniforms,
 				fragmentShader: require("./shaders/morph-copy.frag")
+			}))
+			.thenExec(() => {
+				renderer.autoClearColor = autoClearColor
+			})
+
+		this.markPipeline = new Pipeline(renderer)
+		this.markOutput = this.markPipeline.begin
+			.thenExec(() => {
+				autoClearColor = renderer.autoClearColor
+				renderer.autoClearColor = false
+			})
+			.then(new PostStage({
+				uniforms: this.markUniforms,
+				fragmentShader: require("./shaders/mark.frag")
+			}))
+			.then(new PostStage({
+				uniforms: this.markCopyUniforms,
+				fragmentShader: require("./shaders/mark-copy.frag")
 			}))
 			.thenExec(() => {
 				renderer.autoClearColor = autoClearColor
@@ -267,7 +302,7 @@ export class Terrain extends THREE.Object3D {
 			const ok = xy.x >= 0 && xy.y >= 0 &&
 				xy.x < dist.x && xy.y < dist.y
 			return {
-				h: this.buffer[4 * (dist.x * xy.y + xy.x)],
+				h: this.buffer[4 * (dist.x * xy.y + xy.x)] * this.worldWidth / this.blockCnt,
 				ok: ok
 			}
 		}
@@ -295,15 +330,57 @@ export class Terrain extends THREE.Object3D {
 		)
 
 		this.filterBarrier(rect, block => {
+			this.commonUniforms.blockId.value = block.blockId
+
+			this.morphUniforms.mask.value = block.mask.texture
 			this.morphUniforms.prev.value = block.target.texture
-			this.morphUniforms.blockId.value = block.blockId
 
 			this.morphOutput.target = block.target
 			// console.log(this.morphUniforms.prev.value, block.target.texture)
 			this.morphPipeline.render()
 		})
 
-		// this.updateWireframe(rect)
+		this.updateWireframe(rect)
+	}
+
+	mark(center: THREE.Vector2, angle: number, placeholder: THREE.Vector2) {
+
+		center = center.clone().addScalar(this.worldWidth / 2)
+
+		const orig = new THREE.Vector2()
+		const fx = new THREE.Vector2(0, -1).rotateAround(orig, angle)
+		const fy = fx.clone().rotateAround(orig, Math.PI / 2)
+		const face = new THREE.Vector4(fx.x, fx.y, fy.x, fy.y)
+		placeholder = placeholder.clone().divideScalar(2)
+		const px = placeholder.clone().rotateAround(orig, angle)
+		const py = placeholder.clone().rotateAround(orig, angle + Math.PI / 2)
+		if (px.x < 0) px.x = -px.x
+		if (px.y < 0) px.y = -px.y
+		if (py.x < 0) py.x = -py.x
+		if (py.y < 0) py.y = -py.y
+		const p = px.max(py)
+		const rect = new THREE.Box2(
+			center.clone().sub(px).subScalar(11),
+			center.clone().add(px).addScalar(11)
+		)
+
+		this.markCopyUniforms.center.value = center
+		this.markCopyUniforms.axes.value = face
+		this.markCopyUniforms.placeholder.value = placeholder
+
+		this.filterBarrier(rect, block => {
+			console.log(block)
+
+			this.commonUniforms.blockId.value = block.blockId
+
+			this.markUniforms.prev.value = block.mask.texture
+
+			this.markOutput.target = block.mask
+
+			this.markPipeline.render()
+		})
+
+		this.updateWireframe(rect)
 	}
 
 	getHeight(pt: THREE.Vector2[]) {

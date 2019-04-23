@@ -46,8 +46,8 @@ export class BuildingStateComponent extends Component<{}> {
 			if (!this.current) {
 
 				const xyz = plain2world(xy)
-				console.log(xy)
-				console.log(xyz)
+				// console.log(xy)
+				// console.log(xyz)
 				this.current = <any>EntityBuilder.create("a-entity", {
 					building: {
 						name: "Building_Bar"
