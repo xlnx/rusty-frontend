@@ -2,7 +2,9 @@ import "./control"
 import "./entity"
 import "./ui"
 import "./states"
+import "./game"
 import "./main"
+import "./login"
 import { WebSocketComponent } from "./control";
 import { Component } from "./wasp";
 

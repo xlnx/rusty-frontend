@@ -24,7 +24,11 @@ export class BuildingManagerComponent extends Component<{}> {
 	}
 
 	tick() {
-		; (<any>this).ratio = this.manager.finishedRequests / this.manager.requests
+		if (!this.finish) {
+			; (<any>this).ratio = this.manager.finishedRequests / this.manager.requests
+		} else {
+			; (<any>this).ratio = 1
+		}
 	}
 }
 

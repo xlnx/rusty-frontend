@@ -19,12 +19,12 @@ export class BuildingStateComponent extends Component<{}> {
 
 	init() {
 
-		this.listen("router-enter", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
 			this.valid = false
 		})
 
-		this.listen("router-leave", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 			if (!!this.current) {
 				this.current.el.parentNode.removeChild(this.current.el)
 				this.current = undefined
@@ -98,11 +98,11 @@ export class RoadStateComponent extends Component<{}> {
 
 	init() {
 
-		this.listen("router-enter", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
 			this.leave = false
 		})
-		this.listen("router-leave", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 			if (!!this.current) {
 				this.current.parentNode.removeChild(this.current)
 				this.current = undefined
@@ -271,7 +271,7 @@ export class MorphStateComponent extends Component<{}> {
 
 		const terrain: TerrainComponent = window["terrain"]
 
-		this.listen("router-enter", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.isMorphing = false
 		})
 		this.listen("router-exit", () => {

@@ -5,7 +5,9 @@ export class RouterItemComponent extends Component<string> {
 	constructor() { super("router-item", { type: "string" }) }
 
 	init() {
-		this.el.pause()
+		setTimeout(() => {
+			this.el.pause()
+		}, 0)
 	}
 }
 
@@ -52,8 +54,8 @@ export class RouterComponent extends Component<RouterComponentSchema> {
 		}
 	}
 
-	init() {
-		this.updateChilds()
+	update() {
+		console.log("active =", this.data.active)
 	}
 
 	tick() {
