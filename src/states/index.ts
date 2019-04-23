@@ -1,8 +1,12 @@
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent } from "../entity";
-import { plain2world } from "../legacy";
+import { plain2world, DistUnit } from "../legacy";
 import { Component } from "../wasp";
 import BasemapBuildingItem from "../basemap/buildingItem";
+import { Point } from "../basemap/geometry";
+import { PointComponent } from "../entity/geometry";
+import { Vector2 } from "three";
+import { PointDetectRadius } from "../basemap/def";
 
 export class BuildingStateComponent extends Component<{}> {
 
@@ -83,7 +87,9 @@ new BuildingStateComponent().register()
 export class RoadStateComponent extends Component<{}> {
 
 	private current!: AFrame.Entity
-	private point!: AFrame.Entity
+	private pointIdk!: AFrame.Entity
+	private points!: AFrame.Entity
+	private map: Map<Point, AFrame.Entity> = new Map()
 
 	constructor() {
 		super("road-state", {})
@@ -103,42 +109,40 @@ export class RoadStateComponent extends Component<{}> {
 
 		let xy!: THREE.Vector2
 		const city = window["city-editor"]
-		const pointEntity =
-			this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
+		const basemap: BasemapComponent = window["basemap"]
+		const self = this
+		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
 
-				xy = evt.detail
-				if (!!this.current) {
-					this.current.setAttribute("road-indicator", {
-						to: xy
-					})
-				}
-				if (!this.point) {
-					this.point = EntityBuilder.create("a-entity", {
-						"point-indicator": {
-							radius: 1
-						},
-						position: "0 0 0"
-					})
-						.attachTo(city)
-						.toEntity()
+			// in model coordinates
+			xy = evt.detail
+			// road indicator
+			if (!!this.current) {
+				this.current.setAttribute("road-indicator", {
+					to: xy
+				})
+			}
+			// mouse point indicator
+			if (!this.pointIdk) {
+				this.pointIdk = EntityBuilder.create("a-entity", {
+					"point": {
+						dash: false
+					},
+					visible: true
+				})
+					.attachTo(city)
+					.toEntity()
 
-				} else {
-					const basemap: BasemapComponent = window["basemap"]
-					const pt = plain2world(basemap.basemap.attachNearPoint(xy).clone())
-					this.point.setAttribute('position', {
-						x: pt.x,
-						y: pt.y,
-						z: pt.z
-					})
-				}
-
+			}
+			const pt = plain2world(basemap.basemap.attachNearPoint(xy))
+			this.pointIdk.setAttribute('position', {
+				x: pt.x,
+				y: pt.y,
+				z: pt.z
 			})
 
+		})
+
 		this.subscribe(window["terrain"].el, "int-click", (evt: any) => {
-
-			console.log(this.point.hasAttribute('position'))
-
-
 			if (!this.current) {
 
 				this.current = EntityBuilder.create("a-entity", {
@@ -158,10 +162,76 @@ export class RoadStateComponent extends Component<{}> {
 
 					this.current.emit("locate-road")
 					this.current.parentNode.removeChild(this.current)
+
+					// update created points
+					if (!this.points) {
+						this.points = EntityBuilder.create("a-entity", {
+						})
+							.attachTo(city)
+							.toEntity()
+					}
+					let pt = basemap.basemap.getNearPoint(indicator.indicator.from)
+					if (pt) {
+						const pt2d = pt
+						const pt3d = plain2world(pt)
+						if (!this.map.has(pt)) {
+							const ptEntity = EntityBuilder.create("a-entity", {
+								"point": {
+									dash: true
+								},
+								position: {
+									x: pt3d.x,
+									y: pt3d.y,
+									z: pt3d.z
+								},
+								visible: true
+							})
+								.attachTo(this.points)
+								.toEntity()
+							this.map.set(pt, ptEntity)
+							self.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
+								const mousePos: Vector2 = evt.detail
+								if (mousePos.distanceTo(pt2d) > PointDetectRadius) {
+									ptEntity.setAttribute('visible', false)
+								} else {
+									ptEntity.setAttribute('visible', true)
+								}
+							})
+						}
+					}
+					pt = basemap.basemap.getNearPoint(indicator.indicator.to)
+					if (pt) {
+						const pt2d = pt
+						const pt3d = plain2world(pt)
+						if (!this.map.has(pt)) {
+							const ptEntity = EntityBuilder.create("a-entity", {
+								"point": {
+									dash: true
+								},
+								position: {
+									x: pt3d.x,
+									y: pt3d.y,
+									z: pt3d.z
+								},
+								visible: true
+							})
+								.attachTo(this.points)
+								.toEntity()
+							this.map.set(pt, ptEntity)
+							self.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
+								const mousePos: Vector2 = evt.detail
+								if (mousePos.distanceTo(pt2d) > PointDetectRadius) {
+									ptEntity.setAttribute('visible', false)
+								} else {
+									ptEntity.setAttribute('visible', true)
+								}
+							})
+						}
+					}
+
 					this.current = undefined
 				}
 			}
-
 		})
 	}
 }

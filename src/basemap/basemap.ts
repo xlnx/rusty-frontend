@@ -310,8 +310,21 @@ class Basemap<R, B> {
 	}
 
 	attachNearPoint(pt: Point): Point {
-		const near = this.getNearPoint(pt)
+		const near = this.getCandidatePoint(pt)
 		return near && near.distanceTo(pt) <= AttachRadius && near || pt
+	}
+
+	getCandidatePoint(pt: Point): Point {
+		let res: Point
+		let minDist = Infinity
+		for (const p of this.getCandidatePoints(pt)) {
+			const dist = p.distanceTo(pt)
+			if (dist < minDist) {
+				minDist = dist
+				res = p
+			}
+		}
+		return res || pt
 	}
 
 	getCandidatePoints(pt: Point): Point[] {
@@ -325,8 +338,8 @@ class Basemap<R, B> {
 		let roads = this.roadTree.colliding(rect.treeItem())
 		for (const item of roads) {
 			const road = item.obj!
-			if (pt.distanceTo(road.from.clone()) <= PointDetectRadius) res.push(road.from.clone())
-			if (pt.distanceTo(road.to.clone()) <= PointDetectRadius) res.push(road.to.clone())
+			if (pt.distanceTo(road.from.clone()) <= PointDetectRadius) res.push(road.from)
+			if (pt.distanceTo(road.to.clone()) <= PointDetectRadius) res.push(road.to)
 		}
 		return res
 	}
@@ -338,7 +351,7 @@ class Basemap<R, B> {
 			const dist = p.distanceTo(pt)
 			if (dist < minDist) {
 				minDist = dist
-				res = p.clone()
+				res = p
 			}
 		}
 		return res
