@@ -2,15 +2,16 @@ import { DistUnit, plain2world } from "../../legacy";
 import { roadHeight } from "../../basemap/def";
 import BasemapRoadItem from "../../basemap/roadItem";
 import { Terrain } from "../terrain/terrain";
-import { TexAsset, NumberVariable, Geometry2D } from "../../wasp";
+import { TexAsset, NumberVariable, Geometry2D, Component } from "../../wasp";
 import { Basemap } from "../../basemap/basemap";
+declare const THREE: typeof import("three")
 
 export class RoadIndicator extends THREE.Object3D {
 
 	// frameColor: { value: new THREE.Vector4(0.38, 0.65, 0.76, 0.7) },
 	// fillColor: { value: new THREE.Vector4(0.5, 0.72, 0.85, 0.5) }
-	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84)
-	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
+	static readonly validColor = new THREE.Color(0.44, 0.52, 0.84)
+	static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2)
 
 	private static up = new THREE.Vector3(0, 1, 0)
 	// private v: Variable
@@ -62,7 +63,7 @@ export class RoadIndicator extends THREE.Object3D {
 	}
 
 	adjustFrom(coord: THREE.Vector2) {
-		Object.assign(this.from, coord.clone())
+		Object.assign(this.from, this.basemap.attachNearPoint(coord.clone()))
 		const { x, y: y_, z } = plain2world(this.from)
 		this.object.position.set(x, y_, z)
 	}
@@ -277,7 +278,10 @@ export class Road extends THREE.Object3D {
 		geometry.elementsNeedUpdate = true
 		geometry.computeFaceNormals()
 
-		return { geometry, startHeight, roadWidth }
+		return {
+			geometry, startHeight, roadWidth
+		}
 	}
 
 }
+

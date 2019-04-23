@@ -83,6 +83,7 @@ new BuildingStateComponent().register()
 export class RoadStateComponent extends Component<{}> {
 
 	private current!: AFrame.Entity
+	private point!: AFrame.Entity
 
 	constructor() {
 		super("road-state", {})
@@ -101,21 +102,42 @@ export class RoadStateComponent extends Component<{}> {
 		})
 
 		let xy!: THREE.Vector2
+		const city = window["city-editor"]
+		const pointEntity =
+			this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
 
-		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
+				xy = evt.detail
+				if (!!this.current) {
+					this.current.setAttribute("road-indicator", {
+						to: xy
+					})
+				}
+				if (!this.point) {
+					this.point = EntityBuilder.create("a-entity", {
+						"point-indicator": {
+							radius: 1
+						},
+						position: "0 0 0"
+					})
+						.attachTo(city)
+						.toEntity()
 
-			xy = evt.detail
-			if (!!this.current) {
-				this.current.setAttribute("road-indicator", {
-					to: xy
-				})
-			}
+				} else {
+					const basemap: BasemapComponent = window["basemap"]
+					const pt = plain2world(basemap.basemap.attachNearPoint(xy).clone())
+					this.point.setAttribute('position', {
+						x: pt.x,
+						y: pt.y,
+						z: pt.z
+					})
+				}
 
-		})
+			})
 
 		this.subscribe(window["terrain"].el, "int-click", (evt: any) => {
 
-			const city = window["city-editor"]
+			console.log(this.point.hasAttribute('position'))
+
 
 			if (!this.current) {
 

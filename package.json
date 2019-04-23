@@ -8,7 +8,7 @@
     "test": "karma start",
     "start": "npm run server:dev",
     "server": "npm run server:dev",
-    "server:dev": "webpack-dev-server --config ./webpack.config.js --inline --progress"
+    "server:dev": "webpack-dev-server --config ./webpack.config.js --inline --progress --watch-poll"
   },
   "license": "ISC",
   "devDependencies": {

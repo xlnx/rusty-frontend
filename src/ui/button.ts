@@ -1,17 +1,19 @@
 declare const THREE: typeof import("three")
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import { Component } from "../wasp";
+import * as UI from "./def";
+
 
 interface ButtonComponentSchema {
 	readonly text: string
 	readonly width: number
 	readonly height: number
 	readonly fontSize: number
-	readonly buttonDown: string
-	readonly buttonUp: string
-	readonly buttonClick: string
-	readonly buttonSelected: string
-	readonly buttonAborted: string
+	// readonly buttonDown: string
+	// readonly buttonUp: string
+	// readonly buttonClick: string
+	// readonly buttonSelected: string
+	// readonly buttonAborted: string
 	readonly billboard: boolean
 }
 
@@ -39,26 +41,26 @@ export class ButtonComponent extends Component<ButtonComponentSchema> {
 				type: "number",
 				default: 1
 			},
-			buttonClick: {
-				type: "string",
-				default: "button_click"
-			},
-			buttonDown: {
-				type: "string",
-				default: "button_down"
-			},
-			buttonUp: {
-				type: "string",
-				default: "button_up"
-			},
-			buttonSelected: {
-				type: "string",
-				default: "button_selected"
-			},
-			buttonAborted: {
-				type: "string",
-				default: "button_aborted"
-			},
+			// buttonClick: {
+			// 	type: "string",
+			// 	default: "button_click"
+			// },
+			// buttonDown: {
+			// 	type: "string",
+			// 	default: "button_down"
+			// },
+			// buttonUp: {
+			// 	type: "string",
+			// 	default: "button_up"
+			// },
+			// buttonSelected: {
+			// 	type: "string",
+			// 	default: "button_selected"
+			// },
+			// buttonAborted: {
+			// 	type: "string",
+			// 	default: "button_aborted"
+			// },
 			billboard: {
 				type: "boolean",
 				default: true
@@ -104,24 +106,24 @@ export class ButtonComponent extends Component<ButtonComponentSchema> {
 			this.el.setAttribute('billboard', {})
 		}
 
-		let hasBeenDown = false
 		plane.addEventListener('int-down', (evt) => {
-			this.el.emit(data.buttonDown)
-			hasBeenDown = true
+			this.el.emit(UI.down_event)
 		})
 		plane.addEventListener('int-up', (evt) => {
-			if (hasBeenDown) {
-				hasBeenDown = false
-				this.el.emit(data.buttonClick)
-				this.el.emit(data.buttonUp)
-			}
+			this.el.emit(UI.up_event)
 		})
 		plane.addEventListener('int-enter', (evt) => {
-			this.el.emit('button_selected')
+			this.el.emit(UI.enter_event)
+		})
+		plane.addEventListener('int-leave', evt => {
+			this.el.emit(UI.leave_event)
+		})
+		plane.addEventListener('int-click', evt => {
+			this.el.emit(UI.click_event)
 		})
 
 
-		this.listen(data.buttonUp, () => {
+		this.listen('int-up', () => {
 			plane.setAttribute("animation", {
 				property: "position",
 				dir: "normal",
@@ -133,7 +135,7 @@ export class ButtonComponent extends Component<ButtonComponentSchema> {
 			})
 		})
 
-		this.listen(data.buttonDown, () => {
+		this.listen('int-down', () => {
 			plane.setAttribute("animation", {
 				property: "position",
 				dir: "normal",
