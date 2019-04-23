@@ -2,6 +2,8 @@
 
 varying vec2 vUv;
 
+const float gaussian_scale = 3.0;
+
 uniform sampler2D prev;
 uniform sampler2D mask;
 uniform vec2 center;
@@ -13,7 +15,7 @@ void main() {
 	float d = length(point - center);
 
 	if (d < radius) {
-		float sigma = radius / 5.;
+		float sigma = radius / gaussian_scale;
 		float gaussian = exp(-d*d/(2.*sigma*sigma));
 		vec4 texel = texture2D(prev, vUv);
 		vec4 tex_mask = texture2D(mask, vUv);

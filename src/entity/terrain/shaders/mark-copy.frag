@@ -2,8 +2,7 @@
 
 varying vec2 vUv;
 
-const float radius = 4.0;
-
+uniform float radius;
 uniform vec2 center;
 uniform vec4 axes;
 uniform vec2 placeholder;

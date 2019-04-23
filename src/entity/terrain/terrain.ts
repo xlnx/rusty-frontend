@@ -65,6 +65,7 @@ export class Terrain extends THREE.Object3D {
 	private readonly markOutput: PipelineNode
 
 	private readonly markCopyUniforms = Object.assign({
+		radius: { type: "f", value: 4 },
 		center: { type: "v2", value: new THREE.Vector2() },
 		axes: { type: "v4", value: new THREE.Vector4() },
 		placeholder: { type: "v2", value: new THREE.Vector2() },
@@ -188,8 +189,8 @@ export class Terrain extends THREE.Object3D {
 				const min = bid.clone().multiplyScalar(worldWidth / blockCnt)
 				const max = bid.clone().addScalar(1).multiplyScalar(worldWidth / blockCnt)
 				const mid = min.clone().add(max).divideScalar(2)
-				const bmin = min.clone().add(min.clone().sub(mid).divideScalar(BarrierScale))
-				const bmax = max.clone().add(max.clone().sub(mid).divideScalar(BarrierScale))
+				const bmin = mid.clone().add(min.clone().sub(mid).divideScalar(BarrierScale))
+				const bmax = mid.clone().add(max.clone().sub(mid).divideScalar(BarrierScale))
 				this.blocks.push({
 					rect: new THREE.Box2(min, max),
 					barrierRect: new THREE.Box2(bmin, bmax),
@@ -330,6 +331,7 @@ export class Terrain extends THREE.Object3D {
 		)
 
 		this.filterBarrier(rect, block => {
+
 			this.commonUniforms.blockId.value = block.blockId
 
 			this.morphUniforms.mask.value = block.mask.texture
@@ -360,8 +362,8 @@ export class Terrain extends THREE.Object3D {
 		if (py.y < 0) py.y = -py.y
 		const p = px.max(py)
 		const rect = new THREE.Box2(
-			center.clone().sub(px).subScalar(11),
-			center.clone().add(px).addScalar(11)
+			center.clone().sub(px), //.subScalar(this.markUniforms.radius.value),
+			center.clone().add(px) //.addScalar(this.markUniforms.radius.value)
 		)
 
 		this.markCopyUniforms.center.value = center
@@ -369,7 +371,6 @@ export class Terrain extends THREE.Object3D {
 		this.markCopyUniforms.placeholder.value = placeholder
 
 		this.filterBarrier(rect, block => {
-			console.log(block)
 
 			this.commonUniforms.blockId.value = block.blockId
 
