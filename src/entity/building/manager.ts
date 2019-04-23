@@ -127,8 +127,8 @@ export class BuildingManager {
 	private readonly createdTime = new Date().getTime()
 
 	constructor(assets: string[] = []) {
-		console.log("%cnew BuildingManager()", "background: #000; color: #ffffff")
-		console.log(this)
+		// console.log("%cnew BuildingManager()", "background: #000; color: #ffffff")
+		// console.log(this)
 		this.load(assets)
 	}
 
@@ -149,8 +149,8 @@ export class BuildingManager {
 
 	load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
 
-		console.log("%cload", "background: #00cc00; color: #fff")
-		console.log(path)
+		console.log("%c[Building Manager]loading buildings...", "background: #00cc00; color: #fff")
+		// console.log(path)
 
 		const paths = (typeof path == "string") ? [path] : path
 		this._requests = paths.length
@@ -193,6 +193,7 @@ export class BuildingManager {
 					path : path + "/index.json")
 					.then(e => res(e, idx), e => rej(e, idx)))
 
+			console.log("%c[Building Manager]buildings all loaded.", "background: #00cc00; color: #fff")
 		})
 	}
 

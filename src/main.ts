@@ -38,9 +38,11 @@ export class MainComponent extends Component<{}>{
             "export/Building_Super Market"
         )
 
-        this.el.setAttribute('router', {
-            active: "login"
-        })
+        setTimeout(() => {
+            this.el.setAttribute('router', {
+                active: "login"
+            })
+        }, 0)
     }
 }
 
