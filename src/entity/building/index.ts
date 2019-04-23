@@ -2,7 +2,7 @@ import { BuildingManager, BuildingPrototype } from "./manager";
 import { Component, EventController } from "../../wasp";
 import BasemapBuildingItem from "../../basemap/buildingItem";
 import { TerrainComponent } from "../terrain";
-import { world2plain } from "../../legacy";
+import { world2plain, DistUnit } from "../../legacy";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -90,23 +90,27 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			}))
 
 			handlers.push(this.listen("locate-building", () => {
-				this.el.setObject3D("mesh", this.proto.object.model.clone())
-					; (<any>this).located = true
-				this.el.classList.remove("indicator")
-
-				for (const handler of handlers) {
-					handler.cancel()
-				}
-
 				const para = this.para
 				if (para && para.valid) {
+
+					this.el.setObject3D("mesh", this.proto.object.model.clone())
+						; (<any>this).located = true
+					this.el.classList.remove("indicator")
+
+					for (const handler of handlers) {
+						handler.cancel()
+					}
 					// console.log(para)
 					const item = new BasemapBuildingItem(this.proto.placeholder, para.angle, para.road, para.offset)
 					window['basemap'].basemap.addBuilding(item)
-				}
 
-				let terrain: TerrainComponent = window['terrain']
-				terrain.terrain.mark(world2plain(this.el.object3D.position), para.angle, this.proto.placeholder)
+					let terrain: TerrainComponent = window['terrain']
+					terrain.terrain.mark(world2plain(this.el.object3D.position), para.angle, this.proto.placeholder)
+					const height = terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
+						para.angle, this.proto.placeholder, item.rect)
+
+					this.el.object3D.position.y += height * DistUnit
+				}
 			}))
 
 		} else {
