@@ -75,7 +75,9 @@ export class BasemapComponent extends Component<{}> {
 			const lastCount = Basemap.count
 			roads.forEach(road => {
 				const { width, from, to } = road
-				const { added, removed } = basemap.addRoad(width, from, to)
+				const fromVec = new THREE.Vector2(from.x, from.y)
+				const toVec = new THREE.Vector2(to.x, to.y)
+				const { added, removed } = basemap.addRoad(width, fromVec, toVec)
 				for (const road of added) {
 					const r = EntityBuilder.create("a-entity", {
 						road: {}
@@ -99,14 +101,14 @@ export class BasemapComponent extends Component<{}> {
 					.attachTo(city)
 					.toEntity()
 				const component = <BuildingComponent>entity.components.building
-
-				const modelInfo = basemap.alignBuilding(center, proto.placeholder)
+				const pos = new THREE.Vector2(center.x, center.y)
+				const modelInfo = basemap.alignBuilding(pos, proto.placeholder)
 				const { angle, valid } = modelInfo
 
 
 				component.modelInfo = modelInfo
 
-				const { x, y, z } = plain2world(center)
+				const { x, y, z } = plain2world(pos)
 
 				entity.object3D.position.set(x, y, z)
 				entity.object3D.rotation.y = angle

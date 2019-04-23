@@ -8,6 +8,7 @@ import { PointComponent } from "../entity/geometry";
 import { Vector2 } from "three";
 import { PointDetectRadius } from "../basemap/def";
 import * as UI from "../ui/def";
+import { WebSocketComponent } from "../control";
 
 export class BuildingStateComponent extends Component<{}> {
 
@@ -261,11 +262,12 @@ new RoadStateComponent().register()
 export class PreviewStateComponent extends Component<{}> {
 	constructor() { super("preview-state", {}) }
 	init() {
-		const entity: AFrame.Entity = this.el.querySelector("#button-preview")
+		const entity: AFrame.Entity = document.querySelector("#button-preview")
 		this.subscribe(entity, UI.click_event, evt => {
-			const ws = <WebSocket>window["web-socket"]
+			const ws = <WebSocketComponent>window["socket"]
+			console.log(ws)
 			const basemap = <BasemapComponent>window["basemap"]
-			ws.send(basemap.export())
+			ws.socket.send(basemap.export())
 		})
 	}
 }

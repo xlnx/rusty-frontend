@@ -27,13 +27,10 @@ export class LoginComponent extends Component<{}>{
             this.subscribe(this.socket.el, "established", msg => {
                 this.connectionEstablished = true
                 try {
-
                     this.socket.socket.send("HELLO WORLD")
-                    const basemap = <BasemapComponent>window['basemap']
-                    this.socket.socket.send(basemap.export())
                 }
                 catch (err) {
-                    console.log(`[Login] Error when sending message.`)
+                    console.log(`[Login] Error when sending message: ${err}`)
                 }
             })
             this.subscribe(this.socket.el, "received", msg => {
@@ -50,11 +47,11 @@ export class LoginComponent extends Component<{}>{
 
     tick() {
         let ratio = this.buildingManager.ratio
-        // if ((!this.connectionEstablished
-        //     || !this.serverSynchronized
-        //     || !this.localSynchronized
-        // )
-        //     && ratio > 0.1) ratio -= 0.1
+        if ((!this.connectionEstablished
+            || !this.serverSynchronized
+            || !this.localSynchronized
+        )
+            && ratio > 0.1) ratio -= 0.1
         this.splash.setAttribute("splash", {
             ratio: ratio
         })
