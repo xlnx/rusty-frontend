@@ -4,6 +4,8 @@ import { BasemapComponent } from "../basemap";
 import { Component } from "../../wasp";
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import BasemapRoadItem from "../../basemap/roadItem";
+import { world2plain, plain2world } from "../../legacy";
+import { cross2D, cmp } from "../../basemap/geometry";
 
 interface RoadIndicatorComponentSchema {
 	readonly width: number,
@@ -102,8 +104,16 @@ export class RoadComponent extends Component<{ readonly item: any }> {
 
 		this.el.setObject3D("mesh", this.road)
 
-		// })
 
+		let center = this.road.item.from.clone()
+			.add(this.road.item.to)
+			.divideScalar(2)
+		let faceDir = new THREE.Vector2(0, -1)
+		let roadDir = this.road.item.to.clone().sub(this.road.item.from)
+		let angleSign = cmp(cross2D(roadDir.clone(), (faceDir)), 0) > 0 ? -1 : 1
+		let angle = Math.acos(roadDir.clone().normalize().dot(faceDir)) * angleSign
+		let placeHolder = new THREE.Vector2(roadDir.length(), this.road.width)
+		terrain.terrain.mark(center, angle, placeHolder)
 	}
 }
 
