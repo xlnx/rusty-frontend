@@ -1,4 +1,5 @@
 import { Pipeline, PostStage, PipelineNode, Shader, async_foreach } from "../../wasp";
+import { AnyRect2D } from "../../basemap/geometry";
 
 interface TerrainMorphOptions {
 	center: THREE.Vector2,
@@ -73,6 +74,23 @@ export class Terrain extends THREE.Object3D {
 	private readonly markUniforms = Object.assign({
 		prev: { type: "t", value: <THREE.Texture><any>null },
 	}, this.markCopyUniforms)
+
+
+	private readonly buildingPipeline: Pipeline
+	private readonly buildingOutput: PipelineNode
+
+	private readonly buildingCopyUniforms = Object.assign({
+		radius: { type: "f", value: 2 },
+		center: { type: "v2", value: new THREE.Vector2() },
+		axes: { type: "v4", value: new THREE.Vector4() },
+		placeholder: { type: "v2", value: new THREE.Vector2() },
+		mask: { type: "t", value: <THREE.Texture><any>null },
+	}, this.commonUniforms)
+	private readonly buildingUniforms = Object.assign({
+		prev: { type: "t", value: <THREE.Texture><any>null },
+		height: { type: "f", value: 0 }
+	}, this.buildingCopyUniforms)
+
 
 	private readonly buffer = new Float32Array(4 * Resolution * Resolution)
 	private readonly rigidContainer = new THREE.Object3D
@@ -256,6 +274,24 @@ export class Terrain extends THREE.Object3D {
 			.thenExec(() => {
 				renderer.autoClearColor = autoClearColor
 			})
+
+		this.buildingPipeline = new Pipeline(renderer)
+		this.buildingOutput = this.buildingPipeline.begin
+			.thenExec(() => {
+				autoClearColor = renderer.autoClearColor
+				renderer.autoClearColor = false
+			})
+			.then(new PostStage({
+				uniforms: this.buildingUniforms,
+				fragmentShader: require("./shaders/building.frag")
+			}))
+			.then(new PostStage({
+				uniforms: this.buildingCopyUniforms,
+				fragmentShader: require("./shaders/building-copy.frag")
+			}))
+			.thenExec(() => {
+				renderer.autoClearColor = autoClearColor
+			})
 	}
 
 	private processGeometry(g: THREE.BufferGeometry) {
@@ -338,7 +374,7 @@ export class Terrain extends THREE.Object3D {
 			this.morphUniforms.prev.value = block.target.texture
 
 			this.morphOutput.target = block.target
-			// console.log(this.morphUniforms.prev.value, block.target.texture)
+
 			this.morphPipeline.render()
 		})
 
@@ -362,8 +398,8 @@ export class Terrain extends THREE.Object3D {
 		if (py.y < 0) py.y = -py.y
 		const p = px.max(py)
 		const rect = new THREE.Box2(
-			center.clone().sub(px), //.subScalar(this.markUniforms.radius.value),
-			center.clone().add(px) //.addScalar(this.markUniforms.radius.value)
+			center.clone().sub(px).subScalar(this.markUniforms.radius.value),
+			center.clone().add(px).addScalar(this.markUniforms.radius.value)
 		)
 
 		this.markCopyUniforms.center.value = center
@@ -382,6 +418,84 @@ export class Terrain extends THREE.Object3D {
 		})
 
 		this.updateWireframe(rect)
+	}
+
+	placeBuilding(center: THREE.Vector2, angle: number, placeholder: THREE.Vector2, anyrect: AnyRect2D): number {
+
+		center = center.clone().addScalar(this.worldWidth / 2)
+
+		const orig = new THREE.Vector2()
+		const fx = new THREE.Vector2(0, -1).rotateAround(orig, angle)
+		const fy = fx.clone().rotateAround(orig, Math.PI / 2)
+		const face = new THREE.Vector4(fx.x, fx.y, fy.x, fy.y)
+		placeholder = placeholder.clone().divideScalar(2)
+		const px = placeholder.clone().rotateAround(orig, angle)
+		const py = placeholder.clone().rotateAround(orig, angle + Math.PI / 2)
+		if (px.x < 0) px.x = -px.x
+		if (px.y < 0) px.y = -px.y
+		if (py.x < 0) py.x = -py.x
+		if (py.y < 0) py.y = -py.y
+		const p = px.max(py)
+		const rect = new THREE.Box2(
+			center.clone().sub(px).subScalar(this.markUniforms.radius.value),
+			center.clone().add(px).addScalar(this.markUniforms.radius.value)
+		)
+
+		this.buildingCopyUniforms.center.value = center
+		this.buildingCopyUniforms.axes.value = face
+		this.buildingCopyUniforms.placeholder.value = placeholder
+
+		let height = this.getAverageHeight(anyrect, rect)
+
+		this.buildingUniforms.height.value = height * this.blockCnt / this.worldWidth
+
+		this.filterBarrier(rect, block => {
+
+			this.commonUniforms.blockId.value = block.blockId
+
+			this.buildingUniforms.prev.value = block.target.texture
+			this.buildingUniforms.mask.value = block.mask.texture
+
+			this.buildingOutput.target = block.target
+
+			this.buildingPipeline.render()
+		})
+
+		this.updateWireframe(rect)
+
+		return height
+	}
+
+	private getAverageHeight(anyrect: AnyRect2D, rect: THREE.Box2) {
+
+		const [dx, dy] = [
+			(rect.max.x - rect.min.x) / 20,
+			(rect.max.y - rect.min.y) / 20
+		]
+		let cnt = 0
+		let acch = 0
+
+		this.filter(rect, block => {
+			const partial = block.rect.clone().intersect(rect)
+			if (!partial.isEmpty()) {
+				const sample = this.sampleSingleBlock(block, partial)
+				const pt = new THREE.Vector2()
+				for (let i = partial.min.x; i < partial.max.x; i += dx) {
+					for (let j = partial.min.y; j < partial.max.y; j += dy) {
+						pt.x = i; pt.y = j
+						if (anyrect.containPt(pt.clone().subScalar(this.worldWidth / 2))) {
+							const { h, ok } = sample(this.world2uv(block, pt))
+							if (ok) {
+								cnt += 1
+								acch += h
+							}
+						}
+					}
+				}
+			}
+		})
+
+		return acch / cnt
 	}
 
 	getHeight(pt: THREE.Vector2[]) {
