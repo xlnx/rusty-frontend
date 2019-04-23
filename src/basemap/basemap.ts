@@ -52,7 +52,7 @@ class Basemap<R, B> {
 				let dist2 = newRoad.seg.distance(d)
 				let t = dist1 / (dist1 + dist2)
 				if (isNaN(t)) {
-					console.log("isNaN")
+					// console.log("isNaN")
 					continue
 				}
 				let crossPt = c.clone().add(cd.clone().multiplyScalar(t))

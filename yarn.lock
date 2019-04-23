@@ -251,11 +251,6 @@ acorn@^6.0.5:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.1.1.tgz#7d25ae05bb8ad1f9b699108e1094ecd7884adc1f"
   integrity sha512-jPTiwtOxaHNaAPg/dmrJ/beuzLRnXtB0kQPQ8JpotKJgTB6rX6c8mlf315941pyjBSaPg8NHXS9fhP4u17DpGA==
 
-aframe-effects@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/aframe-effects/-/aframe-effects-0.8.0.tgz#be9c546270314f5b4264303302d1759c103fd45e"
-  integrity sha512-S744mNmX4CP9xcfRenC6ZQHjXjB2U3969daCp0+/xHV5kKpKQSFt+1AjBDzTKI6sGSEif7WLFXmh5fMHtogHVg==
-
 aframe-mouse-cursor-component@^0.5.3:
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/aframe-mouse-cursor-component/-/aframe-mouse-cursor-component-0.5.3.tgz#dcff79def7f02c70e9b508fec8affa806c79f893"

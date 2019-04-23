@@ -1,6 +1,5 @@
 uniform float barrierScale;
 uniform float worldWidth;
-uniform sampler2D prev;
 uniform vec2 blockId;
 uniform vec2 blockDim;
 
