@@ -1,5 +1,5 @@
 import { Component } from "./wasp";
-import { BuildingManagerComponent } from "./entity";
+import { BuildingManagerComponent, BasemapComponent } from "./entity";
 import { WebSocketComponent } from "./control";
 
 export class LoginComponent extends Component<{}>{
@@ -26,12 +26,20 @@ export class LoginComponent extends Component<{}>{
             this.socket.el.emit("connect")
             this.subscribe(this.socket.el, "established", msg => {
                 this.connectionEstablished = true
-                this.socket.socket.send("HELLO WORLD")
+                try {
+
+                    this.socket.socket.send("HELLO WORLD")
+                    const basemap = <BasemapComponent>window['basemap']
+                    this.socket.socket.send(basemap.export())
+                }
+                catch (err) {
+                    console.log(`[Login] Error when sending message.`)
+                }
             })
             this.subscribe(this.socket.el, "received", msg => {
                 // setTimeout(() => {
                 this.serverSynchronized = true
-                console.log(msg.detail)
+                // console.log(msg.detail)
                 // }, 5000)
             })
             this.subscribe(this.socket.el, "closed", msg => {

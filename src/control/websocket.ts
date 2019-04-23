@@ -32,23 +32,23 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 		this.listen("connect", evt => {
 			const conn = `ws://${this.data.host}:${this.data.port}/`
 
-			console.log(`%c[Web Socket]connecting to: ${conn}`, "background: #00cc00; color: #fff")
+			console.log(`%c[Web Socket] Connecting to: ${conn}`, "background: #00cc00; color: #fff")
 
 				// console.log("websocket protocols:", this.data.protocols)
 
 				; (<any>this).socket = new WebSocket(conn, ...this.data.protocols)
 			this.socket.onopen = (msg) => {
-				console.log("%c[Web Socket]connection established.", "background: #00cc00; color: #fff")
+				console.log("%c[Web Socket] Connection established.", "background: #00cc00; color: #fff")
 				this.el.emit("established", msg)
 			}
 
 			this.socket.onmessage = (msg) => {
-				console.log(`%c[Web Socket]received: ${msg.data}`, "background: #00cc00; color: #fff")
+				console.log(`%c[Web Socket] Received: ${msg.data}`, "background: #00cc00; color: #fff")
 				this.el.emit("received", msg)
 			}
 
 			this.socket.onclose = (msg) => {
-				console.log("%c[Web Socket]connection closed.", "background: #00cc00; color: #fff")
+				console.log("%c[Web Socket] Connection closed.", "background: #00cc00; color: #fff")
 				this.el.emit("closed", msg)
 			}
 		})

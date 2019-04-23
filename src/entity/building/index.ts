@@ -54,7 +54,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 	public readonly proto: BuildingPrototype
 	public readonly located!: boolean
-	public para: any
+	public modelInfo: any
 
 	init() {
 
@@ -90,8 +90,8 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			}))
 
 			handlers.push(this.listen("locate-building", () => {
-				const para = this.para
-				if (para && para.valid) {
+				const modelInfo = this.modelInfo
+				if (modelInfo && modelInfo.valid) {
 
 					this.el.setObject3D("mesh", this.proto.object.model.clone())
 						; (<any>this).located = true
@@ -100,14 +100,14 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 					for (const handler of handlers) {
 						handler.cancel()
 					}
-					// console.log(para)
-					const item = new BasemapBuildingItem(this.proto.placeholder, para.angle, para.road, para.offset)
+					// console.log(modelInfo)
+					const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
 					window['basemap'].basemap.addBuilding(item)
 
 					let terrain: TerrainComponent = window['terrain']
-					terrain.terrain.mark(world2plain(this.el.object3D.position), para.angle, this.proto.placeholder)
+					terrain.terrain.mark(world2plain(this.el.object3D.position), modelInfo.angle, this.proto.placeholder)
 					const height = terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
-						para.angle, this.proto.placeholder, item.rect)
+						modelInfo.angle, this.proto.placeholder, item.rect)
 
 					this.el.object3D.position.y += height * DistUnit
 				}

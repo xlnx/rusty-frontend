@@ -60,11 +60,11 @@ export class BuildingStateComponent extends Component<{}> {
 			} else {
 
 				const basemap: BasemapComponent = window["basemap"]
-				const para = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
-				const { road, offset, center, angle, valid } = para
+				const modelInfo = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
+				const { road, offset, center, angle, valid } = modelInfo
 
 
-				this.current.para = para
+				this.current.modelInfo = modelInfo
 
 				const { x, y, z } = plain2world(center)
 
