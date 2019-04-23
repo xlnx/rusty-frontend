@@ -14,6 +14,7 @@ export default class BasemapBuildingItem<T = {}> extends UserData<T> {
 		public readonly proto: BuildingPrototype,
 		// private readonly placeholder: THREE.Vector2,
 		// readonly bbox2d: THREE.Box2,
+		public readonly center: THREE.Vector2,
 		public readonly angle: number,
 		public readonly road: BasemapRoadItem,
 		public readonly offset: number//positive: leftside of the road

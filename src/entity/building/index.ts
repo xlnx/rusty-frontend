@@ -101,7 +101,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 				const modelInfo = this.modelInfo
 				if (modelInfo && modelInfo.valid) {
 					// console.log(para)
-					const item = new BasemapBuildingItem(this.proto, modelInfo.angle, modelInfo.road, modelInfo.offset)
+					const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
 					window['basemap'].basemap.addBuilding(item)
 				}
 
