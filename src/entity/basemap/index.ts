@@ -14,7 +14,11 @@ declare type BuildingData = {
 	prototype: string,
 	center: THREE.Vector2
 }
-declare type WebData = {
+interface WebData {
+	type: string,
+	data: any
+}
+type ModelData = {
 	roads: RoadData[],
 	buildings: BuildingData[]
 }
@@ -47,7 +51,15 @@ export class BasemapComponent extends Component<{}> {
 				center: building.center
 			})
 		})
-		return JSON.stringify({ roads: roadData, buildings: buildingData }, null, 4)
+		const modelData: ModelData = {
+			roads: roadData,
+			buildings: buildingData
+		}
+		const webData: WebData = {
+			type: "synchronize",
+			data: modelData
+		}
+		return JSON.stringify(webData, null, 4)
 	}
 	reset(data: string) {
 		Object.assign(this.basemap, new Basemap())
@@ -58,7 +70,8 @@ export class BasemapComponent extends Component<{}> {
 			const city = window["city-editor"]
 			const basemap = this.basemap
 			const webData = <WebData>JSON.parse(data)
-			const roads = webData.roads
+			const modelData = <ModelData>webData.data
+			const roads = modelData.roads
 			const lastCount = Basemap.count
 			roads.forEach(road => {
 				const { width, from, to } = road
@@ -73,7 +86,7 @@ export class BasemapComponent extends Component<{}> {
 				}
 			})
 
-			const buildings = webData.buildings
+			const buildings = modelData.buildings
 			const manager = <BuildingManagerComponent>window['building-manager']
 			buildings.forEach(building => {
 				const { prototype, center } = building
