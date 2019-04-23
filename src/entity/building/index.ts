@@ -56,6 +56,8 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 	public readonly located!: boolean
 	public modelInfo: any
 
+	private readonly handlers: EventController[] = []
+
 	init() {
 
 		const manager: BuildingManagerComponent = window["building-manager"]
@@ -82,41 +84,41 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			this.el.setObject3D("mesh", ind)
 			this.el.classList.add("indicator")
 
-			const handlers: EventController[] = []
-
-			handlers.push(this.listen("validate-building", (evt: any) => {
+			this.handlers.push(this.listen("validate-building", (evt: any) => {
 				mat.color.set(evt.detail ? BuildingComponent.validColor
 					: BuildingComponent.invalidColor)
 			}))
 
-			handlers.push(this.listen("locate-building", () => {
-				const modelInfo = this.modelInfo
-				if (modelInfo && modelInfo.valid) {
-
-					this.el.setObject3D("mesh", this.proto.object.model.clone())
-						; (<any>this).located = true
-					this.el.classList.remove("indicator")
-
-					for (const handler of handlers) {
-						handler.cancel()
-					}
-					// console.log(modelInfo)
-					const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
-					window['basemap'].basemap.addBuilding(item)
-
-					let terrain: TerrainComponent = window['terrain']
-					terrain.terrain.mark(world2plain(this.el.object3D.position), modelInfo.angle, this.proto.placeholder)
-					const height = terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
-						modelInfo.angle, this.proto.placeholder, item.rect)
-
-					this.el.object3D.position.y += height * DistUnit
-				}
-			}))
+			this.handlers.push(this.listen("locate-building", () => this.locateBuilding()))
 
 		} else {
 
 			console.error(`invalid building type: ${this.data.name}`)
 
+		}
+	}
+
+	locateBuilding() {
+		const modelInfo = this.modelInfo
+		if (modelInfo && modelInfo.valid) {
+
+			this.el.setObject3D("mesh", this.proto.object.model.clone())
+				; (<any>this).located = true
+			this.el.classList.remove("indicator")
+
+			for (const handler of this.handlers) {
+				handler.cancel()
+			}
+			// console.log(modelInfo)
+			const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
+			window['basemap'].basemap.addBuilding(item)
+
+			let terrain: TerrainComponent = window['terrain']
+			terrain.terrain.mark(world2plain(this.el.object3D.position), modelInfo.angle, this.proto.placeholder)
+			const height = terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
+				modelInfo.angle, this.proto.placeholder, item.rect)
+
+			this.el.object3D.position.y += height * DistUnit
 		}
 	}
 }
