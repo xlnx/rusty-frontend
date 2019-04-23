@@ -19,12 +19,12 @@ export class BuildingStateComponent extends Component<{}> {
 
 	init() {
 
-		this.listen("router-enter", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
 			this.valid = false
 		})
 
-		this.listen("router-leave", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 			if (!!this.current) {
 				this.current.el.parentNode.removeChild(this.current.el)
 				this.current = undefined
@@ -90,6 +90,7 @@ export class RoadStateComponent extends Component<{}> {
 	private pointIdk!: AFrame.Entity
 	private points!: AFrame.Entity
 	private map: Map<Point, AFrame.Entity> = new Map()
+	private leave: boolean
 
 	constructor() {
 		super("road-state", {})
@@ -97,14 +98,16 @@ export class RoadStateComponent extends Component<{}> {
 
 	init() {
 
-		this.listen("router-enter", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
+			this.leave = false
 		})
-		this.listen("router-leave", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 			if (!!this.current) {
 				this.current.parentNode.removeChild(this.current)
 				this.current = undefined
 			}
+			this.leave = true
 		})
 
 		let xy!: THREE.Vector2
@@ -132,6 +135,13 @@ export class RoadStateComponent extends Component<{}> {
 					.attachTo(city)
 					.toEntity()
 
+				self.listen("router-leave", () => {
+					this.pointIdk.setAttribute('visible', false)
+				})
+				self.listen("router-enter", () => {
+					this.pointIdk.setAttribute('visible', true)
+				})
+
 			}
 			const pt = plain2world(basemap.basemap.attachNearPoint(xy))
 			this.pointIdk.setAttribute('position', {
@@ -139,7 +149,6 @@ export class RoadStateComponent extends Component<{}> {
 				y: pt.y,
 				z: pt.z
 			})
-
 		})
 
 		this.subscribe(window["terrain"].el, "int-click", (evt: any) => {
@@ -197,6 +206,10 @@ export class RoadStateComponent extends Component<{}> {
 									ptEntity.setAttribute('visible', true)
 								}
 							})
+							self.listen("router-leave", () => {
+								ptEntity.setAttribute('visible', false)
+							})
+
 						}
 					}
 					pt = basemap.basemap.getNearPoint(indicator.indicator.to)
@@ -225,6 +238,9 @@ export class RoadStateComponent extends Component<{}> {
 								} else {
 									ptEntity.setAttribute('visible', true)
 								}
+							})
+							self.listen("router-leave", () => {
+								ptEntity.setAttribute('visible', false)
 							})
 						}
 					}
@@ -258,7 +274,7 @@ export class MorphStateComponent extends Component<{}> {
 
 		const terrain: TerrainComponent = window["terrain"]
 
-		this.listen("router-enter", () => {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.isMorphing = false
 		})
 		this.listen("router-exit", () => {

@@ -3,7 +3,9 @@ import { Component } from "../wasp";
 interface RoomComponentSchema {
 	readonly enterEvent: string,
 	readonly exitEvent: string,
-	readonly current: boolean
+	readonly current: boolean,
+	readonly router: AFrame.Entity,
+	readonly item: string
 }
 
 export class RoomComponent extends Component<RoomComponentSchema> {
@@ -22,6 +24,13 @@ export class RoomComponent extends Component<RoomComponentSchema> {
 				default: ""
 			},
 			exitEvent: {
+				type: "string",
+				default: ""
+			},
+			router: {
+				type: "selector",
+			},
+			item: {
 				type: "string",
 				default: ""
 			}
@@ -44,6 +53,11 @@ export class RoomComponent extends Component<RoomComponentSchema> {
 				}
 			}
 			const cb = () => {
+				if (this.data.item) {
+					this.data.router.setAttribute('router', {
+						active: this.data.item
+					})
+				}
 				this.el.setAttribute("visible", true)
 			}
 			if (this.data.enterEvent != "") {

@@ -28,13 +28,30 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 
 	init() {
 
-		const conn = `ws://${this.data.host}:${this.data.port}/ws`
+		// this.el.play()
+		this.listen("connect", evt => {
+			const conn = `ws://${this.data.host}:${this.data.port}/`
 
-		console.log(`connecting: ${conn}`)
-		console.log("websocket protocols:", this.data.protocols)
+			console.log(`%c[Web Socket]connecting to: ${conn}`, "background: #00cc00; color: #fff")
 
-			; (<any>this).socket = new WebSocket(conn, ...this.data.protocols)
+				// console.log("websocket protocols:", this.data.protocols)
 
+				; (<any>this).socket = new WebSocket(conn, ...this.data.protocols)
+			this.socket.onopen = (msg) => {
+				console.log("%c[Web Socket]connection established.", "background: #00cc00; color: #fff")
+				this.el.emit("established", msg)
+			}
+
+			this.socket.onmessage = (msg) => {
+				console.log(`%c[Web Socket]received: ${msg.data}`, "background: #00cc00; color: #fff")
+				this.el.emit("received", msg)
+			}
+
+			this.socket.onclose = (msg) => {
+				console.log("%c[Web Socket]connection closed.", "background: #00cc00; color: #fff")
+				this.el.emit("closed", msg)
+			}
+		})
 	}
 }
 
@@ -51,7 +68,7 @@ export class WebSocketLoggerComponent extends Component<{}> {
 
 		const ws: WebSocketComponent = <any>this.el.components["web-socket"]
 
-		ws.socket.onopen = () => {
+		this.listen("connected", () => {
 			console.log = (...args: string[]) => {
 				for (const arg of args) {
 					ws.socket.send(`${this.stringlify(arg)}`)
@@ -67,7 +84,7 @@ export class WebSocketLoggerComponent extends Component<{}> {
 					ws.socket.send(`[warn]: ${this.stringlify(arg)}`)
 				}
 			}
-		}
+		})
 	}
 
 	private stringlify(arg: any): string {
