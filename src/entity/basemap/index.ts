@@ -5,23 +5,7 @@ import BasemapBuildingItem from "../../basemap/buildingItem";
 import { BuildingManagerComponent, BuildingComponent } from "../building";
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import { plain2world } from "../../legacy";
-declare type RoadData = {
-	from: THREE.Vector2,
-	to: THREE.Vector2,
-	width: number,
-}
-declare type BuildingData = {
-	prototype: string,
-	center: THREE.Vector2
-}
-interface WebData {
-	type: string,
-	data: any
-}
-type ModelData = {
-	roads: RoadData[],
-	buildings: BuildingData[]
-}
+import { RoadData, BuildingData, ModelData, WebData, SynchronizationData } from "../../web";
 
 export class BasemapComponent extends Component<{}> {
 
@@ -32,7 +16,7 @@ export class BasemapComponent extends Component<{}> {
 		this.export()
 	}
 
-	export(): string {
+	export(): WebData {
 		const roadData: RoadData[] = []
 		const roads = this.basemap.getAllRoads()
 		roads.forEach(road => {
@@ -55,22 +39,20 @@ export class BasemapComponent extends Component<{}> {
 			roads: roadData,
 			buildings: buildingData
 		}
-		const webData: WebData = {
-			type: "synchronize",
-			data: modelData
-		}
-		return JSON.stringify(webData, null, 4)
+		const ret = new SynchronizationData(modelData)
+		return ret
+		// return JSON.stringify(webData, null, 4)
 	}
-	reset(data: string) {
+	reset(data: SynchronizationData) {
 		Object.assign(this.basemap, new Basemap())
 		this.import(data)
 	}
-	import(data: string) {
+	import(data: SynchronizationData) {
 		try {
 			const city = window["city-editor"]
 			const basemap = this.basemap
-			const webData = <WebData>JSON.parse(data)
-			const modelData = <ModelData>webData.data
+			// const webData = <WebData>JSON.parse(data)
+			const modelData = <ModelData>data.data
 			const roads = modelData.roads
 			const lastCount = Basemap.count
 			roads.forEach(road => {

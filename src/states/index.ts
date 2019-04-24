@@ -267,7 +267,8 @@ export class PreviewStateComponent extends Component<{}> {
 			const ws = <WebSocketComponent>window["socket"]
 			console.log(ws)
 			const basemap = <BasemapComponent>window["basemap"]
-			ws.socket.send(basemap.export())
+			const data = JSON.stringify(basemap.export(), null, 4)
+			ws.socket.send(data)
 		})
 	}
 }
