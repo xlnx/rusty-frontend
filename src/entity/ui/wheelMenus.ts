@@ -5,6 +5,11 @@ export class WheelMenuComponent extends Component<{}>{
         super("wheel-menu", {})
     }
     init() {
+        const el = this.el
+        el.setAttribute("wheel", {
+            outerRadius: 4,
+            target: "#road_icon, #building_icon, #eye_icon, #mountain_icon"
+        })
         document
             .querySelector("#road_icon_widget")
             .setAttribute("router-switch", {

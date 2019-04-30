@@ -288,7 +288,7 @@ export class WheelComponent extends Component<WheelComponentSchema> {
 
                 parent.addEventListener(UI.click_event, () => {
                     el.emit(`${parentId}_${UI.click_event}`)
-                    console.log(`${parentId}_${UI.click_event}`)
+                    // console.log(`${parentId}_${UI.click_event}`)
                 })
             }
 
