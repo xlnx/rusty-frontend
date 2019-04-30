@@ -33,9 +33,7 @@ export class GameComponent extends Component<{}> {
 			const ws = <WebSocketComponent>window["socket"]
 			// console.log(ws)
 			const basemap = <BasemapComponent>window["basemap"]
-			const data = JSON.stringify(basemap.export(), null, 4)
-			console.log(data)
-			ws.socket.send(data)
+			ws.socket.send(basemap.export().toString())
 		})
 
 		this.subscribe((<AFrame.Entity>this.el.parentElement), "router-enter", evt => {

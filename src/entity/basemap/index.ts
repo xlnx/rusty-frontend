@@ -53,10 +53,9 @@ export class BasemapComponent extends Component<{}> {
 			const basemap = this.basemap
 			// const webData = <WebData>JSON.parse(data)
 			console.log(data)
-			const modelData = <ModelData>data.data
-			const roads = modelData.roads
+			const { roads, buildings } = data.data
 			const lastCount = Basemap.count
-			roads.forEach(road => {
+			roads.forEach((road: RoadData) => {
 				const { width, from, to } = road
 				const fromVec = new THREE.Vector2(from.x, from.y)
 				const toVec = new THREE.Vector2(to.x, to.y)
@@ -71,9 +70,8 @@ export class BasemapComponent extends Component<{}> {
 				}
 			})
 
-			const buildings = modelData.buildings
 			const manager = <BuildingManagerComponent>window['building-manager']
-			buildings.forEach(building => {
+			buildings.forEach((building: BuildingData) => {
 				const { prototype, center } = building
 				const proto = manager.manager.get(prototype)
 				const entity = EntityBuilder.create("a-entity", {
