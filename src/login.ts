@@ -27,7 +27,7 @@ export class LoginComponent extends Component<{}>{
             this.subscribe(this.socket.el, "established", msg => {
                 this.connectionEstablished = true
                 try {
-                    this.socket.socket.send("HELLO WORLD")
+                    // this.socket.socket.send("HELLO WORLD")
                 }
                 catch (err) {
                     console.log(`[Login] Error when sending message: ${err}`)
