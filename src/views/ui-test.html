@@ -2,11 +2,14 @@
 	<a-assets>
 		<img id="building_icon" src="/assets/ui/building.png">
 		<img id="cancel_icon" src="/assets/ui/cancel.png">
+		<img id="eye_icon" src="/assets/ui/eye.png">
+		<img id="road_icon" src="/assets/ui/road.png">
 	</a-assets>
 	<!-- <a-image position="0 0 -5 " src="#building_image"></a-image> -->
 	<!-- <a-box material="color: red" position="0 2 -5" billboard></a-box> -->
 	<a-camera></a-camera>
 	<a-entity intergrated-raycaster></a-entity>
-	<a-entity position="0 2 -5" wheel="target: hello, #building_icon">
+	<a-entity position="0 2 -5" scale=".5 .5 .5"
+		wheel="outerRadius:4; target: #road_icon, #building_icon, #eye_icon, hello">
 	</a-entity>
 </a-scene>

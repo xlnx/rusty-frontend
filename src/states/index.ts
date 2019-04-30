@@ -262,14 +262,21 @@ new RoadStateComponent().register()
 export class PreviewStateComponent extends Component<{}> {
 	constructor() { super("preview-state", {}) }
 	init() {
-		const entity: AFrame.Entity = document.querySelector("#button-preview")
-		this.subscribe(entity, UI.click_event, evt => {
-			const ws = <WebSocketComponent>window["socket"]
-			console.log(ws)
-			const basemap = <BasemapComponent>window["basemap"]
-			const data = JSON.stringify(basemap.export(), null, 4)
-			ws.socket.send(data)
-		})
+		// const entity: AFrame.Entity = document.querySelector("#button-preview")
+		// this.subscribe(entity, UI.click_event, evt => {
+		// 	const ws = <WebSocketComponent>window["socket"]
+		// 	// console.log(ws)
+		// 	const basemap = <BasemapComponent>window["basemap"]
+		// 	const data = JSON.stringify(basemap.export(), null, 4)
+		// 	ws.socket.send(data)
+		// })
+		// this.subscribe(document.querySelector("#eye_icon_widget"), UI.click_event, evt => {
+		// 	const ws = <WebSocketComponent>window["socket"]
+		// 	console.log(ws)
+		// 	const basemap = <BasemapComponent>window["basemap"]
+		// 	const data = JSON.stringify(basemap.export(), null, 4)
+		// 	ws.socket.send(data)
+		// })
 	}
 }
 

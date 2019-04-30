@@ -1,6 +1,7 @@
 import { BuildingManagerComponent, BasemapComponent } from "./entity";
 import { Component } from "./wasp";
 import { WebSocketComponent } from "./control";
+import * as UI from "./ui/def"
 
 export class TestButtonComponent extends Component<{}> {
 
@@ -27,12 +28,21 @@ export class GameComponent extends Component<{}> {
 
 		this.socket = window['socket']
 
+		let entity: AFrame.Entity = document.querySelector("#button-send")
+		this.subscribe(entity, UI.click_event, evt => {
+			const ws = <WebSocketComponent>window["socket"]
+			// console.log(ws)
+			const basemap = <BasemapComponent>window["basemap"]
+			const data = JSON.stringify(basemap.export(), null, 4)
+			ws.socket.send(data)
+		})
+
 		this.subscribe((<AFrame.Entity>this.el.parentElement), "router-enter", evt => {
 
-			this.socket.el.emit("connect")
+			// this.socket.el.emit("connect")
 			this.subscribe(this.socket.el, "received", msg => {
-				console.log(msg.detail.data)
 				const basemap: BasemapComponent = window['basemap']
+				console.log("received data and importing... ")
 				basemap.import(msg.detail.data)
 			})
 		})

@@ -9,11 +9,6 @@ interface ButtonComponentSchema {
 	readonly width: number
 	readonly height: number
 	readonly fontSize: number
-	// readonly buttonDown: string
-	// readonly buttonUp: string
-	// readonly buttonClick: string
-	// readonly buttonSelected: string
-	// readonly buttonAborted: string
 	readonly billboard: boolean
 }
 
@@ -41,26 +36,6 @@ export class ButtonComponent extends Component<ButtonComponentSchema> {
 				type: "number",
 				default: 1
 			},
-			// buttonClick: {
-			// 	type: "string",
-			// 	default: "button_click"
-			// },
-			// buttonDown: {
-			// 	type: "string",
-			// 	default: "button_down"
-			// },
-			// buttonUp: {
-			// 	type: "string",
-			// 	default: "button_up"
-			// },
-			// buttonSelected: {
-			// 	type: "string",
-			// 	default: "button_selected"
-			// },
-			// buttonAborted: {
-			// 	type: "string",
-			// 	default: "button_aborted"
-			// },
 			billboard: {
 				type: "boolean",
 				default: true

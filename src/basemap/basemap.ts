@@ -119,13 +119,13 @@ class Basemap<R, B> {
 	getAllRoads(): BasemapRoadItem[] {
 		let res: BasemapRoadItem[] = []
 		const items = this.roadTree.find(elm => true)
-		items.forEach(item => res.push(item.obj))
+		if (items) items.forEach(item => res.push(item.obj))
 		return res
 	}
 	getAllBuildings(): BasemapBuildingItem[] {
 		let res: BasemapBuildingItem[] = []
 		const items = this.buildingTree.find(elm => true)
-		items.forEach(item => res.push(item.obj))
+		if (items) items.forEach(item => res.push(item.obj))
 		return res
 	}
 
