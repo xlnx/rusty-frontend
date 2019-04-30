@@ -34,6 +34,7 @@ export class GameComponent extends Component<{}> {
 			// console.log(ws)
 			const basemap = <BasemapComponent>window["basemap"]
 			const data = JSON.stringify(basemap.export(), null, 4)
+			console.log(data)
 			ws.socket.send(data)
 		})
 

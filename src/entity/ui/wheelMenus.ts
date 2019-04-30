@@ -1,13 +1,21 @@
 import { Component } from "../../wasp";
 
-export class WheelMenuComponent extends Component<{}>{
+interface WheelMenuSchema {
+    outerRadius: number
+}
+export class WheelMenuComponent extends Component<WheelMenuSchema>{
     constructor() {
-        super("wheel-menu", {})
+        super("wheel-menu", {
+            outerRadius: {
+                type: "number",
+                default: 4
+            }
+        })
     }
     init() {
         const el = this.el
         el.setAttribute("wheel", {
-            outerRadius: 4,
+            outerRadius: this.data.outerRadius,
             target: "#road_icon, #building_icon, #eye_icon, #mountain_icon"
         })
         document
@@ -37,6 +45,13 @@ export class WheelMenuComponent extends Component<{}>{
                 router: document.querySelector("#main-controller"),
                 event: "ui-widget-click",
                 value: "morph"
+            })
+        document
+            .querySelector("#cancel_widget")
+            .setAttribute("router-switch", {
+                router: document.querySelector("#main-controller"),
+                event: "ui-widget-click",
+                value: "preview"
             })
     }
 }
