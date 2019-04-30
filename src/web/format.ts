@@ -10,23 +10,26 @@ export abstract class WebData {
         public readonly type: WebDataType,
         public readonly data: any
     ) { }
+    toString() {
+        return JSON.stringify(this, null, 4)
+    }
 }
 export class MessageData extends WebData {
-    constructor(public readonly info: string) {
+    constructor(info: string) {
         super("Message", {
             info: info
         })
     }
 }
 export class ErrorData extends WebData {
-    constructor(public readonly info: string) {
+    constructor(info: string) {
         super("Error", {
             info: info
         })
     }
 }
 export class LoginData extends WebData {
-    constructor(public readonly user: string, public readonly pwd: string) {
+    constructor(user: string, pwd: string) {
         super("Login", {
             user: user,
             pwd: pwd
@@ -34,7 +37,7 @@ export class LoginData extends WebData {
     }
 }
 export class EnterRoomData extends WebData {
-    constructor(public readonly room: number) {
+    constructor(room: number) {
         super("Login", {
             room: room
         })
@@ -56,7 +59,7 @@ export declare type BuildingData = {
     center: THREE.Vector2
 }
 export class SynchronizationData extends WebData {
-    constructor(public readonly modelData: ModelData) {
+    constructor(modelData: ModelData) {
         super("Synchronization Data", {
             roads: modelData.roads,
             buildings: modelData.buildings

@@ -34,6 +34,7 @@ export class GameComponent extends Component<{}> {
 			// console.log(ws)
 			const basemap = <BasemapComponent>window["basemap"]
 			const data = JSON.stringify(basemap.export(), null, 4)
+			console.log(data)
 			ws.socket.send(data)
 		})
 
@@ -43,7 +44,7 @@ export class GameComponent extends Component<{}> {
 			this.subscribe(this.socket.el, "received", msg => {
 				const basemap: BasemapComponent = window['basemap']
 				console.log("received data and importing... ")
-				basemap.import(msg.detail.data)
+				basemap.import(JSON.parse(msg.detail.data))
 			})
 		})
 	}

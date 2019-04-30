@@ -52,10 +52,10 @@ export class BasemapComponent extends Component<{}> {
 			const city = window["city-editor"]
 			const basemap = this.basemap
 			// const webData = <WebData>JSON.parse(data)
+			console.log(data)
 			const modelData = <ModelData>data.data
 			const roads = modelData.roads
 			const lastCount = Basemap.count
-			console.log(roads)
 			roads.forEach(road => {
 				const { width, from, to } = road
 				const fromVec = new THREE.Vector2(from.x, from.y)

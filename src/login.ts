@@ -1,6 +1,7 @@
 import { Component } from "./wasp";
 import { BuildingManagerComponent, BasemapComponent } from "./entity";
 import { WebSocketComponent } from "./control";
+import { MessageData } from "./web";
 
 export class LoginComponent extends Component<{}>{
 
@@ -27,7 +28,7 @@ export class LoginComponent extends Component<{}>{
             this.subscribe(this.socket.el, "established", msg => {
                 this.connectionEstablished = true
                 try {
-                    // this.socket.socket.send("HELLO WORLD")
+                    this.socket.socket.send(new MessageData("HELLO WORLD").toString())
                 }
                 catch (err) {
                     console.log(`[Login] Error when sending message: ${err}`)
