@@ -96,7 +96,7 @@ export class RoadComponent extends Component<{ readonly item: any }> {
 		const item = (<any>this.el).___my_private_fucking_data
 			; (<any>this.el).___my_private_fucking_data = undefined
 
-		console.log(item)
+		// console.log(item)
 
 		const terrain: TerrainComponent = window["terrain"]
 

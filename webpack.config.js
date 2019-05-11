@@ -38,6 +38,9 @@ var config = {
   entry: {
     app: "./src/index.ts"
   },
+  node: {
+  fs: 'empty'
+  },
   output: {
     path: path.resolve("./dist"),
     filename: "index.js",
