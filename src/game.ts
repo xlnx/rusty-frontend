@@ -40,9 +40,12 @@ export class GameComponent extends Component<{}> {
 
 			// this.socket.el.emit("connect")
 			this.subscribe(this.socket.el, "received", msg => {
-				const basemap: BasemapComponent = window['basemap']
-				console.log("received data and importing... ")
-				basemap.import(JSON.parse(msg.detail.data))
+				const { type, data } = msg.detail
+				if (type == "Synchronization Data") {
+					const basemap: BasemapComponent = window['basemap']
+					console.log("received data and importing... ")
+					basemap.import(JSON.parse(data))
+				}
 			})
 		})
 	}

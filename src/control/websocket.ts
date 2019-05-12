@@ -1,5 +1,6 @@
 import { Component } from "../wasp";
 import { stringify } from "querystring";
+import { SynchronizationData, ModelData } from "../web";
 
 interface WebSocketComponentSchema {
 	readonly host: string,
@@ -27,7 +28,6 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 	}
 
 	init() {
-
 		// this.el.play()
 		this.listen("connect", evt => {
 			const conn = `ws://${this.data.host}:${this.data.port}/`
@@ -51,6 +51,10 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 				console.log("%c[Web Socket] Connection closed.", "background: #00cc00; color: #fff")
 				this.el.emit("closed", msg)
 			}
+		})
+
+		this.listen("addData", (para: ModelData) => {
+			this.socket.send(new SynchronizationData(para).toString())
 		})
 	}
 }
@@ -85,6 +89,7 @@ export class WebSocketLoggerComponent extends Component<{}> {
 				}
 			}
 		})
+
 	}
 
 	private stringlify(arg: any): string {

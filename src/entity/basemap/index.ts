@@ -71,6 +71,7 @@ export class BasemapComponent extends Component<{}> {
 			})
 		})
 		const modelData: ModelData = {
+			state: "insert",
 			roads: roadData,
 			buildings: buildingData
 		}
@@ -86,57 +87,77 @@ export class BasemapComponent extends Component<{}> {
 		try {
 			const city = window["city-editor"]
 			const basemap = this.basemap
-			// const webData = <WebData>JSON.parse(data)
-			console.log(data)
-			const { roads, buildings } = data.data
-			const lastCount = Basemap.count
-			roads.forEach((road: RoadData) => {
-				const { width, from, to } = road
-				const fromVec = new THREE.Vector2(from.x, from.y)
-				const toVec = new THREE.Vector2(to.x, to.y)
-				const { added, removed } = basemap.addRoad(width, fromVec, toVec)
-				for (const road of added) {
-					const r = EntityBuilder.create("a-entity", {
-						road: {}
+			const manager = <BuildingManagerComponent>window['building-manager']
+
+			const { state, roads, buildings } = data.data
+			if (state == "insert") {
+				// const lastCount = Basemap.count
+				roads.forEach((road: RoadData) => {
+					const { width, from, to } = road
+					const fromVec = new THREE.Vector2(from.x, from.y)
+					const toVec = new THREE.Vector2(to.x, to.y)
+					const { added, removed } = basemap.addRoad(width, fromVec, toVec)
+					for (const road of added) {
+						const r = EntityBuilder.create("a-entity", {
+							road: {}
+						})
+							.attachTo(city)
+							.toEntity()
+							; (<any>r).___my_private_fucking_data = road
+					}
+				})
+
+				buildings.forEach((building: BuildingData) => {
+					const { prototype, center } = building
+					const proto = manager.manager.get(prototype)
+					const entity = EntityBuilder.create("a-entity", {
+						building: {
+							name: prototype
+						},
 					})
 						.attachTo(city)
 						.toEntity()
-						; (<any>r).___my_private_fucking_data = road
-				}
-			})
+					const component = <BuildingComponent>entity.components.building
+					const pos = new THREE.Vector2(center.x, center.y)
+					const modelInfo = basemap.alignBuilding(pos, proto.placeholder)
+					const { angle, valid } = modelInfo
 
-			const manager = <BuildingManagerComponent>window['building-manager']
-			buildings.forEach((building: BuildingData) => {
-				const { prototype, center } = building
-				const proto = manager.manager.get(prototype)
-				const entity = EntityBuilder.create("a-entity", {
-					building: {
-						name: prototype
-					},
+					component.modelInfo = modelInfo
+
+					const { x, y, z } = plain2world(pos)
+
+					entity.object3D.position.set(x, y, z)
+					entity.object3D.rotation.y = angle
+
+					// entity.object3D.position.set(x, y, z)
+					// entity.object3D.rotation.y = angle
+					// component.locateBuilding()
+					setTimeout(() => {
+						entity.emit("locate-building")
+						entity.emit("validate-building", valid)
+					}, 0)
 				})
-					.attachTo(city)
-					.toEntity()
-				const component = <BuildingComponent>entity.components.building
-				const pos = new THREE.Vector2(center.x, center.y)
-				const modelInfo = basemap.alignBuilding(pos, proto.placeholder)
-				const { angle, valid } = modelInfo
+			} else if (state == "remove") {
+				roads.forEach((road: RoadData) => {
+					const { width, from, to } = road
+					const fromVec = new THREE.Vector2(from.x, from.y)
+					const toVec = new THREE.Vector2(to.x, to.y)
+					const center = fromVec.clone()
+						.add(toVec)
+						.divideScalar(2)
+					const item = basemap.selectRoad(center)
+					if (item) {
+						basemap.removeRoad(item)
+					}
+				})
 
+				buildings.forEach((building: BuildingData) => {
+					const { prototype, center } = building
+					const item = basemap.selectBuilding(center)
+					if (item) basemap.removeBuilding(item)
+				})
+			}
 
-				component.modelInfo = modelInfo
-
-				const { x, y, z } = plain2world(pos)
-
-				entity.object3D.position.set(x, y, z)
-				entity.object3D.rotation.y = angle
-
-				entity.object3D.position.set(x, y, z)
-				entity.object3D.rotation.y = angle
-				// component.locateBuilding()
-				setTimeout(() => {
-					entity.emit("locate-building")
-					entity.emit("validate-building", valid)
-				}, 0)
-			})
 		}
 		catch (err) {
 			console.log(`[Basemap] Error at importing data from server: ${err}`)

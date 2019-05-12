@@ -1,5 +1,5 @@
 import BasemapBuildingItem from "./buildingItem";
-import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem, PointDetectRadius, AttachRadius, minRoadLength } from "./def";
+import { mapWidth, mapHeight, maxBuildings, maxRoads, QuadTreeItem, PointDetectRadius, AttachRadius, minRoadLength, defaultBuildingSelectionRange, defaultRoadSelectionRange } from "./def";
 import { Point, AnyRect2D, cmp, ParallelRect2D, cmpPt, cross2D } from "./geometry";
 import BasemapRoadItem from "./roadItem";
 import * as QuadTree from "quadtree-lib"
@@ -183,7 +183,7 @@ class Basemap<R, B> {
 			angle: 0,
 			valid: false
 		}
-		const road = this.getNearRoad(pt)
+		const road = this.getVerticalRoad(pt)
 		if (road) {
 
 			if (road.seg.distance(pt) > placeholder.height) {
@@ -295,17 +295,70 @@ class Basemap<R, B> {
 		return obj
 	}
 
+	private getBoxBuildingItems(pt: Point, distOfBox: number = defaultBuildingSelectionRange): QuadTreeItem<BasemapBuildingItem<B>>[] {
+		return this.buildingTree.colliding({
+			x: pt.x,
+			y: pt.y,
+			width: distOfBox,
+			height: distOfBox
+		})
+	}
+
+	selectBuilding(pt: Point, distOfBox: number = defaultBuildingSelectionRange): BasemapBuildingItem<B> | undefined {
+		let res = this.getBoxBuilding(pt, distOfBox)
+		if (res.rect.containPt(pt)) return res
+	}
+
+	getBoxBuilding(pt: Point, distOfBox: number = defaultBuildingSelectionRange): BasemapBuildingItem<B> | undefined {
+		const items = this.getBoxBuildingItems(pt, distOfBox)
+		let minDist = Infinity
+		let res: BasemapBuildingItem<B> = undefined
+		items.forEach((item: QuadTreeItem<BasemapBuildingItem<B>>) => {
+			let building = item.obj!
+			const dist = building.center.distanceTo(pt)
+			if (dist < minDist) {
+				minDist = dist
+				res = building
+			}
+		})
+		return res
+	}
+
+	private getBoxRoadItems(pt: Point, distOfBox: number = defaultRoadSelectionRange): QuadTreeItem<BasemapRoadItem<R>>[] {
+		return this.roadTree.colliding({
+			x: pt.x,
+			y: pt.y,
+			width: distOfBox,
+			height: distOfBox
+		})
+	}
+
 	selectRoad(pt: Point): BasemapRoadItem<R> | undefined {
-		let res = this.getNearRoad(pt)
+		let res = this.getVerticalRoad(pt)
 		if (res &&
 			cmp(res.seg.distance(pt), res.width / 2) <= 0)
 			return res
 	}
 
-	getNearRoad(pt: Point): BasemapRoadItem<R> | undefined {
-		let res: BasemapRoadItem<R> | undefined
+	getBoxRoad(pt: Point, distOfBox: number = defaultRoadSelectionRange): BasemapRoadItem<R> | undefined {
+		const items = this.getBoxRoadItems(pt, distOfBox)
 		let minDist = Infinity
-		this.roadTree.each((item: any) => {
+		let res: BasemapRoadItem<R> = undefined
+		items.forEach((item: QuadTreeItem<BasemapRoadItem<R>>) => {
+			let road = item.obj!
+			if (road.seg.distance(pt) < minDist) {
+				minDist = road.seg.distance(pt)
+				res = road
+			}
+		})
+		return res
+	}
+
+	getVerticalRoad(pt: Point, distOfBox: number = defaultRoadSelectionRange): BasemapRoadItem<R> | undefined {
+		let res: BasemapRoadItem<R> = undefined
+		let minDist = Infinity
+		const items = this.getBoxRoadItems(pt, distOfBox)
+		items.forEach((item: QuadTreeItem<BasemapRoadItem<R>>) => {
 			let road = item.obj!
 			if (road.seg.distance(pt) < minDist) {
 				const ap = pt.clone().sub(road.seg.from)

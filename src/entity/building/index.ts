@@ -3,6 +3,7 @@ import { Component, EventController } from "../../wasp";
 import BasemapBuildingItem from "../../basemap/buildingItem";
 import { TerrainComponent } from "../terrain";
 import { world2plain, DistUnit } from "../../legacy";
+import { WebSocketComponent } from "../../control";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -112,6 +113,17 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			// console.log(modelInfo)
 			const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
 			window['basemap'].basemap.addBuilding(item)
+
+			// send data to server
+			const socket: WebSocketComponent = window['socket']
+			socket.el.emit("addData", {
+				state: "insert",
+				roads: [],
+				buildings: [{
+					center: item.center,
+					proto: item.proto
+				}]
+			})
 
 			let terrain: TerrainComponent = window['terrain']
 			terrain.terrain.mark(world2plain(this.el.object3D.position), modelInfo.angle, this.proto.placeholder)

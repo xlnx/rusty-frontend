@@ -6,6 +6,7 @@ import { EntityBuilder } from "aframe-typescript-toolkit";
 import BasemapRoadItem from "../../basemap/roadItem";
 import { world2plain, plain2world } from "../../legacy";
 import { cross2D, cmp } from "../../basemap/geometry";
+import { WebSocketComponent } from "../../control";
 
 interface RoadIndicatorComponentSchema {
 	readonly width: number,
@@ -54,9 +55,32 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 			const { from, to } = this.indicator
 
 			const { added, removed } = basemap.basemap.addRoad(1, from, to)
+			// send data to server
+			const socket: WebSocketComponent = window['socket']
+			removed.forEach(road => {
+				socket.el.emit("addData", {
+					state: "remove",
+					roads: [{
+						width: road.width,
+						from: road.from,
+						to: road.to
+					}],
+					buildings: []
+				})
+			})
+			added.forEach(road => {
+				socket.el.emit("addData", {
+					state: "insert",
+					roads: [{
+						width: road.width,
+						from: road.from,
+						to: road.to
+					}],
+					buildings: []
+				})
+			})
 
 			for (const road of added) {
-
 				const r = EntityBuilder.create("a-entity", {
 					road: {}
 				})
@@ -64,9 +88,7 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 					.toEntity()
 
 					; (<any>r).___my_private_fucking_data = road
-
 			}
-
 		})
 	}
 

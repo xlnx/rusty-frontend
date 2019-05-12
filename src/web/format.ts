@@ -46,6 +46,7 @@ export class EnterRoomData extends WebData {
 
 
 export type ModelData = {
+    state: string, // 'insert' or 'remove'
     roads: RoadData[],
     buildings: BuildingData[]
 }
@@ -61,6 +62,7 @@ export declare type BuildingData = {
 export class SynchronizationData extends WebData {
     constructor(modelData: ModelData) {
         super("Synchronization Data", {
+            state: modelData.state,
             roads: modelData.roads,
             buildings: modelData.buildings
         })

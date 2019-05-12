@@ -141,6 +141,7 @@ export class BuildingManager {
 	get ready() { return this._ready }
 
 	get requests() { return this._requests }
+
 	get finishedRequests() { return this._finishedRequests }
 
 	private clear() {
