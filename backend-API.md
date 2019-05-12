@@ -235,8 +235,7 @@ Java 服务器在房间加入事件中向ts请求数据
 {
     "type": "Message",
     "data": {
-        "info": "Data required",
-        "roomId": number
+        "info": "Data required"
     }
 }
 ```

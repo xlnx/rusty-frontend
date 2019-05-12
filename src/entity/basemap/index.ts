@@ -10,7 +10,7 @@ import BasemapRoadItem from "../../basemap/roadItem";
 
 export class BasemapComponent extends Component<{}> {
 
-	public readonly basemap: Basemap<Road, {}> = new Basemap()
+	public readonly basemap: Basemap<Road, BuildingComponent> = new Basemap()
 
 	constructor() {
 		super("basemap", {})
@@ -147,13 +147,17 @@ export class BasemapComponent extends Component<{}> {
 					const item = basemap.selectRoad(center)
 					if (item) {
 						basemap.removeRoad(item)
+							; (<AFrame.Entity>item.userData.userData).remove()
 					}
 				})
 
 				buildings.forEach((building: BuildingData) => {
 					const { prototype, center } = building
 					const item = basemap.selectBuilding(center)
-					if (item) basemap.removeBuilding(item)
+					if (item) {
+						basemap.removeBuilding(item)
+							; (<AFrame.Entity>item.userData['entity']).remove()
+					}
 				})
 			}
 

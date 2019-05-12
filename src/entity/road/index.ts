@@ -123,6 +123,9 @@ export class RoadComponent extends Component<{ readonly item: any }> {
 		const terrain: TerrainComponent = window["terrain"]
 
 			; (<any>this).road = new Road(terrain.terrain, 1, item)
+		this.road.userData = {
+			entity: this.el
+		}
 
 		this.el.setObject3D("mesh", this.road)
 
