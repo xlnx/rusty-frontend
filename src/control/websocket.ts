@@ -44,7 +44,8 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 
 			this.socket.onmessage = (msg) => {
 				console.log(`%c[Web Socket] Received: ${msg.data}`, "background: #00cc00; color: #fff")
-				this.el.emit("received", msg)
+				const data = JSON.parse(msg.data)
+				this.el.emit("receive", data)
 			}
 
 			this.socket.onclose = (msg) => {
@@ -53,8 +54,9 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 			}
 		})
 
-		this.listen("addData", (para: ModelData) => {
-			this.socket.send(new SynchronizationData(para).toString())
+		this.listen("addData", msg => {
+			const model = msg.detail
+			this.socket.send(new SynchronizationData(model).toString())
 		})
 	}
 }

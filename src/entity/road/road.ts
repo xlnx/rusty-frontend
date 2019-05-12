@@ -68,7 +68,7 @@ export class RoadIndicator extends THREE.Object3D {
 		this.object.position.set(x, y_, z)
 	}
 	adjustTo(coord: THREE.Vector2, aligning: boolean = false) {
-		this.setTo(this.basemap.attachNearPoint(coord))
+		this.setTo(this.basemap.attachNearPoint(coord.clone()))
 
 		const lengthAssert = aligning
 		const val = this.basemap.alignRoad(this.item, lengthAssert)

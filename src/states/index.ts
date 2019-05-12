@@ -146,11 +146,35 @@ export class RoadStateComponent extends Component<{}> {
 
 			}
 			const pt = plain2world(basemap.basemap.attachNearPoint(xy))
+
 			this.pointIdk.setAttribute('position', {
 				x: pt.x,
 				y: pt.y,
 				z: pt.z
 			})
+			// update ptIdk pos
+			// if not aligning
+			// if (this.current == undefined) {
+			// 	const road = basemap.basemap.getVerticalRoad(xy)
+			// 	if (road != undefined) {
+
+			// 	}
+			// 	this.pointIdk.setAttribute('position', {
+			// 		x: pt.x,
+			// 		y: pt.y,
+			// 		z: pt.z
+			// 	})
+			// }
+			// // if is aligning road
+			// else {
+			// 	const indicator = (<RoadIndicatorComponent>this.current.components["road-indicator"]).indicator
+			// 	const apt = plain2world(basemap.basemap.attachNearPoint(xy))
+			// 	this.pointIdk.setAttribute('position', {
+			// 		x: apt.x,
+			// 		y: apt.y,
+			// 		z: apt.z
+			// 	})
+			// }
 		})
 
 		this.subscribe(window["terrain"].el, "int-click", (evt: any) => {

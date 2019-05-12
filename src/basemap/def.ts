@@ -1,4 +1,5 @@
 // const RoadWidth = 1
+export const distOfPtOnLine = 1
 export const mapWidth = 500
 export const mapHeight = 500
 export const maxBuildings = 1000

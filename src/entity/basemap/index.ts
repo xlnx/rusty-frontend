@@ -51,7 +51,7 @@ export class BasemapComponent extends Component<{}> {
 		// }, 5000)
 	}
 
-	export(): WebData {
+	export(): ModelData {
 		const roadData: RoadData[] = []
 		const roads = this.basemap.getAllRoads()
 		roads.forEach(road => {
@@ -75,21 +75,20 @@ export class BasemapComponent extends Component<{}> {
 			roads: roadData,
 			buildings: buildingData
 		}
-		const ret = new SynchronizationData(modelData)
-		return ret
+		return modelData
 		// return JSON.stringify(webData, null, 4)
 	}
-	reset(data: SynchronizationData) {
+	reset(data: ModelData) {
 		Object.assign(this.basemap, new Basemap())
 		this.import(data)
 	}
-	import(data: SynchronizationData) {
+	import(data: ModelData) {
 		try {
 			const city = window["city-editor"]
 			const basemap = this.basemap
 			const manager = <BuildingManagerComponent>window['building-manager']
 
-			const { state, roads, buildings } = data.data
+			const { state, roads, buildings } = data
 			if (state == "insert") {
 				// const lastCount = Basemap.count
 				roads.forEach((road: RoadData) => {

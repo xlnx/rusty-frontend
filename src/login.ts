@@ -34,9 +34,12 @@ export class LoginComponent extends Component<{}>{
                     console.log(`[Login] Error when sending message: ${err}`)
                 }
             })
-            this.subscribe(this.socket.el, "received", msg => {
+            this.subscribe(this.socket.el, "receive", msg => {
                 // setTimeout(() => {
-                this.serverSynchronized = true
+                const { type, data } = msg.detail
+                if (type == "Message" && data.info == "accept") {
+                    this.serverSynchronized = true
+                }
                 // console.log(msg.detail)
                 // }, 5000)
             })

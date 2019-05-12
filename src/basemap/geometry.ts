@@ -1,4 +1,4 @@
-import { QuadTreeItem } from "./def";
+import { QuadTreeItem, distOfPtOnLine } from "./def";
 import * as THREE from "three";
 
 function cross2D(a: THREE.Vector2, b: THREE.Vector2): number {
@@ -98,12 +98,22 @@ class Seg2D {
         return Math.abs(cross2D(ab, ac)) / ab.length()
     }
     ptOnLine(pt: Point): boolean {
-        let p = pt
-        let pa = this.from.clone()
-            .sub(p)
-        let pb = this.to.clone()
-            .sub(p)
-        return cmp(pa.dot(pb), 0) == 0
+        if (this.distance(pt) < distOfPtOnLine) {
+            const ap = pt.clone().sub(this.from)
+            const bp = pt.clone().sub(this.to)
+            const ab = this.to.clone().sub(this.from)
+            const ba = ab.clone().negate()
+            if (ap.dot(ab) >= 0 && bp.dot(ba) >= 0) {
+                return true
+            }
+        }
+        return false
+        // let p = pt
+        // let pa = this.from.clone()
+        //     .sub(p)
+        // let pb = this.to.clone()
+        //     .sub(p)
+        // return cmp(pa.dot(pb), 0) == 0
     }
     length(): number {
         return this.from.clone().sub(this.to).length()
