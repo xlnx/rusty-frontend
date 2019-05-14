@@ -15,7 +15,7 @@
     "@types/node": "^11.13.0",
     "aframe-mouse-cursor-component": "^0.5.3",
     "awesome-typescript-loader": "^5.2.1",
-    "copy-webpack-plugin": "^5.0.2",
+    "copy-webpack-plugin": "^5.0.3",
     "cross-env": "^5.0.1",
     "eslint": "^4.2.0",
     "fs": "^0.0.1-security",

@@ -112,7 +112,7 @@ export class BasemapComponent extends Component<{}> {
 					const entity = EntityBuilder.create("a-entity", {
 						building: {
 							name: prototype
-						},
+						}
 					})
 						.attachTo(city)
 						.toEntity()
@@ -152,8 +152,9 @@ export class BasemapComponent extends Component<{}> {
 				})
 
 				buildings.forEach((building: BuildingData) => {
-					const { prototype, center } = building
-					const item = basemap.selectBuilding(center)
+					const { center } = building
+					const pos = new THREE.Vector2(center.x, center.y)
+					const item = basemap.selectBuilding(pos)
 					if (item) {
 						basemap.removeBuilding(item)
 							; (<AFrame.Entity>item.userData['entity']).remove()

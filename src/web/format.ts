@@ -1,7 +1,7 @@
 export type WebDataType = "Login"
     | "Room List"
     | "Enter Room"
-    | "Synchronization Data"
+    | "Synchronization data"
     | "Error"
     | "Message"
 
@@ -61,7 +61,7 @@ export declare type BuildingData = {
 }
 export class SynchronizationData extends WebData {
     constructor(modelData: ModelData) {
-        super("Synchronization Data", {
+        super("Synchronization data", {
             state: modelData.state,
             roads: modelData.roads,
             buildings: modelData.buildings

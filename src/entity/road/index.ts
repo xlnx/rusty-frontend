@@ -58,7 +58,7 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 			// send data to server
 			const socket: WebSocketComponent = window['socket']
 			removed.forEach(road => {
-				socket.el.emit("addData", {
+				socket.el.emit("Add data", {
 					state: "remove",
 					roads: [{
 						width: road.width,
@@ -69,7 +69,7 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 				})
 			})
 			added.forEach(road => {
-				socket.el.emit("addData", {
+				socket.el.emit("Add data", {
 					state: "insert",
 					roads: [{
 						width: road.width,

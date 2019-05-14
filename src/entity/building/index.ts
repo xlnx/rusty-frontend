@@ -82,6 +82,9 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 					f.material = mat
 				}
 			})
+			ind.userData = {
+				entity: this.el
+			}
 			this.el.setObject3D("mesh", ind)
 			this.el.classList.add("indicator")
 
@@ -116,12 +119,12 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 			// send data to server
 			const socket: WebSocketComponent = window['socket']
-			socket.el.emit("addData", {
+			socket.el.emit("Add data", {
 				state: "insert",
 				roads: [],
 				buildings: [{
 					center: item.center,
-					proto: item.proto
+					prototype: item.proto.name
 				}]
 			})
 

@@ -14,7 +14,7 @@ type取值如下：
 | 字段名               | 备注                        |
 | -------------------- | --------------------------- |
 | Login                | 登录：client->server        |
-| Room List            | 房间列表：server->client    |
+| Room list            | 房间列表：server->client    |
 | Enter room           | 进入房间：client->server    |
 | Synchronization data | 同步数据：client<->server   |
 | Error                | 错误信息：server->client    |
@@ -65,7 +65,7 @@ type取值如下：
 
 ```json
 {
-	"type": "Room List",
+	"type": "Room list",
     "data": [
         {
         	"room": number,
