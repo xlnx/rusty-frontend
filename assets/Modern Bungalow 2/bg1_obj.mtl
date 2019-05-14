@@ -1,0 +1,88 @@
+#
+# Wavefront material file: u:\demo reel project\turbosquid\current\bg1_obj.mtl
+#
+# Converted by the PolyTrans geometry converter from Okino Computer Graphics, Inc.
+# Date/time of export: 09/02/2012 07:51:50
+#
+# Bounding box of geometry = (-9.6,-2,-17.2) to (9,14.0713,16).
+
+newmtl default
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.4 0.4 0.4
+	Ks 0.7 0.7 0.7
+	Ka 0.3 0.3 0.3
+
+newmtl base
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.627451 0.627451 0.627451
+	Ks 0 0 0
+	Ka 0.235294 0.235294 0.235294
+
+newmtl cornice
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.873093 0.873093 0.873093
+	Ks 0 0 0
+	Ka 0.291031 0.291031 0.291031
+
+newmtl door
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.435294 0.301961 0.215686
+	Ks 0 0 0
+	Ka 0.130588 0.0905882 0.0647059
+
+newmtl floor
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.658824 0.603922 0.47451
+	Ks 0 0 0
+	Ka 0.197647 0.181176 0.142353
+
+newmtl frame
+	Ns 25
+	d 1
+	illum 2
+	Kd 1 1 1
+	Ks 0 0 0
+	Ka 0.3 0.3 0.3
+
+newmtl glass
+	Ns 300
+	d 0.7
+	illum 2
+	Kd 0.116789 0.142683 0.139943
+	Ks 0.272508 0.332927 0.326534
+	Ka 0.116789 0.142683 0.139943
+
+newmtl tiang
+	Ns 25
+	d 1
+	illum 2
+	Kd 1 1 1
+	Ks 0 0 0
+	Ka 0.3 0.3 0.3
+
+newmtl wall
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.862745 0.823529 0.705882
+	Ks 0 0 0
+	Ka 0.258824 0.247059 0.211765
+
+newmtl wall2
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.658824 0.494118 0.333333
+	Ks 0 0 0
+	Ka 0.197647 0.148235 0.1
+

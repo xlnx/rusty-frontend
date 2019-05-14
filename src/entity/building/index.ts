@@ -82,9 +82,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 					f.material = mat
 				}
 			})
-			ind.userData = {
-				entity: this.el
-			}
+
 			this.el.setObject3D("mesh", ind)
 			this.el.classList.add("indicator")
 
@@ -114,7 +112,9 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 				handler.cancel()
 			}
 			// console.log(modelInfo)
-			const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
+			const item = new BasemapBuildingItem<BuildingComponent>(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
+			item.userData = this
+
 			window['basemap'].basemap.addBuilding(item)
 
 			// send data to server
