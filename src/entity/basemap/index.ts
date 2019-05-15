@@ -145,11 +145,11 @@ export class BasemapComponent extends Component<{}> {
 						.add(toVec)
 						.divideScalar(2)
 					const item = basemap.selectRoad(center)
-					console.log(`road:${item}`)
+					// console.log(`road:${item}`)
 					if (item != undefined) {
 						basemap.removeRoad(item)
 						const entity = (<AFrame.Entity>item.userData.userData)
-						console.log(entity)
+						// console.log(entity)
 						entity.parentNode.removeChild(entity)
 					}
 				})
@@ -158,9 +158,11 @@ export class BasemapComponent extends Component<{}> {
 					const { center } = building
 					const pos = new THREE.Vector2(center.x, center.y)
 					const item = basemap.selectBuilding(pos)
-					if (item) {
+					if (item != undefined) {
+						console.log('deleting a building')
 						basemap.removeBuilding(item)
-						item.userData.el.remove()
+						const entity = item.userData.el
+						entity.parentNode.removeChild(entity)
 					}
 				})
 			}

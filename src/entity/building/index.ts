@@ -101,6 +101,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 	}
 
 	locateBuilding() {
+
 		const modelInfo = this.modelInfo
 		if (modelInfo && modelInfo.valid) {
 
@@ -116,8 +117,10 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			item.userData = this
 
 			window['basemap'].basemap.addBuilding(item)
+			console.log("add:", item.center)
 
 			// send data to server
+			console.log("locate a building")
 			const socket: WebSocketComponent = window['socket']
 			socket.el.emit("Add data", {
 				state: "insert",

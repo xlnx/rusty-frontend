@@ -43,7 +43,7 @@ export class BuildingStateComponent extends Component<{}> {
 		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
 
 			const city = window["city-editor"]
-			const xy: THREE.Vector2 = evt.detail
+			const xy: THREE.Vector2 = evt.detail.clone()
 
 			if (!this.current) {
 
@@ -64,9 +64,18 @@ export class BuildingStateComponent extends Component<{}> {
 				const basemap: BasemapComponent = window["basemap"]
 				const modelInfo = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
 				const { road, offset, center, angle, valid } = modelInfo
+				// if (valid) {
+				// 	console.log(`mouse:${xy.x},${xy.y}`)
+				// 	console.log(`center:${center.x},${center.y}, offset:${offset}`)
+				// }
 
-
-				this.current.modelInfo = modelInfo
+				this.current.modelInfo = {
+					road: road,
+					offset: offset,
+					center: center.clone(),
+					angle: angle,
+					valid: valid
+				}
 
 				const { x, y, z } = plain2world(center)
 
@@ -152,29 +161,6 @@ export class RoadStateComponent extends Component<{}> {
 				y: pt.y,
 				z: pt.z
 			})
-			// update ptIdk pos
-			// if not aligning
-			// if (this.current == undefined) {
-			// 	const road = basemap.basemap.getVerticalRoad(xy)
-			// 	if (road != undefined) {
-
-			// 	}
-			// 	this.pointIdk.setAttribute('position', {
-			// 		x: pt.x,
-			// 		y: pt.y,
-			// 		z: pt.z
-			// 	})
-			// }
-			// // if is aligning road
-			// else {
-			// 	const indicator = (<RoadIndicatorComponent>this.current.components["road-indicator"]).indicator
-			// 	const apt = plain2world(basemap.basemap.attachNearPoint(xy))
-			// 	this.pointIdk.setAttribute('position', {
-			// 		x: apt.x,
-			// 		y: apt.y,
-			// 		z: apt.z
-			// 	})
-			// }
 		})
 
 		this.subscribe(window["terrain"].el, "int-click", (evt: any) => {
@@ -285,23 +271,7 @@ new RoadStateComponent().register()
 
 export class PreviewStateComponent extends Component<{}> {
 	constructor() { super("preview-state", {}) }
-	init() {
-		// const entity: AFrame.Entity = document.querySelector("#button-preview")
-		// this.subscribe(entity, UI.click_event, evt => {
-		// 	const ws = <WebSocketComponent>window["socket"]
-		// 	// console.log(ws)
-		// 	const basemap = <BasemapComponent>window["basemap"]
-		// 	const data = JSON.stringify(basemap.export(), null, 4)
-		// 	ws.socket.send(data)
-		// })
-		// this.subscribe(document.querySelector("#eye_icon_widget"), UI.click_event, evt => {
-		// 	const ws = <WebSocketComponent>window["socket"]
-		// 	console.log(ws)
-		// 	const basemap = <BasemapComponent>window["basemap"]
-		// 	const data = JSON.stringify(basemap.export(), null, 4)
-		// 	ws.socket.send(data)
-		// })
-	}
+	init() { }
 }
 
 new PreviewStateComponent().register()
