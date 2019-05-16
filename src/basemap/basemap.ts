@@ -368,15 +368,21 @@ class Basemap<R, B> {
 		// 	width: distOfBox,
 		// 	height: distOfBox
 		// })
+		// return this.roadTree.colliding({
+		// 	x: pt.x,
+		// 	y: pt.y,
+		// 	width: distOfBox,
+		// 	height: distOfBox
+		// }, (elt1, elt2) => {
+		// 	const pt1 = new THREE.Vector2(elt1.x, elt1.y)
+		// 	const pt2 = new THREE.Vector2(elt2.x, elt2.y)
+		// 	return pt.distanceTo(pt2) <= distOfBox
+		// })
 		return this.roadTree.colliding({
 			x: pt.x,
 			y: pt.y,
 			width: distOfBox,
 			height: distOfBox
-		}, (elt1, elt2) => {
-			const pt1 = new THREE.Vector2(elt1.x, elt1.y)
-			const pt2 = new THREE.Vector2(elt2.x, elt2.y)
-			return pt.distanceTo(pt2) <= distOfBox
 		})
 	}
 
