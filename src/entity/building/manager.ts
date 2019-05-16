@@ -106,12 +106,17 @@ export class BuildingPrototype {
 					proto.object.floor = new THREE.Mesh(plain, BuildingPrototype.planeMaterial)
 					proto.object.frame = new THREE.Mesh(frame, BuildingPrototype.frameMaterial)
 
+
+					// scale all objects
+
 					// proto.object.setMaterial(CityLayer.Origin, BuildingPrototype.planeMaterial)
 
 					{
 						const self = <any>proto
 						self.name = def.name
 						self.placeholder = new THREE.Vector2(def.placeholder[0], def.placeholder[1])
+						// const scaleFactor = 0.9
+						// self.placeholder.multiplyScalar(def.scale)
 					}
 
 					resolve(proto)
@@ -141,6 +146,7 @@ export class BuildingManager {
 	get ready() { return this._ready }
 
 	get requests() { return this._requests }
+
 	get finishedRequests() { return this._finishedRequests }
 
 	private clear() {

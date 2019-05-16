@@ -1,4 +1,11 @@
 <a-scene embedded antialias="true" shadow="type: pcfsoft" light="defaultLightsEnabled: false">
+	<a-assets>
+		<img id="building_icon" src="/assets/ui/building.png">
+		<img id="cancel_icon" src="/assets/ui/cancel.png">
+		<img id="eye_icon" src="/assets/ui/eye.png">
+		<img id="road_icon" src="/assets/ui/road.png">
+		<img id="mountain_icon" src="/assets/ui/mountain.png">
+	</a-assets>
 
 	<a-entity web-socket="host: 47.98.213.238; port: 8899" export="export: socket=web-socket"></a-entity>
 	<!-- web-socket-logger  -->
@@ -20,16 +27,27 @@
 			export="export: terrain">
 		</a-entity>
 
+		<!--
+				router-switch="router: #main-controller; event: building_icon_widget_ui-widget-click; value: building"
+				router-switch="router: #main-controller; event: road_icon_widget_ui-widget-click; value: road"
+				router-switch="router: #main-controller; event: eye_icon_widget_ui-widget-click; value: preview"
+				router-switch="router: #main-controller; event: mountain_icon_widget_ui-widget-click; value: morph" -->
+		<!-- wheel="outerRadius:4; target: #road_icon, #building_icon, #eye_icon, #mountain_icon;" -->
 
-		<a-entity menu>
-			<a-entity button="text: building; width: 3; fontSize: 3" position="2 4 -10"
+		<a-entity id="wheelMenu">
+			<a-entity position="-3 3 -10" scale=".5 .5 .5" wheel-menu>
+			</a-entity>
+		</a-entity>
+		<a-entity id="buttonMenu">
+			<a-entity button="text: building; width: 3; fontSize: 3" position="2 5 -10"
 				router-switch="router: #main-controller; event: int-click; value: building"></a-entity>
-			<a-entity button="text: road; width: 3; fontSize: 3" position="2 3 -10"
+			<a-entity button="text: road; width: 3; fontSize: 3" position="2 4 -10"
 				router-switch="router: #main-controller; event: int-click; value: road"></a-entity>
-			<a-entity id="button-preview" button="text: preview; width: 3; fontSize: 3" position="2 2 -10"
+			<a-entity button="text: preview; width: 3; fontSize: 3" position="2 3 -10"
 				router-switch="router: #main-controller; event: int-click; value: preview"></a-entity>
-			<a-entity button="text: morph; width: 3; fontSize: 3" position="2 1 -10"
+			<a-entity button="text: morph; width: 3; fontSize: 3" position="2 2 -10"
 				router-switch="router: #main-controller; event: int-click; value: morph"></a-entity>
+			<a-entity id="button-send" button="text: send; width: 3; fontSize: 3" position="2 1 -10"></a-entity>
 			<!-- <a-entity button="text: ; width: 3; fontSize: 3" position="2 0 -10"></a-entity> -->
 		</a-entity>
 
@@ -50,7 +68,7 @@
 
 	<a-entity main router id="GLOBAL">
 		<a-entity router-item="login">
-			<a-entity login id="login-controller">
+			<a-entity login id="login-controller" , export="export: login">
 			</a-entity>
 		</a-entity>
 		<a-entity router-item="game">

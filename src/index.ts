@@ -23,7 +23,7 @@ class TestComponent extends Component<{}> {
 
 		this.listen("int-click", (evt: any) => {
 
-			websocket.socket.send("hello world")
+			// websocket.socket.send("hello world")
 
 			box.setAttribute("material", {
 				color: "red"

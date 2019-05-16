@@ -1,25 +1,14 @@
 import { BuildingManagerComponent, BasemapComponent } from "./entity";
 import { Component } from "./wasp";
 import { WebSocketComponent } from "./control";
-
-export class TestButtonComponent extends Component<{}> {
-
-	constructor() {
-		super("test-button")
-	}
-
-	init() {
-		this.listen("button-click", () => console.log("click"))
-		this.listen("button-up", () => console.log("up"))
-		this.listen("button-down", () => console.log("down"))
-	}
-}
-
-new TestButtonComponent().register()
+import * as UI from "./ui/def"
+import { SynchronizationData } from "./web";
+import { LoginComponent } from "./login";
 
 export class GameComponent extends Component<{}> {
 
 	private socket!: WebSocketComponent
+	private initSync: boolean = false
 
 	constructor() { super("game", {}) }
 
@@ -27,15 +16,40 @@ export class GameComponent extends Component<{}> {
 
 		this.socket = window['socket']
 
+		let entity: AFrame.Entity = document.querySelector("#button-send")
+		this.subscribe(entity, UI.click_event, evt => {
+			const ws = <WebSocketComponent>window["socket"]
+			// console.log(ws)
+			const basemap = <BasemapComponent>window["basemap"]
+			ws.socket.send(new SynchronizationData(basemap.export()).toString())
+		})
+
 		this.subscribe((<AFrame.Entity>this.el.parentElement), "router-enter", evt => {
 
-			this.socket.el.emit("connect")
-			this.subscribe(this.socket.el, "received", msg => {
-				console.log(msg.detail.data)
-				const basemap: BasemapComponent = window['basemap']
-				basemap.import(msg.detail.data)
+		})
+		this.socket.el.addEventListener("receive", msg => {
+			setTimeout(() => {
+				const { type, data } = (<any>msg).detail
+				if (type == "Synchronization data") {
+					try {
+						const basemap: BasemapComponent = window['basemap']
+						console.log("[Game] received data and importing... ")
+						basemap.import(data)
+						if (!this.initSync) {
+							this.initSync = true
+							const login: LoginComponent = window['login']
+							login.el.emit("Basemap synchronized")
+						}
+					} catch (err) {
+						console.log(`[Game] Fail to synchronize data: ${err}`)
+					}
+				}
 			})
 		})
+		setTimeout(() => {
+			const login: LoginComponent = window['login']
+			login.el.emit("Basemap ready")
+		}, 1000)
 	}
 }
 

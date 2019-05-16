@@ -1,6 +1,7 @@
 import { Component } from "./wasp";
 import { BuildingManagerComponent, BasemapComponent } from "./entity";
 import { WebSocketComponent } from "./control";
+import { MessageData } from "./web";
 
 export class LoginComponent extends Component<{}>{
 
@@ -22,26 +23,28 @@ export class LoginComponent extends Component<{}>{
         this.subscribe((<AFrame.Entity>this.el.parentElement), "router-enter", evt => {
 
             this.splash.emit("enter")
-
-            this.socket.el.emit("connect")
+            // this.subscribe(this.socket.el, "receive", msg => {
+            //     // setTimeout(() => {
+            //         const { type, data } = msg.detail
+            //         if (type == "Message" && data.info == "Accept") {
+            //             // this.socket.el.emit("Data required")
+            //         }
+            //     })
+            this.listen("Basemap synchronized", msg => {
+                this.serverSynchronized = true
+            })
             this.subscribe(this.socket.el, "established", msg => {
                 this.connectionEstablished = true
-                try {
-                    this.socket.socket.send("HELLO WORLD")
-                }
-                catch (err) {
-                    console.log(`[Login] Error when sending message: ${err}`)
-                }
-            })
-            this.subscribe(this.socket.el, "received", msg => {
-                // setTimeout(() => {
-                this.serverSynchronized = true
-                // console.log(msg.detail)
-                // }, 5000)
             })
             this.subscribe(this.socket.el, "closed", msg => {
                 this.connectionEstablished = false
             })
+            this.listen("Basemap ready", () => {
+                // console.log("rrr")
+                this.socket.el.emit("Require data")
+                // console.log("require")
+            })
+            this.socket.el.emit("connect")
         })
     }
 

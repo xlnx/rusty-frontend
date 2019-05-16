@@ -68,7 +68,7 @@ export class RoadIndicator extends THREE.Object3D {
 		this.object.position.set(x, y_, z)
 	}
 	adjustTo(coord: THREE.Vector2, aligning: boolean = false) {
-		this.setTo(this.basemap.attachNearPoint(coord))
+		this.setTo(this.basemap.attachNearPoint(coord.clone()))
 
 		const lengthAssert = aligning
 		const val = this.basemap.alignRoad(this.item, lengthAssert)
@@ -134,7 +134,7 @@ export class Road extends THREE.Object3D {
 	private static up = new THREE.Vector3(0, 1, 0)
 
 	private static material = (() => {
-		const texture = new TexAsset("textures/b.png").loadSync()
+		const texture = new TexAsset("textures/road.jpg").loadSync()
 		texture.wrapS = texture.wrapT = THREE.RepeatWrapping
 		return new THREE.MeshLambertMaterial({
 			map: texture,
@@ -159,6 +159,8 @@ export class Road extends THREE.Object3D {
 		this.item.userData = this
 
 		const { geometry, startHeight } = this.boxGeometry(ground)
+		geometry.computeFaceNormals()
+		// geometry.computeVertexNormals()
 
 		this.geometry = geometry
 		this.object = new THREE.Mesh(this.geometry, Road.material)
@@ -262,6 +264,9 @@ export class Road extends THREE.Object3D {
 				geometry.vertices.push(w)
 			}
 		}
+
+		geometry.faceVertexUvs[0] = []
+		let faceUV = geometry.faceVertexUvs[0]
 		let dif = [0, 1, vSeg, vSeg + 1]
 		let ptIdx = 0
 		for (let u = 0; u < uSeg - 1; ++u) {
@@ -270,13 +275,34 @@ export class Road extends THREE.Object3D {
 				for (let i = 0; i < 4; ++i)
 					pts.push(ptIdx + dif[i])
 				face.push(new THREE.Face3(pts[0], pts[1], pts[2]))
+				faceUV.push([
+					new THREE.Vector2((u + 0) / (uSeg - 1), (v + 0) / (vSeg - 1)),
+					new THREE.Vector2((u + 0) / (uSeg - 1), (v + 1) / (vSeg - 1)),
+					new THREE.Vector2((u + 1) / (uSeg - 1), (v + 0) / (vSeg - 1))
+				])
 				face.push(new THREE.Face3(pts[1], pts[2], pts[3]))
+				faceUV.push([
+					new THREE.Vector2((u + 0) / (uSeg - 1), (v + 1) / (vSeg - 1)),
+					new THREE.Vector2((u + 1) / (uSeg - 1), (v + 0) / (vSeg - 1)),
+					new THREE.Vector2((u + 1) / (uSeg - 1), (v + 1) / (vSeg - 1))
+				])
 				++ptIdx
 			}
 			++ptIdx
 		}
 		geometry.elementsNeedUpdate = true
-		geometry.computeFaceNormals()
+		geometry.uvsNeedUpdate = true
+
+		// geometry.faceVertexUvs[0] =[]
+		// let faceUV = geometry.faceVertexUvs[0]
+		// for(let i = 0; i < face.length; ++i){
+		// 	const v1 = geometry.vertices[face[i].a]
+		// 	const v2 = geometry.vertices[face[i].b]
+		// 	const v3 = geometry.vertices[face[i].c]
+		// 	faceUV.push([
+		// 		new THREE.Vector2((v1.x+))
+		// 	])
+		// }
 
 		return {
 			geometry, startHeight, roadWidth

@@ -1,5 +1,6 @@
 import { Component } from "../wasp";
 import { stringify } from "querystring";
+import { SynchronizationData, ModelData, MessageData } from "../web";
 
 interface WebSocketComponentSchema {
 	readonly host: string,
@@ -27,8 +28,10 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 	}
 
 	init() {
-
 		// this.el.play()
+		setTimeout(() => {
+
+		})
 		this.listen("connect", evt => {
 			const conn = `ws://${this.data.host}:${this.data.port}/`
 
@@ -44,13 +47,25 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 
 			this.socket.onmessage = (msg) => {
 				console.log(`%c[Web Socket] Received: ${msg.data}`, "background: #00cc00; color: #fff")
-				this.el.emit("received", msg)
+				const data = JSON.parse(msg.data)
+				setTimeout(() => {
+					this.el.emit("receive", data)
+				})
 			}
 
 			this.socket.onclose = (msg) => {
 				console.log("%c[Web Socket] Connection closed.", "background: #00cc00; color: #fff")
 				this.el.emit("closed", msg)
 			}
+		})
+
+		this.listen("Add data", msg => {
+			const model = msg.detail
+			this.socket.send(new SynchronizationData(model).toString())
+		})
+		this.listen("Require data", msg => {
+			console.log("%c[Web Socket] Requiring data from server...", "background: #00cc00; color: #fff")
+			this.socket.send(new MessageData("Data required").toString())
 		})
 	}
 }
@@ -85,6 +100,7 @@ export class WebSocketLoggerComponent extends Component<{}> {
 				}
 			}
 		})
+
 	}
 
 	private stringlify(arg: any): string {

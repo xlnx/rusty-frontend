@@ -1,0 +1,9 @@
+{
+    "model": "Building_Pizza.obj", 
+    "name": "Building_Pizza", 
+    "placeholder": [
+        8.0, 
+        7.0
+    ], 
+    "scale": 0.0052
+}

@@ -14,6 +14,7 @@ export class BuildingStateComponent extends Component<{}> {
 
 	private current!: BuildingComponent
 	private valid: boolean = false
+	private my_fucking_data: any
 
 	constructor() {
 		super("building-state", {})
@@ -35,7 +36,7 @@ export class BuildingStateComponent extends Component<{}> {
 
 		this.subscribe(this.el.sceneEl.querySelector("[main]"), "raw-click", () => {
 			if (!!this.current && this.valid) {
-				this.current.el.emit("locate-building")
+				this.current.el.emit("locate-building", this.my_fucking_data)
 				this.current = undefined
 			}
 		})
@@ -43,7 +44,7 @@ export class BuildingStateComponent extends Component<{}> {
 		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
 
 			const city = window["city-editor"]
-			const xy: THREE.Vector2 = evt.detail
+			const xy: THREE.Vector2 = evt.detail.clone()
 
 			if (!this.current) {
 
@@ -58,15 +59,12 @@ export class BuildingStateComponent extends Component<{}> {
 				})
 					.attachTo(city)
 					.toEntity()
-					.components.building
+					.components["building-indicator"]
 			} else {
 
 				const basemap: BasemapComponent = window["basemap"]
 				const modelInfo = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
 				const { road, offset, center, angle, valid } = modelInfo
-
-
-				// this.current.modelInfo = modelInfo
 
 				const { x, y, z } = plain2world(center)
 
@@ -76,6 +74,8 @@ export class BuildingStateComponent extends Component<{}> {
 				this.current.el.emit("validate-building", valid)
 
 				this.valid = valid
+
+				this.my_fucking_data = modelInfo
 
 			}
 		})
@@ -146,6 +146,7 @@ export class RoadStateComponent extends Component<{}> {
 
 			}
 			const pt = plain2world(basemap.basemap.attachNearPoint(xy))
+
 			this.pointIdk.setAttribute('position', {
 				x: pt.x,
 				y: pt.y,
@@ -261,16 +262,7 @@ new RoadStateComponent().register()
 
 export class PreviewStateComponent extends Component<{}> {
 	constructor() { super("preview-state", {}) }
-	init() {
-		const entity: AFrame.Entity = document.querySelector("#button-preview")
-		this.subscribe(entity, UI.click_event, evt => {
-			const ws = <WebSocketComponent>window["socket"]
-			console.log(ws)
-			const basemap = <BasemapComponent>window["basemap"]
-			const data = JSON.stringify(basemap.export(), null, 4)
-			ws.socket.send(data)
-		})
-	}
+	init() { }
 }
 
 new PreviewStateComponent().register()

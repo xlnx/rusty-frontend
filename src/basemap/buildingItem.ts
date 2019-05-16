@@ -47,7 +47,7 @@ export default class BasemapBuildingItem<T = {}> extends UserData<T> {
 		if (this.shouldUpdate) {
 			this.shouldUpdate = false
 			let offset = Math.abs(this.offset)
-			let offsetSign = this.offset > 0 ? 1 : -1
+			let offsetSign = this.offset > 0 ? 1 : -1// 1:left, -1:right
 			let houseRoadDir = this.road.to.clone().sub(this.road.from).normalize()
 			let houseRoadNormDir = houseRoadDir.clone()
 				.rotateAround(new THREE.Vector2(0, 0), Math.PI / 2 * offsetSign)
@@ -62,6 +62,22 @@ export default class BasemapBuildingItem<T = {}> extends UserData<T> {
 			housePts[3] = housePts[2].clone()
 				.sub(houseRoadDir.clone().multiplyScalar(this.placeholder.width))
 			this._rect = new AnyRect2D(housePts)
+			// let housePts = new AnyRect2D([
+			// 	this.center.clone()
+			// 		.add(houseRoadNormDir.clone().multiplyScalar(this.placeholder.height / 2))
+			// 		.add(houseRoadDir.clone().multiplyScalar(this.placeholder.width / 2)),
+			// 	this.center.clone()
+			// 		.sub(houseRoadNormDir.clone().multiplyScalar(this.placeholder.height / 2))
+			// 		.add(houseRoadDir.clone().multiplyScalar(this.placeholder.width / 2)),
+			// 	this.center.clone()
+			// 		.sub(houseRoadNormDir.clone().multiplyScalar(this.placeholder.height / 2))
+			// 		.sub(houseRoadDir.clone().multiplyScalar(this.placeholder.width / 2)),
+			// 	this.center.clone()
+			// 		.add(houseRoadNormDir.clone().multiplyScalar(this.placeholder.height / 2))
+			// 		.sub(houseRoadDir.clone().multiplyScalar(this.placeholder.width / 2)),
+			// ])
+			// this._rect = housePts
+
 
 			//update QuadTreeItem
 			Object.assign(this._quadTreeItem, { obj: this })

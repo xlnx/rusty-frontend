@@ -1,0 +1,129 @@
+#
+# Wavefront material file: t:\turbo squid\scenes\bg3_obj.mtl
+#
+# Converted by the PolyTrans geometry converter from Okino Computer Graphics, Inc.
+# Date/time of export: 10/11/2012 12:49:25
+#
+# Bounding box of geometry = (-13,-1.8,-12) to (14,12.0845,11).
+
+newmtl default
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.4 0.4 0.4
+	Ks 0.7 0.7 0.7
+	Ka 0.3 0.3 0.3
+
+newmtl base
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.626913 0.59749 0.543752
+	Ks 0 0 0
+	Ka 0.235092 0.224059 0.203907
+
+newmtl column
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.666667 0.411765 0.34902
+	Ks 0 0 0
+	Ka 0.2 0.123529 0.104706
+	map_Kd stone11.jpg
+
+newmtl cornice
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.768627 0.768627 0.768627
+	Ks 0 0 0
+	Ka 0.288235 0.288235 0.288235
+
+newmtl door
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.317647 0.156863 0
+	Ks 0 0 0
+	Ka 0.0952941 0.0470588 0
+
+newmtl fascia
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.309804 0.152941 0
+	Ks 0 0 0
+	Ka 0.0929412 0.0458824 0
+
+newmtl floor
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.870588 0.796078 0.694118
+	Ks 0 0 0
+	Ka 0.261176 0.238824 0.208235
+
+newmtl frame
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.784314 0.784314 0.784314
+	Ks 0 0 0
+	Ka 0.235294 0.235294 0.235294
+
+newmtl glass
+	Ns 256
+	d 0.5
+	illum 2
+	Kd 0.153036 0.180775 0.123494
+	Ks 0.357085 0.421807 0.288152
+	Ka 0.153036 0.180775 0.123494
+
+newmtl louvers
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.784314 0.784314 0.784314
+	Ks 0 0 0
+	Ka 0.235294 0.235294 0.235294
+
+newmtl louvers_win
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.422745 0.494118 0.477647
+	Ks 0 0 0
+	Ka 0.181176 0.211765 0.204706
+
+newmtl roof
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.619383 0.436076 0.345112
+	Ks 0 0 0
+	Ka 0.206461 0.145359 0.115037
+
+newmtl tiles
+	Ns 25
+	d 1
+	illum 2
+	Kd 0.526332 0.424138 0.237376
+	Ks 0.225571 0.181773 0.101732
+	Ka 0.225571 0.181773 0.101732
+
+newmtl wall
+	Ns 25
+	d 1
+	illum 2
+	Kd 1 1 0.882353
+	Ks 0 0 0
+	Ka 0.3 0.3 0.264706
+
+newmtl water
+	Ns 64
+	d 0.6
+	illum 2
+	Kd 0.248235 0.28 0.288235
+	Ks 0.413725 0.466667 0.480392
+	Ka 0.248235 0.28 0.288235
+

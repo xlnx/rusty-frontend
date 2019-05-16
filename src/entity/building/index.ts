@@ -5,6 +5,7 @@ import { TerrainComponent } from "../terrain";
 import { world2plain, DistUnit } from "../../legacy";
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import { BasemapComponent } from "../basemap";
+import { WebSocketComponent } from "../../control";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -86,6 +87,7 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 					f.material = mat
 				}
 			})
+
 			this.el.setObject3D("mesh", ind)
 			this.el.classList.add("indicator")
 
@@ -95,6 +97,7 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 			}))
 
 			this.handlers.push(this.listen("locate-building", (msg: any) => {
+
 				let modelInfo = msg.detail
 
 				this.el.setObject3D("mesh", this.proto.object.model.clone())
@@ -106,14 +109,9 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 				}
 
 				const city: AFrame.Entity = window["city-editor"]
-				const basemap: BasemapComponent = window["basemap"]
-
-				// console.log(modelInfo)
-				const item = new BasemapBuildingItem(this.proto, modelInfo.center,
-					modelInfo.angle, modelInfo.road, modelInfo.offset)
 
 				const b = EntityBuilder.create("a-entity", {
-					building: { name: this.name },
+					building: { name: this.data.name },
 					position: this.el.components.position,
 					rotation: this.el.components.rotation,
 					scale: this.el.components.scale
@@ -121,9 +119,18 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 					.attachTo(city)
 					.toEntity()
 
-				basemap.basemap.addBuilding(item)
+				console.log("locate a building")
+				const socket: WebSocketComponent = window['socket']
+				socket.el.emit("Add data", {
+					state: "insert",
+					roads: [],
+					buildings: [{
+						center: modelInfo.center,
+						prototype: this.proto.name
+					}]
+				})
 
-					; (<any>b).___my_private_fucking_data = msg
+					; (<any>b).___my_private_fucking_data = modelInfo
 
 			}))
 
@@ -157,7 +164,15 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			; (<any>this).located = false
 			; (<any>this).proto = manager.manager.get(this.data.name)
 
-		let modelInfo = (<any>this).___my_private_fucking_data
+		let modelInfo = (<any>this.el).___my_private_fucking_data
+
+		const basemap: BasemapComponent = window["basemap"]
+
+		// console.log(modelInfo)
+		const item = new BasemapBuildingItem(this.proto, modelInfo.center,
+			modelInfo.angle, modelInfo.road, modelInfo.offset)
+
+		basemap.basemap.addBuilding(<any>item)
 
 		if (this.proto) {
 
@@ -166,7 +181,8 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			const terrain: TerrainComponent = window['terrain']
 			terrain.terrain.mark(world2plain(this.el.object3D.position),
 				modelInfo.angle, this.proto.placeholder)
-			const height = modelInfo.road.getMaxHeight(modelInfo.offset)
+			const height = 0
+			// modelInfo.road.getMaxHeight(modelInfo.offset)
 			terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
 				modelInfo.angle, this.proto.placeholder, height)
 
