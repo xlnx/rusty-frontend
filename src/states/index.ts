@@ -51,7 +51,7 @@ export class BuildingStateComponent extends Component<{}> {
 				// console.log(xy)
 				// console.log(xyz)
 				this.current = <any>EntityBuilder.create("a-entity", {
-					building: {
+					"building-indicator": {
 						name: "Building_Bar"
 					},
 					position: xyz
@@ -66,7 +66,7 @@ export class BuildingStateComponent extends Component<{}> {
 				const { road, offset, center, angle, valid } = modelInfo
 
 
-				this.current.modelInfo = modelInfo
+				// this.current.modelInfo = modelInfo
 
 				const { x, y, z } = plain2world(center)
 

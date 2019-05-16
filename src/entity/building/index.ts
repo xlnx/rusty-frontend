@@ -3,6 +3,8 @@ import { Component, EventController } from "../../wasp";
 import BasemapBuildingItem from "../../basemap/buildingItem";
 import { TerrainComponent } from "../terrain";
 import { world2plain, DistUnit } from "../../legacy";
+import { EntityBuilder } from "aframe-typescript-toolkit";
+import { BasemapComponent } from "../basemap";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -34,14 +36,18 @@ export class BuildingManagerComponent extends Component<{}> {
 
 new BuildingManagerComponent().register()
 
+interface BuildingIndicatorComponentSchema {
+	readonly name: string
+}
+
 interface BuildingComponentSchema {
 	readonly name: string
 }
 
-export class BuildingComponent extends Component<BuildingComponentSchema> {
+export class BuildingIndicatorComponent extends Component<BuildingIndicatorComponentSchema> {
 
 	constructor() {
-		super("building", {
+		super("building-indicator", {
 			name: {
 				type: "string",
 				default: "[unknown]"
@@ -53,7 +59,6 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2).multiplyScalar(2)
 
 	public readonly proto: BuildingPrototype
-	public readonly located!: boolean
 	public modelInfo: any
 
 	private readonly handlers: EventController[] = []
@@ -69,7 +74,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			const mat =
 				new THREE.MeshPhongMaterial({
 					side: THREE.DoubleSide,
-					color: BuildingComponent.invalidColor,
+					color: BuildingIndicatorComponent.invalidColor,
 					opacity: 0.6,
 					transparent: true,
 				})
@@ -85,11 +90,42 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			this.el.classList.add("indicator")
 
 			this.handlers.push(this.listen("validate-building", (evt: any) => {
-				mat.color.set(evt.detail ? BuildingComponent.validColor
-					: BuildingComponent.invalidColor)
+				mat.color.set(evt.detail ? BuildingIndicatorComponent.validColor
+					: BuildingIndicatorComponent.invalidColor)
 			}))
 
-			this.handlers.push(this.listen("locate-building", () => this.locateBuilding()))
+			this.handlers.push(this.listen("locate-building", (msg: any) => {
+				let modelInfo = msg.detail
+
+				this.el.setObject3D("mesh", this.proto.object.model.clone())
+					; (<any>this).located = true
+				this.el.classList.remove("indicator")
+
+				for (const handler of this.handlers) {
+					handler.cancel()
+				}
+
+				const city: AFrame.Entity = window["city-editor"]
+				const basemap: BasemapComponent = window["basemap"]
+
+				// console.log(modelInfo)
+				const item = new BasemapBuildingItem(this.proto, modelInfo.center,
+					modelInfo.angle, modelInfo.road, modelInfo.offset)
+
+				const b = EntityBuilder.create("a-entity", {
+					building: { name: this.name },
+					position: this.el.components.position,
+					rotation: this.el.components.rotation,
+					scale: this.el.components.scale
+				})
+					.attachTo(city)
+					.toEntity()
+
+				basemap.basemap.addBuilding(item)
+
+					; (<any>b).___my_private_fucking_data = msg
+
+			}))
 
 		} else {
 
@@ -98,27 +134,48 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 		}
 	}
 
-	locateBuilding() {
-		const modelInfo = this.modelInfo
-		if (modelInfo && modelInfo.valid) {
+}
+
+new BuildingIndicatorComponent().register()
+
+export class BuildingComponent extends Component<BuildingComponentSchema> {
+
+	constructor() {
+		super("building", {
+			name: {
+				type: "string",
+				default: "[unknown]"
+			}
+		})
+	}
+
+	public readonly proto: BuildingPrototype
+
+	init() {
+
+		const manager: BuildingManagerComponent = window["building-manager"]
+			; (<any>this).located = false
+			; (<any>this).proto = manager.manager.get(this.data.name)
+
+		let modelInfo = (<any>this).___my_private_fucking_data
+
+		if (this.proto) {
 
 			this.el.setObject3D("mesh", this.proto.object.model.clone())
-				; (<any>this).located = true
-			this.el.classList.remove("indicator")
 
-			for (const handler of this.handlers) {
-				handler.cancel()
-			}
-			// console.log(modelInfo)
-			const item = new BasemapBuildingItem(this.proto, modelInfo.center, modelInfo.angle, modelInfo.road, modelInfo.offset)
-			window['basemap'].basemap.addBuilding(item)
-
-			let terrain: TerrainComponent = window['terrain']
-			terrain.terrain.mark(world2plain(this.el.object3D.position), modelInfo.angle, this.proto.placeholder)
-			const height = terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
-				modelInfo.angle, this.proto.placeholder, item.rect)
+			const terrain: TerrainComponent = window['terrain']
+			terrain.terrain.mark(world2plain(this.el.object3D.position),
+				modelInfo.angle, this.proto.placeholder)
+			const height = modelInfo.road.getMaxHeight(modelInfo.offset)
+			terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
+				modelInfo.angle, this.proto.placeholder, height)
 
 			this.el.object3D.position.y += height * DistUnit
+
+		} else {
+
+			console.error(`invalid building type: ${this.data.name}`)
+
 		}
 	}
 }

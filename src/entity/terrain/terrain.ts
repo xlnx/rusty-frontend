@@ -420,7 +420,7 @@ export class Terrain extends THREE.Object3D {
 		this.updateWireframe(rect)
 	}
 
-	placeBuilding(center: THREE.Vector2, angle: number, placeholder: THREE.Vector2, anyrect: AnyRect2D): number {
+	placeBuilding(center: THREE.Vector2, angle: number, placeholder: THREE.Vector2, height: number) {//anyrect: AnyRect2D): number {
 
 		center = center.clone().addScalar(this.worldWidth / 2)
 
@@ -445,7 +445,7 @@ export class Terrain extends THREE.Object3D {
 		this.buildingCopyUniforms.axes.value = face
 		this.buildingCopyUniforms.placeholder.value = placeholder
 
-		let height = this.getAverageHeight(anyrect, rect)
+		// let height = this.getAverageHeight(anyrect, rect)
 
 		this.buildingUniforms.height.value = height * this.blockCnt / this.worldWidth
 
@@ -462,41 +462,39 @@ export class Terrain extends THREE.Object3D {
 		})
 
 		this.updateWireframe(rect)
-
-		return height
 	}
 
-	private getAverageHeight(anyrect: AnyRect2D, rect: THREE.Box2) {
+	// private getAverageHeight(anyrect: AnyRect2D, rect: THREE.Box2) {
 
-		const [dx, dy] = [
-			(rect.max.x - rect.min.x) / 20,
-			(rect.max.y - rect.min.y) / 20
-		]
-		let cnt = 0
-		let acch = 0
+	// 	const [dx, dy] = [
+	// 		(rect.max.x - rect.min.x) / 20,
+	// 		(rect.max.y - rect.min.y) / 20
+	// 	]
+	// 	let cnt = 0
+	// 	let acch = 0
 
-		this.filter(rect, block => {
-			const partial = block.rect.clone().intersect(rect)
-			if (!partial.isEmpty()) {
-				const sample = this.sampleSingleBlock(block, partial)
-				const pt = new THREE.Vector2()
-				for (let i = partial.min.x; i < partial.max.x; i += dx) {
-					for (let j = partial.min.y; j < partial.max.y; j += dy) {
-						pt.x = i; pt.y = j
-						if (anyrect.containPt(pt.clone().subScalar(this.worldWidth / 2))) {
-							const { h, ok } = sample(this.world2uv(block, pt))
-							if (ok) {
-								cnt += 1
-								acch += h
-							}
-						}
-					}
-				}
-			}
-		})
+	// 	this.filter(rect, block => {
+	// 		const partial = block.rect.clone().intersect(rect)
+	// 		if (!partial.isEmpty()) {
+	// 			const sample = this.sampleSingleBlock(block, partial)
+	// 			const pt = new THREE.Vector2()
+	// 			for (let i = partial.min.x; i < partial.max.x; i += dx) {
+	// 				for (let j = partial.min.y; j < partial.max.y; j += dy) {
+	// 					pt.x = i; pt.y = j
+	// 					if (anyrect.containPt(pt.clone().subScalar(this.worldWidth / 2))) {
+	// 						const { h, ok } = sample(this.world2uv(block, pt))
+	// 						if (ok) {
+	// 							cnt += 1
+	// 							acch += h
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	})
 
-		return acch / cnt
-	}
+	// 	return acch / cnt
+	// }
 
 	getHeight(pt: THREE.Vector2[]) {
 

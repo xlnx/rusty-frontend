@@ -87,9 +87,6 @@ export class BasemapComponent extends Component<{}> {
 				const modelInfo = basemap.alignBuilding(pos, proto.placeholder)
 				const { angle, valid } = modelInfo
 
-
-				component.modelInfo = modelInfo
-
 				const { x, y, z } = plain2world(pos)
 
 				entity.object3D.position.set(x, y, z)
@@ -99,7 +96,9 @@ export class BasemapComponent extends Component<{}> {
 				entity.object3D.rotation.y = angle
 				// component.locateBuilding()
 				setTimeout(() => {
-					entity.emit("locate-building")
+					if (modelInfo.valid) {
+						entity.emit("locate-building", modelInfo)
+					}
 					entity.emit("validate-building", valid)
 				}, 0)
 			})
