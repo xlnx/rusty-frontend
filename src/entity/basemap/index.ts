@@ -126,8 +126,8 @@ export class BasemapComponent extends Component<{}> {
 
 					const { x, y, z } = plain2world(pos)
 
-					entity.object3D.position.set(x, y, z)
-					entity.object3D.rotation.y = angle
+					// entity.object3D.position.set(x, y, z)
+					// entity.object3D.rotation.y = angle
 					// component.locateBuilding()
 					// setTimeout(() => {
 					// if (modelInfo.valid) {

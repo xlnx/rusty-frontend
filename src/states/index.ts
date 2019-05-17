@@ -60,13 +60,13 @@ export class SelectStateComponent extends Component<{}>{
 			// if (this.selecting) {
 			component = <BuildingComponent>target.components["building"] || <RoadComponent>target.components["road"]
 			if (component != undefined) {
-				component.preSelect()
+				component.hover()
 				// console.log("set1")
 				if (!this.solved.has(target)) {
 					self.subscribe(city, "int-leave", evt => {
-						if (this.current != target && evt.target == target && !evt.target.hasAttribute('terrain')) {
+						if (evt.target == target && !evt.target.hasAttribute('terrain')) {
 							// console.log("unset1")
-							component.unselect()
+							component.unhover()
 						}
 					})
 					self.subscribe(city, "int-click", evt => {
@@ -79,6 +79,7 @@ export class SelectStateComponent extends Component<{}>{
 					})
 					self.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 						component.unselect()
+						component.unhover()
 					})
 					this.solved.set(target, 1)
 				}
