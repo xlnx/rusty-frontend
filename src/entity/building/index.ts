@@ -110,7 +110,11 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 				const b = EntityBuilder.create("a-entity", {
 					building: { name: this.data.name },
 					position: this.el.object3D.position,
-					rotation: this.el.object3D.rotation,
+					rotation: {
+						x: 0,
+						y: modelInfo.angle,
+						z: 0,
+					},
 					scale: this.el.object3D.scale
 				})
 					.attachTo(city)
