@@ -16,14 +16,6 @@ export class GameComponent extends Component<{}> {
 
 		this.socket = window['socket']
 
-		let entity: AFrame.Entity = document.querySelector("#button-send")
-		this.subscribe(entity, UI.click_event, evt => {
-			const ws = <WebSocketComponent>window["socket"]
-			// console.log(ws)
-			const basemap = <BasemapComponent>window["basemap"]
-			ws.socket.send(new SynchronizationData(basemap.export()).toString())
-		})
-
 		this.subscribe((<AFrame.Entity>this.el.parentElement), "router-enter", evt => {
 
 		})

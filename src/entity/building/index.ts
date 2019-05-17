@@ -6,6 +6,8 @@ import { world2plain, DistUnit } from "../../legacy";
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import { BasemapComponent } from "../basemap";
 import { WebSocketComponent } from "../../control";
+import { Object3D } from "three";
+import { Selectable } from "../selectable";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -56,8 +58,8 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 		})
 	}
 
-	private static readonly validColor = new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(2)
-	private static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2).multiplyScalar(2)
+	public static readonly validColor = new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(2)
+	public static readonly invalidColor = new THREE.Color(0.8, 0.3, 0.2).multiplyScalar(2)
 
 	public readonly proto: BuildingPrototype
 	public modelInfo: any
@@ -67,7 +69,6 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 	init() {
 
 		const manager: BuildingManagerComponent = window["building-manager"]
-			; (<any>this).located = false
 			; (<any>this).proto = manager.manager.get(this.data.name)
 
 		if (this.proto) {
@@ -100,10 +101,6 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 
 				let modelInfo = msg.detail
 
-				this.el.setObject3D("mesh", this.proto.object.model.clone())
-					; (<any>this).located = true
-				this.el.classList.remove("indicator")
-
 				for (const handler of this.handlers) {
 					handler.cancel()
 				}
@@ -112,9 +109,9 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 
 				const b = EntityBuilder.create("a-entity", {
 					building: { name: this.data.name },
-					position: this.el.components.position,
-					rotation: this.el.components.rotation,
-					scale: this.el.components.scale
+					position: this.el.object3D.position,
+					rotation: this.el.object3D.rotation,
+					scale: this.el.object3D.scale
 				})
 					.attachTo(city)
 					.toEntity()
@@ -145,7 +142,7 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 
 new BuildingIndicatorComponent().register()
 
-export class BuildingComponent extends Component<BuildingComponentSchema> {
+export class BuildingComponent extends Component<BuildingComponentSchema> implements Selectable {
 
 	constructor() {
 		super("building", {
@@ -155,44 +152,82 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			}
 		})
 	}
-
+	public readonly object: Object3D
 	public readonly proto: BuildingPrototype
+	public readonly building: BasemapBuildingItem<BuildingComponent>
 
 	init() {
 
+		this.el.setAttribute("ray-castable", {})
 		const manager: BuildingManagerComponent = window["building-manager"]
-			; (<any>this).located = false
 			; (<any>this).proto = manager.manager.get(this.data.name)
 
 		let modelInfo = (<any>this.el).___my_private_fucking_data
+		// console.log(modelInfo)
 
 		const basemap: BasemapComponent = window["basemap"]
 
 		// console.log(modelInfo)
-		const item = new BasemapBuildingItem(this.proto, modelInfo.center,
+		const item = new BasemapBuildingItem<BuildingComponent>(this.proto, modelInfo.center,
 			modelInfo.angle, modelInfo.road, modelInfo.offset)
+		item.userData = this
+			; (<any>this).building = item
 
-		basemap.basemap.addBuilding(<any>item)
+		basemap.basemap.addBuilding(item)
 
 		if (this.proto) {
-
-			this.el.setObject3D("mesh", this.proto.object.model.clone())
+			; (<any>this.object) = this.proto.object.model.clone(true)
+			this.el.setObject3D("mesh", this.object)
 
 			const terrain: TerrainComponent = window['terrain']
 			terrain.terrain.mark(world2plain(this.el.object3D.position),
 				modelInfo.angle, this.proto.placeholder)
 			const height = 0
 			// modelInfo.road.getMaxHeight(modelInfo.offset)
-			terrain.terrain.placeBuilding(world2plain(this.el.object3D.position),
+			terrain.terrain.placeBuilding(world2plain(modelInfo.center),
 				modelInfo.angle, this.proto.placeholder, height)
 
 			this.el.object3D.position.y += height * DistUnit
 
+
+			// restore material
+			this.object.traverse((node) => {
+				const ele = <THREE.Mesh>node
+				if (ele.isMesh) {
+					this.originMaterial = (<any>ele.material)
+				}
+			})
 		} else {
-
 			console.error(`invalid building type: ${this.data.name}`)
-
 		}
+	}
+	originMaterial: THREE.Material
+	selectMaterial = new THREE.MeshStandardMaterial({
+		color: new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(2),
+		side: THREE.DoubleSide,
+		opacity: 0.5,
+		transparent: true
+	})
+	preSelect() {
+		this.object.traverse((node) => {
+			// console.log(node)
+			const ele = <THREE.Mesh>node
+			if (ele.isMesh) {
+				; (<any>ele.material) = this.selectMaterial
+			}
+		})
+	}
+	select() {
+		this.preSelect()
+	}
+	unselect() {
+		this.object.traverse((node) => {
+			// console.log(node)
+			const ele = <THREE.Mesh>node
+			if (ele.isMesh) {
+				; (<any>ele.material) = this.originMaterial
+			}
+		})
 	}
 }
 

@@ -147,10 +147,12 @@ export class BasemapComponent extends Component<{}> {
 					const item = basemap.selectRoad(center)
 					// console.log(`road:${item}`)
 					if (item != undefined) {
+						console.log('[basemap] removing a road...')
 						basemap.removeRoad(item)
 						const entity = (<AFrame.Entity>item.userData.userData)
 						// console.log(entity)
 						entity.parentNode.removeChild(entity)
+						console.log('[basemap] successfully removed road.')
 					}
 				})
 
@@ -159,10 +161,11 @@ export class BasemapComponent extends Component<{}> {
 					const pos = new THREE.Vector2(center.x, center.y)
 					const item = basemap.selectBuilding(pos)
 					if (item != undefined) {
-						console.log('deleting a building')
+						console.log('[basemap] removing a building...')
 						basemap.removeBuilding(item)
 						const entity = item.userData.el
 						entity.parentNode.removeChild(entity)
+						console.log('[basemap] successfully removed building.')
 					}
 				})
 			}

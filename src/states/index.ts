@@ -1,15 +1,210 @@
 import { EntityBuilder } from "aframe-typescript-toolkit";
-import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent } from "../entity";
+import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent, RoadComponent, BuildingIndicatorComponent } from "../entity";
 import { plain2world, DistUnit } from "../legacy";
-import { Component } from "../wasp";
+import { Component, EventController } from "../wasp";
 import BasemapBuildingItem from "../basemap/buildingItem";
 import { Point } from "../basemap/geometry";
 import { PointComponent } from "../entity/geometry";
-import { Vector2 } from "three";
+import { Vector2, Vector3 } from "three";
 import { PointDetectRadius } from "../basemap/def";
 import * as UI from "../ui/def";
 import { WebSocketComponent } from "../control";
+import { WheelComponent } from "../ui";
 
+
+export class SelectStateComponent extends Component<{}>{
+	private solved: Map<AFrame.Entity, number> = new Map()
+	private current: AFrame.Entity
+	// private selecting: boolean
+	private static validBuildingMaterial = new THREE.MeshStandardMaterial({
+		color: BuildingIndicatorComponent.validColor,
+		side: THREE.DoubleSide,
+		opacity: 0.5,
+		transparent: true
+	})
+	private static validRoadMaterial = new THREE.MeshStandardMaterial({
+		color: BuildingIndicatorComponent.validColor,
+		side: THREE.DoubleSide,
+		opacity: 0.5,
+		transparent: true
+	})
+	constructor() {
+		super("select-state", {})
+	}
+	init() {
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
+			this.current = undefined
+			// this.selecting = true
+		})
+
+		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
+			// if (this.current != undefined) {
+			// 	this.current.object3D.traverse((node) => {
+			// 		const ele = <THREE.Mesh>node
+			// 		if (ele.isMesh) {
+			// 			; (<any>ele.material) = this.oldMat
+			// 		}
+			// 	})
+			// }
+			this.current = undefined
+			// this.selecting = true
+		})
+
+		let xy!: THREE.Vector2
+		const city: AFrame.Entity = window["city-editor"]
+		const basemap: BasemapComponent = window["basemap"]
+		const self = this
+		this.subscribe(city, "int-enter", evt => {
+			const target: AFrame.Entity = evt.target
+			let component: BuildingComponent | RoadComponent
+			// if (this.selecting) {
+			component = <BuildingComponent>target.components["building"] || <RoadComponent>target.components["road"]
+			if (component != undefined) {
+				component.preSelect()
+				// console.log("set1")
+				if (!this.solved.has(target)) {
+					self.subscribe(city, "int-leave", evt => {
+						if (this.current != target && evt.target == target && !evt.target.hasAttribute('terrain')) {
+							// console.log("unset1")
+							component.unselect()
+						}
+					})
+					self.subscribe(city, "int-click", evt => {
+						const ent: AFrame.Entity = evt.target
+						// console.log(ent)
+						if (ent != target && !ent.hasAttribute('terrain')) {
+							// console.log("unset2")
+							component.unselect()
+						}
+					})
+					self.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
+						component.unselect()
+					})
+					this.solved.set(target, 1)
+				}
+			}
+			// }
+		})
+		// this.subscribe(city, "int-leave", evt => {
+		// 	const target: AFrame.Entity = evt.target
+		// 	if (this.selecting &&
+		// 		(target.hasAttribute("building") || target.hasAttribute("road"))
+		// 	) {
+		// 		this.current = evt.target
+
+		// 		// (<BuildingComponent>this.current.components['building']).object.
+		// 	}
+		// })
+		this.subscribe(city, "int-click", evt => {
+			// console.log("int-click")
+			const entity = evt.target
+			if (!entity.hasAttribute('terrain')) {
+
+				const target = entity
+				this.current = target
+				let component: BuildingComponent | RoadComponent = <BuildingComponent>target.components["building"] || <RoadComponent>target.components["road"]
+				if (component != undefined) {
+					component.select()
+					// console.log("set2")
+					const wheelEntity = EntityBuilder.create("a-entity", {
+						wheel: {
+							outerRadius: 3
+						},
+						visible: true,
+						billboard: true
+					})
+						.attachTo(city)
+						.toEntity()
+
+					const box = new THREE.Box3().setFromObject(this.current.object3D)
+					const height = box.max.y
+					const { x, z } = box.min.clone().add(box.max).divideScalar(2)
+					wheelEntity.setAttribute("position", {
+						x: x,
+						y: height + .2,
+						z: z
+					})
+					wheelEntity.setAttribute("scale", {
+						x: .1,
+						y: .1,
+						z: .1
+					})
+					const removeEntity = () => {
+						try {
+							const socket: WebSocketComponent = window['socket']
+							if (entity.hasAttribute("building")) {
+								const building: BuildingComponent = <BuildingComponent>entity.components["building"]
+								const item = building.building
+								console.log('[basemap] removing a building...')
+								basemap.basemap.removeBuilding(item)
+								socket.el.emit("Add data", {
+									state: "remove",
+									roads: [],
+									buildings: [{
+										center: item.center,
+										prototype: item.proto.name
+									}]
+								})
+								entity.parentNode.removeChild(entity)
+								console.log('[basemap] successfully removed a building.')
+							}
+							else if (entity.hasAttribute("road")) {
+								const road: RoadComponent = <RoadComponent>entity.components["road"]
+								const item = road.road.item
+								console.log('[basemap] removing a road...')
+								basemap.basemap.removeRoad(item)
+								socket.el.emit("Add data", {
+									state: "remove",
+									roads: [{
+										width: item.width,
+										from: item.from,
+										to: item.to
+									}],
+									buildings: []
+								})
+								entity.parentNode.removeChild(entity)
+								console.log('[basemap] successfully removed a road.')
+							}
+						} catch (err) {
+							console.log(`[basemap] error at removing entity: ${err}`)
+						}
+					}
+					// if (this.solved.get(target) == 1) {
+					const handlers: EventController[] = []
+					const removeWheel = () => {
+						const par = wheelEntity.parentNode
+						par.removeChild(wheelEntity)
+						handlers.forEach((handler: EventController) => {
+							handler.cancel()
+						})
+						console.log("removeWheel")
+					}
+
+					handlers.push(self.subscribe(wheelEntity, UI.click_event, evt => {
+						removeEntity()
+						removeWheel()
+					}))
+
+					handlers.push(self.subscribe(city, "int-click", evt => {
+						const ent: AFrame.Entity = evt.target
+						// console.log(ent)
+						if (ent != target && !ent.hasAttribute('terrain')) {
+							removeWheel()
+						}
+					}))
+					handlers.push(self.subscribe(<AFrame.Entity>(self.el.parentElement), "router-leave", () => {
+						removeWheel()
+					}))
+
+					self.solved.set(target, 2)
+					// }
+
+				}
+			}
+		})
+	}
+}
+new SelectStateComponent().register()
 export class BuildingStateComponent extends Component<{}> {
 
 	private current!: BuildingComponent
@@ -37,6 +232,7 @@ export class BuildingStateComponent extends Component<{}> {
 		this.subscribe(this.el.sceneEl.querySelector("[main]"), "raw-click", () => {
 			if (!!this.current && this.valid) {
 				this.current.el.emit("locate-building", this.my_fucking_data)
+				this.current.el.parentNode.removeChild(this.current.el)
 				this.current = undefined
 			}
 		})
@@ -65,7 +261,7 @@ export class BuildingStateComponent extends Component<{}> {
 				const basemap: BasemapComponent = window["basemap"]
 				const modelInfo = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
 				const { road, offset, center, angle, valid } = modelInfo
-
+				// console.log(modelInfo)
 				const { x, y, z } = plain2world(center)
 
 				this.current.el.object3D.position.set(x, y, z)

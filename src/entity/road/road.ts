@@ -143,7 +143,7 @@ export class Road extends THREE.Object3D {
 		})
 	})()
 
-	private readonly view = new THREE.Object3D()
+	public readonly view = new THREE.Object3D()
 	private geometry: THREE.Geometry = <any>null
 	private object: THREE.Mesh = <any>null
 
@@ -173,9 +173,12 @@ export class Road extends THREE.Object3D {
 		let angle = Math.acos(dir.clone().normalize().dot(new THREE.Vector3(1, 0, 0))) * (dir.z > 0 ? -1 : 1)
 		this.geometry.rotateY(angle)
 
-		this.view.translateX(wfrom.x)
-		this.view.translateZ(wfrom.z)
-		this.view.translateY(startHeight * DistUnit)
+		// this.view.translateX(wfrom.x)
+		// this.view.translateZ(wfrom.z)
+		// this.view.translateY(startHeight * DistUnit)
+		this.translateX(wfrom.x)
+		this.translateZ(wfrom.z)
+		this.translateY(startHeight * DistUnit)
 
 		this.view.add(this.object)
 	}

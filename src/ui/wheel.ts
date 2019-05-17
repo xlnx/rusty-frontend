@@ -31,7 +31,7 @@ export class WheelComponent extends Component<WheelComponentSchema> {
             },
             target: {
                 type: "array",
-                default: [""]
+                default: []
             },
             billboard: {
                 type: "boolean",

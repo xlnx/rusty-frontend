@@ -7,6 +7,7 @@ import BasemapRoadItem from "../../basemap/roadItem";
 import { world2plain, plain2world } from "../../legacy";
 import { cross2D, cmp } from "../../basemap/geometry";
 import { WebSocketComponent } from "../../control";
+import { Selectable } from "../selectable";
 
 interface RoadIndicatorComponentSchema {
 	readonly width: number,
@@ -101,7 +102,7 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 
 new RoadIndicatorComponent().register()
 
-export class RoadComponent extends Component<{ readonly item: any }> {
+export class RoadComponent extends Component<{ readonly item: any }> implements Selectable {
 
 	public readonly road!: Road
 
@@ -114,7 +115,7 @@ export class RoadComponent extends Component<{ readonly item: any }> {
 	}
 
 	init() {
-
+		this.el.setAttribute("ray-castable", {})
 		const item = (<any>this.el).___my_private_fucking_data
 			; (<any>this.el).___my_private_fucking_data = undefined
 
@@ -137,6 +138,42 @@ export class RoadComponent extends Component<{ readonly item: any }> {
 		let angle = Math.acos(roadDir.clone().normalize().dot(faceDir)) * angleSign
 		let placeHolder = new THREE.Vector2(roadDir.length(), this.road.width)
 		terrain.terrain.mark(center, angle, placeHolder)
+
+		// restore material
+		this.road.traverse((node) => {
+			const ele = <THREE.Mesh>node
+			if (ele.isMesh) {
+				this.originMaterial = (<any>ele.material)
+			}
+		})
+	}
+	originMaterial: THREE.Material
+	selectMaterial = new THREE.MeshStandardMaterial({
+		color: new THREE.Color(0.44, 0.52, 0.84).multiplyScalar(2),
+		side: THREE.DoubleSide,
+		opacity: 0.5,
+		transparent: true
+	})
+	preSelect() {
+		this.road.traverse((node) => {
+			// console.log(node)
+			const ele = <THREE.Mesh>node
+			if (ele.isMesh) {
+				; (<any>ele.material) = this.selectMaterial
+			}
+		})
+	}
+	select() {
+		this.preSelect()
+	}
+	unselect() {
+		this.road.traverse((node) => {
+			// console.log(node)
+			const ele = <THREE.Mesh>node
+			if (ele.isMesh) {
+				; (<any>ele.material) = this.originMaterial
+			}
+		})
 	}
 }
 

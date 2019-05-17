@@ -130,7 +130,7 @@ class Basemap<R, B> {
 	}
 
 	addBuilding(building: BasemapBuildingItem<B>) {
-		this.buildingTree.push(building.quadTreeItem)
+		this.buildingTree.push(building.quadTreeItem, true)
 	}
 
 	alignRoad(road: BasemapRoadItem<R>, lengthAssert: boolean = true): boolean {
@@ -334,11 +334,17 @@ class Basemap<R, B> {
 			y: pt.y,
 			width: distOfBox,
 			height: distOfBox
-		}, (elt1, elt2) => {
-			const pt1 = new THREE.Vector2(elt1.x, elt1.y)
-			const pt2 = new THREE.Vector2(elt2.x, elt2.y)
-			return pt.distanceTo(pt2) <= distOfBox
 		})
+		// return this.buildingTree.colliding({
+		// 	x: pt.x,
+		// 	y: pt.y,
+		// 	width: distOfBox,
+		// 	height: distOfBox
+		// }, (elt1, elt2) => {
+		// 	const pt1 = new THREE.Vector2(elt1.x, elt1.y)
+		// 	const pt2 = new THREE.Vector2(elt2.x, elt2.y)
+		// 	return pt1.distanceTo(pt2) <= distOfBox
+		// })
 	}
 
 	selectBuilding(pt: Point, distOfBox: number = defaultBuildingSelectionRange): BasemapBuildingItem<B> | undefined {
@@ -370,19 +376,27 @@ class Basemap<R, B> {
 		// })
 		// return this.roadTree.colliding({
 		// 	x: pt.x,
-		// 	y: pt.y,
-		// 	width: distOfBox,
-		// 	height: distOfBox
+		// 	y: pt.y
 		// }, (elt1, elt2) => {
 		// 	const pt1 = new THREE.Vector2(elt1.x, elt1.y)
 		// 	const pt2 = new THREE.Vector2(elt2.x, elt2.y)
-		// 	return pt.distanceTo(pt2) <= distOfBox
+		// 	return pt1.distanceTo(pt2) < distOfBox
+		// })
+		// return this.roadTree.colliding({
+		// 	x: pt.x,
+		// 	y: pt.y,
+		// 	width: distOfBox,
+		// 	height: distOfBox
 		// })
 		return this.roadTree.colliding({
 			x: pt.x,
 			y: pt.y,
 			width: distOfBox,
 			height: distOfBox
+		}, (elt1, elt2) => {
+			const box1 = new THREE.Box2(new THREE.Vector2(elt1.x - elt1.width / 2, elt1.y - elt1.height / 2), new THREE.Vector2(elt1.x + elt1.width / 2, elt1.y + elt1.height / 2))
+			const box2 = new THREE.Box2(new THREE.Vector2(elt2.x - elt2.width / 2, elt2.y - elt2.height / 2), new THREE.Vector2(elt2.x + elt2.width / 2, elt2.y + elt2.height / 2))
+			return box1.intersectsBox(box2)
 		})
 	}
 
@@ -436,7 +450,7 @@ class Basemap<R, B> {
 		const near = this.getCandidatePoint(pt)
 		if (near && near.distanceTo(pt) <= AttachRadius) return near
 		else {
-			const road = this.getVerticalRoad(pt, AttachRadius)
+			const road = this.getVerticalRoad(pt, 2 * AttachRadius)
 			if (road == undefined) return pt
 
 			const nearPt = pt.clone()

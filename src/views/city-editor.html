@@ -47,7 +47,8 @@
 				router-switch="router: #main-controller; event: int-click; value: preview"></a-entity>
 			<a-entity button="text: morph; width: 3; fontSize: 3" position="2 2 -10"
 				router-switch="router: #main-controller; event: int-click; value: morph"></a-entity>
-			<a-entity id="button-send" button="text: send; width: 3; fontSize: 3" position="2 1 -10"></a-entity>
+			<a-entity button="text: select; width: 3; fontSize: 3" position="2 1 -10"
+				router-switch="router: #main-controller; event: int-click; value: select"></a-entity>
 			<!-- <a-entity button="text: ; width: 3; fontSize: 3" position="2 0 -10"></a-entity> -->
 		</a-entity>
 
@@ -86,6 +87,9 @@
 				</a-entity>
 				<a-entity router-item="morph">
 					<a-entity morph-state></a-entity>
+				</a-entity>
+				<a-entity router-item="select">
+					<a-entity select-state></a-entity>
 				</a-entity>
 				<!-- <a-entity router-item="preview" building-state></a-entity> -->
 			</a-entity>
