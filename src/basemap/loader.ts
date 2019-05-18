@@ -45,13 +45,13 @@ async function parseTopoRoad(): Promise<RoadD[]> {
 	})
 }
 
-it("test", () => {
-	parseTopoRoad().then(roads => {
-		try {
-			fs.writeFile("./assets/basemap/roads.json", JSON.stringify({ roads: roads }, null, 4), err => { console.log(err) })
-		}
-		catch (err) {
-			console.log(`[Load road file] ${err}`)
-		}
-	})
-})
+// it("test", () => {
+// 	parseTopoRoad().then(roads => {
+// 		try {
+// 			fs.writeFile("./assets/basemap/roads.json", JSON.stringify({ roads: roads }, null, 4), err => { console.log(err) })
+// 		}
+// 		catch (err) {
+// 			console.log(`[Load road file] ${err}`)
+// 		}
+// 	})
+// })

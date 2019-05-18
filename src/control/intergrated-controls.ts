@@ -1,5 +1,6 @@
 import * as MobileDetect from "mobile-detect"
 import { Component } from "../wasp";
+import { MessageData } from "../web";
 
 interface IntergratedControlsComponentSchema {
 	readonly hand: string
@@ -47,8 +48,12 @@ export class IntergratedControlsComponent extends Component<IntergratedControlsC
 		const click = (evt: any) => {
 			this.el.emit("raw-click", evt)
 		}
-		const mousedown = (evt: any) => this.el.emit("raw-down", evt)
-		const mouseup = (evt: any) => this.el.emit("raw-up", evt)
+		const mousedown = (evt: any) => this.el.emit("raw-down", evt.detail)
+		const mouseup = (evt: any) => this.el.emit("raw-up", evt.detail)
+
+		const trackpadtouchstart = (evt: any) => this.el.emit("raw-touchstart", evt.detail)
+		const trackpadtouchend = (evt: any) => this.el.emit("raw-touchend", evt.detail)
+		const axismove = (evt: any) => this.el.emit("raw-axismove", evt.detail)
 
 		this.listen("trackpaddown", click)
 		this.listen("-click", click)
@@ -58,6 +63,15 @@ export class IntergratedControlsComponent extends Component<IntergratedControlsC
 
 		this.listen("trackpadup", mouseup)
 		this.listen("-mouseup", mouseup)
+
+		this.listen("trackpadtouchstart", trackpadtouchstart)
+		this.listen("trackpadtouchend", trackpadtouchend)
+		this.listen("axismove", axismove)
+
+		// this.listen("raw-touchstart", (evt: any) => {
+		// })
+		// this.listen("raw-touchend", (evt: any) => {
+		// })
 		// daydream.addEventListener("")
 	}
 }
