@@ -13,7 +13,8 @@ interface WheelComponentSchema {
 // const ringColor = "#5E737C"
 // const circleColor = "#0C0C16"
 const ringColor = "#0C0C16"
-const circleColor = "#5E737C"
+// const circleColor = "#5E737C"
+const circleColor = "#6EB6CE"
 const contentScale = 0.9
 const edgeWidth = 0.02
 

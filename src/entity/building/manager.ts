@@ -60,7 +60,7 @@ export class BuildingPrototype {
 		color: 0xeeeeee,
 		side: THREE.DoubleSide,
 		transparent: true,
-		opacity: 0.3,
+		opacity: 0.6,
 		displacementScale: 1e-4,
 		flatShading: true		// hard edges
 	})
@@ -94,7 +94,7 @@ export class BuildingPrototype {
 
 					// add frame
 					const { max: { y: y0 }, min: { y: y1 } } = new THREE.Box3().setFromObject(obj)
-					const h = y0 - y1 + 0.05
+					const h = (y0 - y1 + 0.05) / DistUnit
 					const frame = new THREE.BoxGeometry(
 						def.placeholder[0], h, def.placeholder[0])
 					frame.translate(0, h / 2, 0)
@@ -104,7 +104,9 @@ export class BuildingPrototype {
 					// build layer 0
 					proto.object.model = obj
 					proto.object.floor = new THREE.Mesh(plain, BuildingPrototype.planeMaterial)
+					proto.object.floor.scale.setScalar(DistUnit)
 					proto.object.frame = new THREE.Mesh(frame, BuildingPrototype.frameMaterial)
+					proto.object.frame.scale.setScalar(DistUnit)
 
 
 					// scale all objects

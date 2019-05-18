@@ -60,13 +60,13 @@ export class SelectStateComponent extends Component<{}>{
 			// if (this.selecting) {
 			component = <BuildingComponent>target.components["building"] || <RoadComponent>target.components["road"]
 			if (component != undefined) {
-				component.preSelect()
+				component.hover()
 				// console.log("set1")
 				if (!this.solved.has(target)) {
 					self.subscribe(city, "int-leave", evt => {
-						if (this.current != target && evt.target == target && !evt.target.hasAttribute('terrain')) {
+						if (evt.target == target && !evt.target.hasAttribute('terrain')) {
 							// console.log("unset1")
-							component.unselect()
+							component.unhover()
 						}
 					})
 					self.subscribe(city, "int-click", evt => {
@@ -79,6 +79,7 @@ export class SelectStateComponent extends Component<{}>{
 					})
 					self.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 						component.unselect()
+						component.unhover()
 					})
 					this.solved.set(target, 1)
 				}
@@ -208,6 +209,7 @@ new SelectStateComponent().register()
 export class BuildingStateComponent extends Component<{}> {
 
 	private current!: BuildingComponent
+	private pos: THREE.Vector2
 	private valid: boolean = false
 	private my_fucking_data: any
 
@@ -236,15 +238,12 @@ export class BuildingStateComponent extends Component<{}> {
 				this.current = undefined
 			}
 		})
-
-		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
-
+		const updateState = () => {
 			const city = window["city-editor"]
-			const xy: THREE.Vector2 = evt.detail.clone()
 
 			if (!this.current) {
 
-				const xyz = plain2world(xy)
+				const xyz = plain2world(this.pos)
 				// console.log(xy)
 				// console.log(xyz)
 				this.current = <any>EntityBuilder.create("a-entity", {
@@ -259,7 +258,7 @@ export class BuildingStateComponent extends Component<{}> {
 			} else {
 
 				const basemap: BasemapComponent = window["basemap"]
-				const modelInfo = basemap.basemap.alignBuilding(xy, this.current.proto.placeholder)
+				const modelInfo = basemap.basemap.alignBuilding(this.pos, this.current.proto.placeholder)
 				const { road, offset, center, angle, valid } = modelInfo
 				// console.log(modelInfo)
 				const { x, y, z } = plain2world(center)
@@ -274,8 +273,14 @@ export class BuildingStateComponent extends Component<{}> {
 				this.my_fucking_data = modelInfo
 
 			}
+		}
+		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
+			this.pos = evt.detail.clone()
+			updateState()
 		})
-
+		this.listen("building-change", evt => {
+			updateState()
+		})
 
 	}
 }
@@ -288,7 +293,7 @@ export class RoadStateComponent extends Component<{}> {
 	private pointIdk!: AFrame.Entity
 	private points!: AFrame.Entity
 	private map: Map<Point, AFrame.Entity> = new Map()
-	private leave: boolean
+	// private leave: boolean
 
 	constructor() {
 		super("road-state", {})
@@ -298,14 +303,14 @@ export class RoadStateComponent extends Component<{}> {
 
 		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
-			this.leave = false
+			// this.leave = false
 		})
 		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-leave", () => {
 			if (!!this.current) {
 				this.current.parentNode.removeChild(this.current)
 				this.current = undefined
 			}
-			this.leave = true
+			// this.leave = true
 		})
 
 		let xy!: THREE.Vector2

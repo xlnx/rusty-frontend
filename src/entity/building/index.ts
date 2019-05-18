@@ -2,7 +2,7 @@ import { BuildingManager, BuildingPrototype } from "./manager";
 import { Component, EventController } from "../../wasp";
 import BasemapBuildingItem from "../../basemap/buildingItem";
 import { TerrainComponent } from "../terrain";
-import { world2plain, DistUnit } from "../../legacy";
+import { world2plain, DistUnit, plain2world } from "../../legacy";
 import { EntityBuilder } from "aframe-typescript-toolkit";
 import { BasemapComponent } from "../basemap";
 import { WebSocketComponent } from "../../control";
@@ -109,12 +109,8 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 
 				const b = EntityBuilder.create("a-entity", {
 					building: { name: this.data.name },
-					position: this.el.object3D.position,
-					rotation: {
-						x: 0,
-						y: modelInfo.angle,
-						z: 0,
-					},
+					// position: this.el.object3D.position,
+					// rotation: this.el.object3D.rotation,
 					scale: this.el.object3D.scale
 				})
 					.attachTo(city)
@@ -146,7 +142,7 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 
 new BuildingIndicatorComponent().register()
 
-export class BuildingComponent extends Component<BuildingComponentSchema> implements Selectable {
+export class BuildingComponent extends Component<BuildingComponentSchema> {
 
 	constructor() {
 		super("building", {
@@ -176,6 +172,10 @@ export class BuildingComponent extends Component<BuildingComponentSchema> implem
 			modelInfo.angle, modelInfo.road, modelInfo.offset)
 		item.userData = this
 			; (<any>this).building = item
+
+		const { x, y, z } = plain2world(modelInfo.center)
+		this.el.object3D.position.set(x, y, z)
+		this.el.object3D.rotation.y = modelInfo.angle
 
 		basemap.basemap.addBuilding(item)
 
@@ -212,7 +212,7 @@ export class BuildingComponent extends Component<BuildingComponentSchema> implem
 		opacity: 0.5,
 		transparent: true
 	})
-	preSelect() {
+	hover() {
 		this.object.traverse((node) => {
 			// console.log(node)
 			const ele = <THREE.Mesh>node
@@ -222,9 +222,19 @@ export class BuildingComponent extends Component<BuildingComponentSchema> implem
 		})
 	}
 	select() {
-		this.preSelect()
+		this.el.object3D.add(this.proto.object.frame)
+	}
+	unhover() {
+		this.object.traverse((node) => {
+			// console.log(node)
+			const ele = <THREE.Mesh>node
+			if (ele.isMesh) {
+				; (<any>ele.material) = this.originMaterial
+			}
+		})
 	}
 	unselect() {
+		this.el.object3D.remove(this.proto.object.frame)
 		this.object.traverse((node) => {
 			// console.log(node)
 			const ele = <THREE.Mesh>node

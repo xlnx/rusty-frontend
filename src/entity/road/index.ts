@@ -102,7 +102,7 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 
 new RoadIndicatorComponent().register()
 
-export class RoadComponent extends Component<{ readonly item: any }> implements Selectable {
+export class RoadComponent extends Component<{ readonly item: any }> {
 
 	public readonly road!: Road
 
@@ -154,7 +154,10 @@ export class RoadComponent extends Component<{ readonly item: any }> implements 
 		opacity: 0.5,
 		transparent: true
 	})
-	preSelect() {
+
+	private is_selected = false;
+
+	hover() {
 		this.road.traverse((node) => {
 			// console.log(node)
 			const ele = <THREE.Mesh>node
@@ -164,16 +167,22 @@ export class RoadComponent extends Component<{ readonly item: any }> implements 
 		})
 	}
 	select() {
-		this.preSelect()
+		this.is_selected = true;
+	}
+	unhover() {
+		if (!this.is_selected) {
+			this.road.traverse((node) => {
+				// console.log(node)
+				const ele = <THREE.Mesh>node
+				if (ele.isMesh) {
+					; (<any>ele.material) = this.originMaterial
+				}
+			})
+		}
 	}
 	unselect() {
-		this.road.traverse((node) => {
-			// console.log(node)
-			const ele = <THREE.Mesh>node
-			if (ele.isMesh) {
-				; (<any>ele.material) = this.originMaterial
-			}
-		})
+		this.is_selected = false;
+		this.unhover()
 	}
 }
 

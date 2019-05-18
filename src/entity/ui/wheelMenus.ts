@@ -16,7 +16,7 @@ export class WheelMenuComponent extends Component<WheelMenuSchema>{
         const el = this.el
         el.setAttribute("wheel", {
             outerRadius: this.data.outerRadius,
-            target: "#road_icon, #building_icon, #eye_icon, #mountain_icon"
+            target: "#road_icon, #building_icon, #eye_icon, #mountain_icon, #cursor_icon"
         })
         document
             .querySelector("#road_icon_widget")
@@ -53,6 +53,14 @@ export class WheelMenuComponent extends Component<WheelMenuSchema>{
                 event: "ui-widget-click",
                 value: "preview"
             })
+        document
+            .querySelector("#cursor_icon_widget")
+            .setAttribute("router-switch", {
+                router: document.querySelector("#main-controller"),
+                event: "ui-widget-click",
+                value: "select"
+            })
+
     }
 }
 
