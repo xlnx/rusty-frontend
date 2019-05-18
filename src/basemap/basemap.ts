@@ -60,7 +60,7 @@ class Basemap<R, B> {
 				// let tes = { from: c, to: d, crossPoint: crossPt }
 
 				//if the cross point is not C or D
-				if (!crossPt.equals(c) && !crossPt.equals(d)) {
+				if (!cmpPt(crossPt, c) && !cmpPt(crossPt, d)) {
 					// this.removeRoad(road)
 					res.removed.push(road)
 					tempRoad.push(new BasemapRoadItem<R>(road.width, c, crossPt))
@@ -69,7 +69,7 @@ class Basemap<R, B> {
 				//otherwise, if cross point is C or D, nothing to do with line CD
 
 				//if new this.RoadType is not segmented
-				if (crossPt.equals(from) || crossPt.equals(to)) continue
+				if (cmpPt(crossPt, from) || !cmpPt(crossPt, to)) continue
 				segPts.push(crossPt)
 			}
 		}
@@ -109,7 +109,7 @@ class Basemap<R, B> {
 		else {
 			this.edge.set(road.to, [road])
 		}
-		this.roadTree.push(road.quadTreeItem, true)
+		this.roadTree.push(road.quadTreeItem)
 
 		this.roadID.set(road, Basemap.count)
 		this.IDroad.set(Basemap.count, road)
@@ -130,7 +130,7 @@ class Basemap<R, B> {
 	}
 
 	addBuilding(building: BasemapBuildingItem<B>) {
-		this.buildingTree.push(building.quadTreeItem, true)
+		this.buildingTree.push(building.quadTreeItem)
 	}
 
 	alignRoad(road: BasemapRoadItem<R>, lengthAssert: boolean = true): boolean {
@@ -396,8 +396,9 @@ class Basemap<R, B> {
 		}, (elt1, elt2) => {
 			const box1 = new THREE.Box2(new THREE.Vector2(elt1.x - elt1.width / 2, elt1.y - elt1.height / 2), new THREE.Vector2(elt1.x + elt1.width / 2, elt1.y + elt1.height / 2))
 			const box2 = new THREE.Box2(new THREE.Vector2(elt2.x - elt2.width / 2, elt2.y - elt2.height / 2), new THREE.Vector2(elt2.x + elt2.width / 2, elt2.y + elt2.height / 2))
-			return box1.intersectsBox(box2)
+			return box1.intersectsBox(box2) || box1.containsBox(box2) || box2.containsBox(box1)
 		})
+		// return this.roadTree.onc
 	}
 
 	selectRoad(pt: Point): BasemapRoadItem<R> | undefined {
@@ -424,10 +425,10 @@ class Basemap<R, B> {
 	getVerticalRoad(pt: Point, distOfBox: number = defaultRoadSelectionRange): BasemapRoadItem<R> | undefined {
 		let res: BasemapRoadItem<R> = undefined
 		let minDist = Infinity
-		const items = this.getBoxRoadItems(pt, distOfBox)
+		const items = this.getBoxRoadItems(pt, 2 * distOfBox)
 		// console.log(this.roadTree)
-		// console.log("distOfBox:", distOfBox)
-		// console.log("all items:", items.length)
+		console.log("distOfBox:", distOfBox)
+		console.log("all items:", items.length)
 		// console.log("all roads:", this.getAllRoads().length)
 		// console.log("all treeitems:", this.roadTree.find(e => true).length)
 		items.forEach((item: QuadTreeItem<BasemapRoadItem<R>>) => {
@@ -448,7 +449,7 @@ class Basemap<R, B> {
 
 	attachNearPoint(pt: Point): Point {
 		const near = this.getCandidatePoint(pt)
-		if (near && near.distanceTo(pt) <= AttachRadius) return near
+		if (!cmpPt(near, pt) && near.distanceTo(pt) <= AttachRadius) return near
 		else {
 			const road = this.getVerticalRoad(pt, 2 * AttachRadius)
 			if (road == undefined) return pt

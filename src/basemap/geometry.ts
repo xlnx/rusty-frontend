@@ -134,7 +134,7 @@ class Seg2D {
 class AnyRect2D {
     private bbox2d: THREE.Box2 = <any>null
     constructor(private readonly pts: THREE.Vector2[]) {
-        this.bbox2d = new THREE.Box2(minPt(this.pts), maxPt(this.pts))
+        this.bbox2d = new THREE.Box2(minPt(this.pts).clone(), maxPt(this.pts).clone())
     }
 
     containPts(pts: Point[]): boolean {
@@ -207,8 +207,8 @@ class AnyRect2D {
     }
 
     treeItem(): QuadTreeItem {
-        let min = minPt(this.pts)
-        let max = maxPt(this.pts)
+        let min = minPt(this.pts).clone()
+        let max = maxPt(this.pts).clone()
         return {
             x: min.x,
             y: min.y,

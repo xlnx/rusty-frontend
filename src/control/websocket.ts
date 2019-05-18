@@ -67,6 +67,9 @@ export class WebSocketComponent extends Component<WebSocketComponentSchema> {
 			console.log("%c[Web Socket] Requiring data from server...", "background: #00cc00; color: #fff")
 			this.socket.send(new MessageData("Data required").toString())
 		})
+		this.listen("Add message", msg => {
+			this.socket.send(new MessageData(msg.detail).toString())
+		})
 	}
 }
 

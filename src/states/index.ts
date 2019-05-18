@@ -10,6 +10,7 @@ import { PointDetectRadius } from "../basemap/def";
 import * as UI from "../ui/def";
 import { WebSocketComponent } from "../control";
 import { WheelComponent } from "../ui";
+import { MessageData } from "../web";
 
 
 export class SelectStateComponent extends Component<{}>{
@@ -462,6 +463,7 @@ export class RoadStateComponent extends Component<{}> {
 new RoadStateComponent().register()
 
 export class PreviewStateComponent extends Component<{}> {
+
 	constructor() { super("preview-state", {}) }
 	init() { }
 }
