@@ -242,13 +242,17 @@ export class BuildingStateComponent extends Component<{}> {
 
 		setTimeout(() => {
 
-			let dx = 0
+			let dx = 0, dy = 0
 			let prev: [number, number]
 			let first = false
 
 			const th = 0.3
+			const rth = 0.7
 
 			this.subscribe(window["control"], "raw-touchstart", () => {
+				first = true
+			})
+			this.subscribe(window["control"], "raw-touchend", () => {
 				first = true
 			})
 
@@ -258,9 +262,11 @@ export class BuildingStateComponent extends Component<{}> {
 				// if ()
 
 				if (first) {
-					dx = 0
+					dx = dy = 0
 				} else {
 					dx += axis[0] - prev[0]
+					dy += axis[1] - prev[1]
+
 					let idx = 0
 					while (dx > th) {
 						dx -= th
@@ -270,11 +276,16 @@ export class BuildingStateComponent extends Component<{}> {
 						dx += th
 						idx--
 					}
+
 					if (idx != 0) {
 						if (this.current) {
 							this.current.el.emit("switch-proto", idx)
 							this.el.emit("switch-proto", idx)
 						}
+					}
+
+					if (dy < -rth) {
+						this.el.emit("switch-wheel")
 					}
 				}
 				prev = [axis[0], axis[1]]
