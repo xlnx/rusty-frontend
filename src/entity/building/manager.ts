@@ -208,5 +208,11 @@ export class BuildingManager {
 	get(name: string): BuildingPrototype | undefined {
 		return this.resources.get(name)
 	}
-
+	getList(): BuildingPrototype[] {
+		const res: BuildingPrototype[] = []
+		for (let entry of this.resources.entries()) {
+			res.push(entry[1])
+		}
+		return res
+	}
 }

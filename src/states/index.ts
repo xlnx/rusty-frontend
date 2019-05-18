@@ -1,5 +1,5 @@
 import { EntityBuilder } from "aframe-typescript-toolkit";
-import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent, RoadComponent, BuildingIndicatorComponent } from "../entity";
+import { BasemapComponent, BuildingComponent, RoadIndicatorComponent, TerrainComponent, RoadComponent, BuildingIndicatorComponent, BuildingManagerComponent } from "../entity";
 import { plain2world, DistUnit } from "../legacy";
 import { Component, EventController } from "../wasp";
 import BasemapBuildingItem from "../basemap/buildingItem";
@@ -11,6 +11,7 @@ import * as UI from "../ui/def";
 import { WebSocketComponent } from "../control";
 import { WheelComponent } from "../ui";
 import { MessageData } from "../web";
+import { BuildingPrototype } from "../entity/building/manager";
 
 
 export class SelectStateComponent extends Component<{}>{
@@ -213,13 +214,14 @@ export class BuildingStateComponent extends Component<{}> {
 	private pos: THREE.Vector2
 	private valid: boolean = false
 	private my_fucking_data: any
+	private protoList: BuildingPrototype[]
 
 	constructor() {
 		super("building-state", {})
 	}
 
 	init() {
-
+		this.protoList = window['manager'].getList()
 		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
 			this.valid = false
@@ -324,7 +326,24 @@ export class BuildingStateComponent extends Component<{}> {
 			this.pos = evt.detail.clone()
 			updateState()
 		})
-		this.listen("building-change", evt => {
+		this.listen("switch-proto", evt => {
+			const idx = evt.detail
+			const manager: BuildingManagerComponent = window['manager']
+			const no = this.protoList.indexOf(this.current.proto)
+			const size = this.protoList.length
+			const proto = this.protoList[(no + idx) % size]
+			this.current.el.parentNode.removeChild(this.current.el)
+			const xyz = plain2world(this.pos)
+			const city = window["city-editor"]
+			this.current = <any>EntityBuilder.create("a-entity", {
+				"building-indicator": {
+					name: proto.name
+				},
+				position: xyz
+			})
+				.attachTo(city)
+				.toEntity()
+				.components["building-indicator"]
 			updateState()
 		})
 
