@@ -8,6 +8,7 @@ import { BasemapComponent } from "../basemap";
 import { WebSocketComponent } from "../../control";
 import { Object3D } from "three";
 import { Selectable } from "../selectable";
+import { MessageData } from "../../web";
 
 export class BuildingManagerComponent extends Component<{}> {
 
@@ -95,6 +96,15 @@ export class BuildingIndicatorComponent extends Component<BuildingIndicatorCompo
 			this.handlers.push(this.listen("validate-building", (evt: any) => {
 				mat.color.set(evt.detail ? BuildingIndicatorComponent.validColor
 					: BuildingIndicatorComponent.invalidColor)
+			}))
+
+			this.handlers.push(this.listen("switch-proto", (evt: any) => {
+				let dx = evt.detail
+
+				//
+
+				const socket = window["socket"]
+				socket.socket.send(new MessageData(dx).toString())
 			}))
 
 			this.handlers.push(this.listen("locate-building", (msg: any) => {

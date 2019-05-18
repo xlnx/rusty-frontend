@@ -209,7 +209,7 @@ export class SelectStateComponent extends Component<{}>{
 new SelectStateComponent().register()
 export class BuildingStateComponent extends Component<{}> {
 
-	private current!: BuildingComponent
+	private current!: BuildingIndicatorComponent
 	private pos: THREE.Vector2
 	private valid: boolean = false
 	private my_fucking_data: any
@@ -239,6 +239,51 @@ export class BuildingStateComponent extends Component<{}> {
 				this.current = undefined
 			}
 		})
+
+		setTimeout(() => {
+
+			let dx = 0
+			let prev: [number, number]
+			let first = false
+
+			const th = 0.3
+
+			this.subscribe(window["control"], "raw-touchstart", () => {
+				first = true
+			})
+
+			this.subscribe(window["control"], "raw-axismove", (evt: any) => {
+				let axis: [number, number] = evt.detail.axis
+				let changed: [boolean, boolean] = evt.detail.changed
+				// if ()
+
+				if (first) {
+					dx = 0
+				} else {
+					dx += axis[0] - prev[0]
+					let idx = 0
+					while (dx > th) {
+						dx -= th
+						idx++
+					}
+					while (dx < -th) {
+						dx += th
+						idx--
+					}
+					if (idx != 0) {
+						if (this.current) {
+							this.current.el.emit("switch-proto", idx)
+							this.el.emit("switch-proto", idx)
+						}
+					}
+				}
+				prev = [axis[0], axis[1]]
+
+				first = false
+
+			})
+		}, 1000)
+
 		const updateState = () => {
 			const city = window["city-editor"]
 
