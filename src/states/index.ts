@@ -214,14 +214,13 @@ export class BuildingStateComponent extends Component<{}> {
 	private pos: THREE.Vector2
 	private valid: boolean = false
 	private my_fucking_data: any
-	private protoList: BuildingPrototype[]
 
 	constructor() {
 		super("building-state", {})
 	}
 
 	init() {
-		this.protoList = window['manager'].getList()
+
 		this.subscribe(<AFrame.Entity>(this.el.parentElement), "router-enter", () => {
 			this.current = undefined
 			this.valid = false
@@ -244,55 +243,40 @@ export class BuildingStateComponent extends Component<{}> {
 
 		setTimeout(() => {
 
-			let dx = 0, dy = 0
-			let prev: [number, number]
-			let first = false
+
+			let mdx = 0, mdy = 0
 
 			const th = 0.3
 			const rth = 0.7
 
-			this.subscribe(window["control"], "raw-touchstart", () => {
-				first = true
-			})
-			this.subscribe(window["control"], "raw-touchend", () => {
-				first = true
-			})
-
 			this.subscribe(window["control"], "raw-axismove", (evt: any) => {
-				let axis: [number, number] = evt.detail.axis
-				let changed: [boolean, boolean] = evt.detail.changed
+
+				let { dx, dy } = evt.detail
+
+				mdx += dx
+				mdy += dy
 				// if ()
 
-				if (first) {
-					dx = dy = 0
-				} else {
-					dx += axis[0] - prev[0]
-					dy += axis[1] - prev[1]
+				let idx = 0
+				while (mdx > th) {
+					mdx -= th
+					idx++
+				}
+				while (mdx < -th) {
+					mdx += th
+					idx--
+				}
 
-					let idx = 0
-					while (dx > th) {
-						dx -= th
-						idx++
-					}
-					while (dx < -th) {
-						dx += th
-						idx--
-					}
-
-					if (idx != 0) {
-						if (this.current) {
-							this.current.el.emit("switch-proto", idx)
-							this.el.emit("switch-proto", idx)
-						}
-					}
-
-					if (dy < -rth) {
-						this.el.emit("switch-wheel")
+				if (idx != 0) {
+					if (this.current) {
+						this.current.el.emit("switch-proto", idx)
+						this.el.emit("switch-proto", idx)
 					}
 				}
-				prev = [axis[0], axis[1]]
 
-				first = false
+				if (dy < -rth) {
+					this.el.emit("switch-wheel")
+				}
 
 			})
 		}, 1000)
@@ -337,24 +321,41 @@ export class BuildingStateComponent extends Component<{}> {
 			this.pos = evt.detail.clone()
 			updateState()
 		})
+
+		const log = (msg: any) => {
+			const socket = window['socket']
+			socket.socket.send(new MessageData(msg).toString())
+		}
 		this.listen("switch-proto", evt => {
-			const idx = evt.detail
-			const manager: BuildingManagerComponent = window['manager']
-			const no = this.protoList.indexOf(this.current.proto)
-			const size = this.protoList.length
-			const proto = this.protoList[(no + idx) % size]
-			this.current.el.parentNode.removeChild(this.current.el)
-			const xyz = plain2world(this.pos)
-			const city = window["city-editor"]
-			this.current = <any>EntityBuilder.create("a-entity", {
-				"building-indicator": {
-					name: proto.name
-				},
-				position: xyz
-			})
-				.attachTo(city)
-				.toEntity()
-				.components["building-indicator"]
+
+
+			try {
+				const manager: BuildingManagerComponent = window['building-manager']
+				const list = manager.manager.getList()
+
+				const idx = evt.detail
+				const no = list.indexOf(this.current.proto.name)
+				const size = list.length
+				const proto = list[(no + idx) % size]
+				log(list)
+				log(`idx:${(no + idx) % size}`)
+
+				log(new MessageData(proto).toString())
+				this.current.el.parentNode.removeChild(this.current.el)
+				const xyz = plain2world(this.pos)
+				const city = window["city-editor"]
+				this.current = <any>EntityBuilder.create("a-entity", {
+					"building-indicator": {
+						name: proto
+					},
+					position: xyz
+				})
+					.attachTo(city)
+					.toEntity()
+					.components["building-indicator"]
+			} catch (err) {
+				log(err.toString())
+			}
 			updateState()
 		})
 

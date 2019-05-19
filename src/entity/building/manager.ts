@@ -1,5 +1,6 @@
 import { JsonAsset, ModelAsset } from "../../wasp";
 import { DistUnit } from "../../legacy";
+import { MessageData } from "../../web";
 
 interface TransformStep {
 	rotate?: number[],
@@ -141,6 +142,7 @@ export class BuildingManager {
 
 	private readonly resources = new Map<string, BuildingPrototype>()
 	private _ready: boolean = false
+	private list: string[]
 
 	private _requests: number = 0
 	private _finishedRequests: number = 0
@@ -202,16 +204,23 @@ export class BuildingManager {
 					.then(e => res(e, idx), e => rej(e, idx)))
 
 			console.log("%c[Building Manager] Buildings all loaded.", "background: #00cc00; color: #fff")
+			this.list = this.getList()
 		})
 	}
 
 	get(name: string): BuildingPrototype | undefined {
 		return this.resources.get(name)
 	}
-	getList(): BuildingPrototype[] {
-		const res: BuildingPrototype[] = []
+	getList(): string[] {
+		const res: string[] = []
+		const log = (msg: any) => {
+			const socket = window['socket']
+			socket.socket.send(new MessageData(msg).toString())
+		}
+		log(this.resources.size)
 		for (let entry of this.resources.entries()) {
-			res.push(entry[1])
+			log(entry[0])
+			res.push(entry[0])
 		}
 		return res
 	}

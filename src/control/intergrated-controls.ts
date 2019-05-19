@@ -53,7 +53,51 @@ export class IntergratedControlsComponent extends Component<IntergratedControlsC
 
 		const trackpadtouchstart = (evt: any) => this.el.emit("raw-touchstart", evt.detail)
 		const trackpadtouchend = (evt: any) => this.el.emit("raw-touchend", evt.detail)
-		const axismove = (evt: any) => this.el.emit("raw-axismove", evt.detail)
+
+		// setTimeout(() => {
+
+
+
+		// 	const th = 0.3
+		// 	const rth = 0.7
+
+		// 	this.subscribe(window["control"], "raw-touchstart", () => {
+		// 		first = true
+		// 	})
+		// 	this.subscribe(window["control"], "raw-touchend", () => {
+		// 		first = true
+		// 	})
+
+		// 	this.subscribe(window["control"], "raw-axismove", (evt: any) => {
+
+		// 	}, 1000)
+
+		let dx = 0, dy = 0
+		let prev: [number, number]
+		let first = false
+
+		this.listen("raw-touchstart", () => { first = true })
+		this.listen("raw-touchend", () => { first = true })
+
+		const axismove = (evt: any) => {
+			let axis: [number, number] = evt.detail.axis
+
+			if (first) {
+				dx = dy = 0
+			} else {
+				dx = axis[0] - prev[0]
+				dy = axis[1] - prev[1]
+			}
+			prev = [axis[0], axis[1]]
+
+			first = false
+
+			let data = {
+				dx, dy
+			}
+
+			this.el.emit("raw-axismove", data)
+		}
 
 		this.listen("trackpaddown", click)
 		this.listen("-click", click)
@@ -68,6 +112,24 @@ export class IntergratedControlsComponent extends Component<IntergratedControlsC
 		this.listen("trackpadtouchend", trackpadtouchend)
 		this.listen("axismove", axismove)
 
+		this.listen("-scroll", (evt) => {
+			console.log(evt)
+			// let axis: [number, number] = evt.detail.axis
+
+			// if (first) {
+			// 	dx = dy = 0
+			// } else {
+			// 	dx = axis[0] - prev[0]
+			// 	dy = axis[1] - prev[1]
+			// }
+			// prev = [axis[0], axis[1]]
+
+			// first = false
+
+			// let data = {
+			// 	dx, dy
+			// }
+		})
 		// this.listen("raw-touchstart", (evt: any) => {
 		// })
 		// this.listen("raw-touchend", (evt: any) => {
