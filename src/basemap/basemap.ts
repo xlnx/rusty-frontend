@@ -396,7 +396,7 @@ class Basemap<R, B> {
 		}, (elt1, elt2) => {
 			const box1 = new THREE.Box2(new THREE.Vector2(elt1.x - elt1.width / 2, elt1.y - elt1.height / 2), new THREE.Vector2(elt1.x + elt1.width / 2, elt1.y + elt1.height / 2))
 			const box2 = new THREE.Box2(new THREE.Vector2(elt2.x - elt2.width / 2, elt2.y - elt2.height / 2), new THREE.Vector2(elt2.x + elt2.width / 2, elt2.y + elt2.height / 2))
-			return box1.intersectsBox(box2) || box1.containsBox(box2) || box2.containsBox(box1)
+			return box1.intersectsBox(box2)
 		})
 		// return this.roadTree.onc
 	}
@@ -427,8 +427,8 @@ class Basemap<R, B> {
 		let minDist = Infinity
 		const items = this.getBoxRoadItems(pt, 2 * distOfBox)
 		// console.log(this.roadTree)
-		console.log("distOfBox:", distOfBox)
-		console.log("all items:", items.length)
+		// console.log("distOfBox:", distOfBox)
+		// console.log("all items:", items.length)
 		// console.log("all roads:", this.getAllRoads().length)
 		// console.log("all treeitems:", this.roadTree.find(e => true).length)
 		items.forEach((item: QuadTreeItem<BasemapRoadItem<R>>) => {
