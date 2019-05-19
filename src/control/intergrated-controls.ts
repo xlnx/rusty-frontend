@@ -112,24 +112,26 @@ export class IntergratedControlsComponent extends Component<IntergratedControlsC
 		this.listen("trackpadtouchend", trackpadtouchend)
 		this.listen("axismove", axismove)
 
-		this.listen("-scroll", (evt) => {
-			console.log(evt)
-			// let axis: [number, number] = evt.detail.axis
+		// this.listen("-scroll", (evt) => {
+		// 	// console.log(evt)
+		// 	const idx = evt.detail.deltaY
 
-			// if (first) {
-			// 	dx = dy = 0
-			// } else {
-			// 	dx = axis[0] - prev[0]
-			// 	dy = axis[1] - prev[1]
-			// }
-			// prev = [axis[0], axis[1]]
+		// 	// let axis: [number, number] = evt.detail.axis
 
-			// first = false
+		// 	// if (first) {
+		// 	// 	dx = dy = 0
+		// 	// } else {
+		// 	// 	dx = axis[0] - prev[0]
+		// 	// 	dy = axis[1] - prev[1]
+		// 	// }
+		// 	// prev = [axis[0], axis[1]]
 
-			// let data = {
-			// 	dx, dy
-			// }
-		})
+		// 	// first = false
+
+		// 	// let data = {
+		// 	// 	dx, dy
+		// 	// }
+		// })
 		// this.listen("raw-touchstart", (evt: any) => {
 		// })
 		// this.listen("raw-touchend", (evt: any) => {

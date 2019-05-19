@@ -213,13 +213,7 @@ export class BuildingManager {
 	}
 	getList(): string[] {
 		const res: string[] = []
-		const log = (msg: any) => {
-			const socket = window['socket']
-			socket.socket.send(new MessageData(msg).toString())
-		}
-		log(this.resources.size)
 		for (let entry of this.resources.entries()) {
-			log(entry[0])
 			res.push(entry[0])
 		}
 		return res

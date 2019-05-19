@@ -31,9 +31,9 @@ export class MouseControlsComponent extends Component<{ enable: boolean }> {
 			})
 			window.addEventListener("wheel", evt => {
 				setTimeout(() => {
-					console.log("scroll")
-					this.el.emit("-scroll", evt)
+					// console.log("scroll")
 					if (this.data.enable && evt instanceof MouseEvent) {
+						this.el.emit("-scroll", evt)
 					}
 				})
 			})

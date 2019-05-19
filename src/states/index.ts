@@ -300,6 +300,8 @@ export class BuildingStateComponent extends Component<{}> {
 					.components["building-indicator"]
 			} else {
 
+				// try {
+
 				const basemap: BasemapComponent = window["basemap"]
 				const modelInfo = basemap.basemap.alignBuilding(this.pos, this.current.proto.placeholder)
 				const { road, offset, center, angle, valid } = modelInfo
@@ -314,33 +316,22 @@ export class BuildingStateComponent extends Component<{}> {
 				this.valid = valid
 
 				this.my_fucking_data = modelInfo
-
+				// }
+				// catch (err) { }
 			}
 		}
-		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
-			this.pos = evt.detail.clone()
-			updateState()
-		})
-
-		const log = (msg: any) => {
-			const socket = window['socket']
-			socket.socket.send(new MessageData(msg).toString())
-		}
-		this.listen("switch-proto", evt => {
-
-
+		const updateProto = (idx: number) => {
 			try {
 				const manager: BuildingManagerComponent = window['building-manager']
 				const list = manager.manager.getList()
 
-				const idx = evt.detail
 				const no = list.indexOf(this.current.proto.name)
 				const size = list.length
-				const proto = list[(no + idx) % size]
-				log(list)
-				log(`idx:${(no + idx) % size}`)
+				const proto = list[(no + idx + size) % size]
+				// log(list)
+				// log(`idx:${(no + idx) % size}`)
 
-				log(new MessageData(proto).toString())
+				// log(new MessageData(proto).toString())
 				this.current.el.parentNode.removeChild(this.current.el)
 				const xyz = plain2world(this.pos)
 				const city = window["city-editor"]
@@ -354,11 +345,33 @@ export class BuildingStateComponent extends Component<{}> {
 					.toEntity()
 					.components["building-indicator"]
 			} catch (err) {
-				log(err.toString())
+				console.log(err.toString())
 			}
+		}
+		this.subscribe(window["terrain"].el, "terrain-intersection-update", evt => {
+			this.pos = evt.detail.clone()
 			updateState()
 		})
 
+		// const log = (msg: any) => {
+		// 	const socket = window['socket']
+		// 	socket.socket.send(new MessageData(msg).toString())
+		// }
+		this.listen("switch-proto", evt => {
+			const idx = evt.detail
+			updateProto(idx)
+			updateState()
+		})
+
+		setTimeout(() => {
+
+			const controlEn: AFrame.Entity = window['control']
+			this.subscribe(controlEn, "-scroll", (evt) => {
+				const idx = evt.detail.deltaY / 100
+				updateProto(idx)
+				updateState()
+			})
+		}, 1000)
 	}
 }
 
