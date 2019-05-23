@@ -112,8 +112,10 @@ export class BasemapComponent extends Component<{}> {
 					const proto = manager.manager.get(prototype)
 
 					console.log("importing: ", prototype, ", ", center)
-					console.log("with manager: ", manager)
+					console.log("with manager: ", manager.manager)
+					console.log("with manager: ", (<any>manager.manager).resources)
 					console.log("with manager list: ", manager.manager.getList())
+					console.log("with proto: ", proto) 
 
 
 					const pos = new THREE.Vector2(center.x, center.y)

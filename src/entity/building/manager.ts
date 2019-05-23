@@ -140,7 +140,7 @@ export class BuildingManager {
 		this.load(assets)
 	}
 
-	private readonly resources = new Map<string, BuildingPrototype>()
+	private readonly resources = {} // new Map<string, BuildingPrototype>()
 	private _ready: boolean = false
 	private list: string[]
 
@@ -154,7 +154,7 @@ export class BuildingManager {
 	get finishedRequests() { return this._finishedRequests }
 
 	private clear() {
-		this.resources.clear()
+		// this.resources.clear()
 	}
 
 	load(path: string[] | string): Promise<(BuildingPrototype | undefined)[]> {
@@ -174,11 +174,11 @@ export class BuildingManager {
 
 				for (let proto of protos) {
 					if (proto) {
-						if (this.resources.has(proto.name)) {
-							console.warn(`Prototype with name ${proto.name} already exists.`)
-						} else {
-							this.resources.set(proto.name, proto)
-						}
+						//if (this.resources.has(proto.name)) {
+						//	console.warn(`Prototype with name ${proto.name} already exists.`)
+						//} else {
+							this.resources[proto.name] = proto
+						//}
 					}
 				}
 				this._ready = true
@@ -209,11 +209,11 @@ export class BuildingManager {
 	}
 
 	get(name: string): BuildingPrototype | undefined {
-		return this.resources.get(name)
+		return this.resources[name]
 	}
 	getList(): string[] {
 		const res: string[] = []
-		for (let entry of this.resources.entries()) {
+		for (let entry in this.resources) {
 			res.push(entry[0])
 		}
 		return res
