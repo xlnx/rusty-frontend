@@ -107,8 +107,19 @@ export class BasemapComponent extends Component<{}> {
 				})
 
 				buildings.forEach((building: BuildingData) => {
+
 					const { prototype, center } = building
 					const proto = manager.manager.get(prototype)
+
+					console.log("importing: ", prototype, ", ", center)
+					console.log("with manager: ", manager)
+					console.log("with manager list: ", manager.manager.getList())
+
+
+					const pos = new THREE.Vector2(center.x, center.y)
+					const modelInfo = basemap.alignBuilding(pos, proto.placeholder)
+					window["__fuck_data"] = modelInfo
+					
 					const entity = EntityBuilder.create("a-entity", {
 						building: {
 							name: prototype
@@ -116,11 +127,6 @@ export class BasemapComponent extends Component<{}> {
 					})
 						.attachTo(city)
 						.toEntity()
-
-					const component = <BuildingComponent>entity.components.building
-					const pos = new THREE.Vector2(center.x, center.y)
-					const modelInfo = basemap.alignBuilding(pos, proto.placeholder)
-					const { angle, valid } = modelInfo
 
 						; (<any>entity).___my_private_fucking_data = modelInfo
 

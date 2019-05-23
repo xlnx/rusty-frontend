@@ -32,6 +32,7 @@ export class BuildingManagerComponent extends Component<{}> {
 	tick() {
 		if (!this.finish) {
 			; (<any>this).ratio = this.manager.finishedRequests / this.manager.requests
+			window["__fuck_manager"] = { manager: this.manager }
 		} else {
 			; (<any>this).ratio = 1
 		}
@@ -173,7 +174,13 @@ export class BuildingComponent extends Component<BuildingComponentSchema> {
 			; (<any>this).proto = manager.manager.get(this.data.name)
 
 		let modelInfo = (<any>this.el).___my_private_fucking_data
-		// console.log(modelInfo)
+
+		if (!modelInfo) {
+			modelInfo = window["__fuck_data"]
+		}
+		window["__fuck_data"] = undefined
+		
+		console.log("Incoming modelInfo: ", modelInfo)
 
 		const basemap: BasemapComponent = window["basemap"]
 
