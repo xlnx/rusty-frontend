@@ -362,16 +362,6 @@ export class BuildingStateComponent extends Component<{}> {
 			updateProto(idx)
 			updateState()
 		})
-
-		setTimeout(() => {
-
-			const controlEn: AFrame.Entity = window['control']
-			this.subscribe(controlEn, "-scroll", (evt) => {
-				const idx = evt.detail.deltaY / 100
-				updateProto(idx)
-				updateState()
-			})
-		}, 1000)
 	}
 }
 
