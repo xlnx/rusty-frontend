@@ -19,8 +19,10 @@ export class GameComponent extends Component<{}> {
 		this.subscribe((<AFrame.Entity>this.el.parentElement), "router-enter", evt => {
 
 		})
-		this.socket.el.addEventListener("receive", msg => {
-			setTimeout(() => {
+		this.socket.el.addEventListener("receive", (msg:any) => {
+			//const import_data = (msg: any) => {
+
+			      console.log(msg.detail)
 				const { type, data } = (<any>msg).detail
 				if (type == "Synchronization data") {
 					try {
@@ -36,12 +38,51 @@ export class GameComponent extends Component<{}> {
 						console.log(`[Game] Fail to synchronize data: ${err}`)
 					}
 				}
-			})
+			//}
+
+			//const query_import_data = (msg: any) => {
+			//        const building_mgr = window["building-manager"]
+			//	let data_ready = false
+			//	if (building_mgr) {
+			//	   console.log(building_mgr)
+			  //          if (building_mgr.manager.ready) {
+			//	       data_ready = true
+			//	    }
+			//	}
+			//	if (!data_ready) {
+			//	   console.log("query here")
+			  //    	     setTimeout(() => { query_import_data(msg) }, 10)
+			    //    } else {
+			//	   console.log("import here")
+			//	     import_data(msg)
+			//	}
+			//}			
+
+			//setTimeout(() => { query_import_data(msg) }, 0)
 		})
-		setTimeout(() => {
-			const login: LoginComponent = window['login']
-			login.el.emit("Basemap ready")
-		}, 1000)
+		const login_continue = () => {
+		      const login = window["login"]
+		      console.log("login continue here")
+		      login.el.emit("Basemap ready")
+		}
+		const query_login_continue = () => {
+		      console.log("login query here")
+		      const building_mgr = window["building-manager"]
+		     // console.log(building_mgr.ready)
+		      let data_ready = false
+		      //if (building_mgr != undefined) {
+		      	 if (building_mgr.manager.ready) {
+			    data_ready = true
+			 }
+		      //}
+		      if (!data_ready) {
+		      	 setTimeout(() => { query_login_continue() }, 10)
+		      } else {
+		      	login_continue()
+		      }
+		}
+
+		setTimeout(query_login_continue, 10)
 	}
 }
 

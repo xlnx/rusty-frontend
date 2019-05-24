@@ -42,7 +42,7 @@ export class LoginComponent extends Component<{}>{
             this.listen("Basemap ready", () => {
                 // console.log("rrr")
                 this.socket.el.emit("Require data")
-                // console.log("require")
+                console.log(" =========== require data here ====== ")
             })
             this.socket.el.emit("connect")
         })

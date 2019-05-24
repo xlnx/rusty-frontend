@@ -214,7 +214,7 @@ export class BuildingManager {
 	getList(): string[] {
 		const res: string[] = []
 		for (let entry in this.resources) {
-			res.push(entry[0])
+			res.push(entry)
 		}
 		return res
 	}

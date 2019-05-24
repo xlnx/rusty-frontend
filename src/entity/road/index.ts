@@ -68,7 +68,7 @@ export class RoadIndicatorComponent extends Component<RoadIndicatorComponentSche
 					}],
 					buildings: []
 				})
-			})
+		})
 			added.forEach(road => {
 				socket.el.emit("Add data", {
 					state: "insert",
@@ -116,8 +116,13 @@ export class RoadComponent extends Component<{ readonly item: any }> {
 
 	init() {
 		this.el.setAttribute("ray-castable", {})
-		const item = (<any>this.el).___my_private_fucking_data
+		let item = (<any>this.el).___my_private_fucking_data
 			; (<any>this.el).___my_private_fucking_data = undefined
+
+		if (!item) {
+		   item = window["__fuck_you_data"]
+		}
+		window["__fuck_you_data"] = undefined
 
 		// console.log(item)
 

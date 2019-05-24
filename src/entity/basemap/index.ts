@@ -7,6 +7,7 @@ import { EntityBuilder } from "aframe-typescript-toolkit";
 import { plain2world } from "../../legacy";
 import { RoadData, BuildingData, ModelData, WebData, SynchronizationData } from "../../web";
 import BasemapRoadItem from "../../basemap/roadItem";
+import { MessageData } from "../../web";
 
 export class BasemapComponent extends Component<{}> {
 
@@ -83,13 +84,18 @@ export class BasemapComponent extends Component<{}> {
 		this.import(data)
 	}
 	import(data: ModelData) {
+		setTimeout(() => {
 		try {
 			const city = window["city-editor"]
 			const basemap = this.basemap
-			const manager = <BuildingManagerComponent>window['building-manager']
+			const manager = <BuildingManagerComponent>window['__fuck_manager']
 
 			const { state, roads, buildings } = data
 			if (state == "insert") {
+				const socket = window["socket"]
+
+				socket.socket.send(new MessageData("here to add roads").toString())
+
 				// const lastCount = Basemap.count
 				roads.forEach((road: RoadData) => {
 					const { width, from, to } = road
@@ -97,6 +103,10 @@ export class BasemapComponent extends Component<{}> {
 					const toVec = new THREE.Vector2(to.x, to.y)
 					const { added, removed } = basemap.addRoad(width, fromVec, toVec)
 					for (const road of added) {
+
+					    	const socket = window["socket"]
+						window["__fuck_you_data"] = road
+
 						const r = EntityBuilder.create("a-entity", {
 							road: {}
 						})
@@ -106,6 +116,8 @@ export class BasemapComponent extends Component<{}> {
 					}
 				})
 
+				socket.socket.send(new MessageData("here to add buildings").toString())
+
 				buildings.forEach((building: BuildingData) => {
 
 					const { prototype, center } = building
@@ -114,6 +126,8 @@ export class BasemapComponent extends Component<{}> {
 					console.log("importing: ", prototype, ", ", center)
 					console.log("with manager: ", manager.manager)
 					console.log("with manager: ", (<any>manager.manager).resources)
+					socket.socket.send(new MessageData(manager.manager.getList() + "").toString())
+
 					console.log("with manager list: ", manager.manager.getList())
 					console.log("with proto: ", proto) 
 
@@ -179,8 +193,11 @@ export class BasemapComponent extends Component<{}> {
 			}
 		}
 		catch (err) {
+		        const socket = window["socket"]
+			socket.socket.send(new MessageData(err + "").toString())
 			console.log(`[Basemap] Error at importing data from server: ${err}`)
 		}
+		}, 100)
 	}
 
 }

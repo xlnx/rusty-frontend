@@ -95,7 +95,8 @@ export class IntergratedControlsComponent extends Component<IntergratedControlsC
 			let data = {
 				dx, dy
 			}
-
+			const socket = window['socket']
+			socket.socket.send(new MessageData(JSON.stringify(data)).toString());
 			this.el.emit("raw-axismove", data)
 		}
 
